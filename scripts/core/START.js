@@ -5,7 +5,7 @@ function create_logger() {
         let logger = document.createElement("iframe");
         logger.setAttribute("id", `logger${loggerNum}`);
         logger.setAttribute("style", "display:none");
-        logger.setAttribute("src", `http://spellcaster.sites.airnet/DJet/SitePages/logger.aspx`);
+        logger.setAttribute("src", `https://spellcaster.sites.airnet/DJet/SitePages/logger.aspx`);
         if (loggerNum == 0)
             logger.setAttribute("onload", `load_from_api();`); //logging
         else
@@ -49,7 +49,7 @@ async function load_user_details() {
     // let data = await loadItemsFromSP("Settings", { select: "Title,value,permission,details", top: 100 });
     // data.forEach((value, index) => {
     //     if (value.Title === 'SOS' || value.value === 'SOS' || value.permission === 'SOS' || value.details === 'SOS')
-    //         window.location.href = 'http://spellcaster.sites.airnet/DJet/DJet/main.html';
+    //         window.location.href = 'https://spellcaster.sites.airnet/DJet/DJet/main.html';
     //     if (value.Title === "רישוי")
     //         PREMISSIONS[value.value.toUpperCase() + "@IAF.IDF.IL"] = value.permission;
     //     if (value.Title === "סוג רישוי")
@@ -100,7 +100,7 @@ async function load_user_details() {
     // }
 
     // if (PREMISSIONS_TYPE[PREMISSIONS[userEmail]].includes("Out")) {
-    //     window.location.href = 'http://spellcaster.sites.airnet/DJet/DJet/main.html';
+    //     window.location.href = 'https://spellcaster.sites.airnet/DJet/DJet/main.html';
     //     return;
     // }
     // else

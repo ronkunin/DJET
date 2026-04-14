@@ -251,7 +251,7 @@ textarea.style.zIndex = `-1`;
 document.body.appendChild(textarea);
 
 function copyShareLink() {
-    let url = `http://spellcaster.sites.airnet/DJet/DJet/index.html?shareId=${user_details["Id"]}&shareName=${encodeURIComponent(user_details["username"])}`;
+    let url = `https://spellcaster.sites.airnet/DJet/DJet/index.html?shareId=${user_details["Id"]}&shareName=${encodeURIComponent(user_details["username"])}`;
 
     textarea.value = url;
     textarea.focus();
