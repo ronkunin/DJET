@@ -13,8 +13,16 @@ let library_gifs = [];
 // Initialize site DOM elements first
 initializeSite();
 
-// Then load data
-load_from_api();
+// Then initialize Google authentication and load data
+initializeAndLoad();
+
+async function initializeAndLoad() {
+    // Initialize Google authentication first
+    await initializeGoogleAuth();
+    
+    // Then load data
+    load_from_api();
+}
 
 async function load_from_api() {
     // loads user and his premission to the site
@@ -138,7 +146,17 @@ async function load_user_details() {
             wordle_games: 0
         };
         hideLoadingScreen();
-        showWelcomeModal();
+        
+        // Check if user is Google authenticated
+        const isGoogleAuth = window.isUserGoogleAuthenticated && window.isUserGoogleAuthenticated();
+        if (!isGoogleAuth) {
+            // Show Google sign-in prompt for first-time users
+            showGoogleSignInPrompt();
+        } else {
+            // User is authenticated, show welcome modal for profile setup
+            showWelcomeModal();
+            updateWelcomeModalView();
+        }
     }
     else
         scanUser();

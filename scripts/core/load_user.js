@@ -1,4 +1,9 @@
 async function setupNewUser() {
+    // Check if user is Google authenticated
+    if (!window.isUserGoogleAuthenticated || !window.isUserGoogleAuthenticated()) {
+        showGoogleSignInPrompt();
+        return;
+    }
 
     const username = document.getElementById('welcome-username').value.trim();
     const selectedGroup = document.getElementById('welcome-group').value;
@@ -137,8 +142,17 @@ function scanUser() {
 
     if (user_details["username"] == null || user_details["unit"] == null) {
         hideLoadingScreen();
-        showWelcomeModal();
-
+        
+        // Check if user is Google authenticated
+        const isGoogleAuth = window.isUserGoogleAuthenticated && window.isUserGoogleAuthenticated();
+        if (!isGoogleAuth) {
+            // Show Google sign-in prompt for first-time users
+            showGoogleSignInPrompt();
+        } else {
+            // User is authenticated, show welcome modal for profile setup
+            showWelcomeModal();
+            updateWelcomeModalView();
+        }
     }
     else {
         updateUserDisplay();

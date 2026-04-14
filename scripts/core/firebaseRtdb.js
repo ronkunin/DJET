@@ -20,12 +20,20 @@ import {
     remove,
     push
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+import {
+    getAuth,
+    signInWithPopup,
+    GoogleAuthProvider,
+    signOut,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 window.firebaseReady = false;
 window.firebaseReadyPromise = (async () => {
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const database = getDatabase(app);
+    const auth = getAuth(app);
 
     window.firebaseRTDB = {
         app,
@@ -36,7 +44,12 @@ window.firebaseReadyPromise = (async () => {
         set,
         update,
         remove,
-        push
+        push,
+        auth,
+        signInWithPopup,
+        GoogleAuthProvider,
+        signOut,
+        onAuthStateChanged
     };
 
     window.firebaseReady = true;
@@ -67,3 +80,30 @@ window.storeLocalDjetUserProfile = profile => {
     if (profile.username) window.localStorage.setItem('djet_user_name', profile.username);
     if (profile.unit) window.localStorage.setItem('djet_user_unit', profile.unit);
 };
+
+// Google Auth Storage Functions
+window.getStoredDjetGoogleUid = () => window.localStorage.getItem('djet_google_uid');
+window.setStoredDjetGoogleUid = uid => {
+    if (!uid) {
+        window.localStorage.removeItem('djet_google_uid');
+        window.localStorage.removeItem('djet_google_email');
+        window.localStorage.removeItem('djet_google_display_name');
+        return;
+    }
+    window.localStorage.setItem('djet_google_uid', uid);
+    return uid;
+};
+window.getStoredDjetGoogleEmail = () => window.localStorage.getItem('djet_google_email') || '';
+window.getStoredDjetGoogleDisplayName = () => window.localStorage.getItem('djet_google_display_name') || '';
+window.storeGoogleAuthData = user => {
+    if (!user) {
+        window.localStorage.removeItem('djet_google_uid');
+        window.localStorage.removeItem('djet_google_email');
+        window.localStorage.removeItem('djet_google_display_name');
+        return;
+    }
+    window.localStorage.setItem('djet_google_uid', user.uid);
+    window.localStorage.setItem('djet_google_email', user.email || '');
+    window.localStorage.setItem('djet_google_display_name', user.displayName || '');
+};
+window.isUserGoogleAuthenticated = () => !!window.getStoredDjetGoogleUid();

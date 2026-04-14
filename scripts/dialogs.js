@@ -29,6 +29,12 @@ function addSettingsModal() {
                 <p id="settings-warning">שים לב: שם המשתמש והיחידה יוצגו לכולם</p>
 
                 <button class="settings-button" id="save-settings" onclick="saveSettings();">שמור שינויים</button>
+                
+                <div style="border-top: 1px solid rgba(255,255,255,0.2); margin-top: 20px; padding-top: 20px;">
+                    <button class="settings-button" id="logout-button" onclick="googleSignOut();" style="background-color: #ff6b6b; color: white;">
+                        <i class="fas fa-sign-out-alt"></i> התחבר עם חשבון אחר
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -602,46 +608,79 @@ function addWelcomeModal() {
                 <p>בוא נגדיר רגע את הפרופיל שלך</p>
             </div>
             <div class="welcome-content">
-                <div class="welcome-form-group">
-                    <label for="welcome-username">
-                        <i class="fas fa-user"></i>
-                        הזן את שם + שם משפחה
-                    </label>
-                    <input type="text" id="welcome-username" class="welcome-input" placeholder="הזן שם משתמש" maxlength="20">
+                <!-- Google Sign-In Section (shown first) -->
+                <div id="google-signin-section" style="display: none; text-align: center; padding: 20px 0;">
+                    <p style="margin-bottom: 20px; font-size: 1em;">
+                        ✅ התחברות עם Google תבטיח שפרופילך יישמר ויהיה זמין בכל מכשיר
+                    </p>
+                    <button class="welcome-button" id="google-signin-btn" onclick="signInWithGoogle();" style="font-size: 1.1em; padding: 12px 24px; margin-bottom: 10px;">
+                        🔐 התחבר עם Google
+                    </button>
                 </div>
 
-                <div class="welcome-form-group">
-                    <label for="welcome-group">
-                        <i class="fas fa-users"></i>
-                        תבחר את היחידה שלך
-                    </label>
-                    <select id="welcome-group" class="welcome-input" required aria-required="true" title="בחר את היחידה">
-                        <option value="" disabled selected>בחר יחידה...</option>
-                        ${generateOptions()}
-                    </select>
+                <!-- Profile Setup Section (shown after auth) -->
+                <div id="profile-setup-section">
+                    <div class="welcome-form-group">
+                        <label for="welcome-username">
+                            <i class="fas fa-user"></i>
+                            הזן את שם + שם משפחה
+                        </label>
+                        <input type="text" id="welcome-username" class="welcome-input" placeholder="הזן שם משתמש" maxlength="20">
+                    </div>
+
+                    <div class="welcome-form-group">
+                        <label for="welcome-group">
+                            <i class="fas fa-users"></i>
+                            תבחר את היחידה שלך
+                        </label>
+                        <select id="welcome-group" class="welcome-input" required aria-required="true" title="בחר את היחידה">
+                            <option value="" disabled selected>בחר יחידה...</option>
+                            ${generateOptions()}
+                        </select>
+                    </div>
+
+
+                    <div class="welcome-form-group welcome-terms">
+                        <label class="checkbox-label" for="welcome-terms">
+                            <input type="checkbox" id="welcome-terms" class="checkbox-input" aria-required="true" required>
+                            <span class="custom-checkbox" aria-hidden="true"></span>
+                            <span class="checkbox-text">
+                                אני מתחייב להשתמש באתר באופן שהולם את חוקי החיל
+                        </label>
+                    </div>
+
+                    <p id="welcome-warning">שים לב: שם המשתמש והיחידה יוצגו לכולם</p>
+                    <button class="welcome-button" id="welcome-submit" onclick="setupNewUser();">
+                        <i class="fas fa-rocket"></i>
+                        בוא נתחיל!
+                    </button>
                 </div>
-
-
-                <div class="welcome-form-group welcome-terms">
-                    <label class="checkbox-label" for="welcome-terms">
-                        <input type="checkbox" id="welcome-terms" class="checkbox-input" aria-required="true" required>
-                        <span class="custom-checkbox" aria-hidden="true"></span>
-                        <span class="checkbox-text">
-                            אני מתחייב להשתמש באתר באופן שהולם את חוקי החיל
-                    </label>
-                </div>
-
-                <p id="welcome-warning">שים לב: שם המשתמש והיחידה יוצגו לכולם</p>
-                <button class="welcome-button" id="welcome-submit" onclick="setupNewUser();">
-                    <i class="fas fa-rocket"></i>
-                    בוא נתחיל!
-                </button>
             </div>
         </div>
     </div>
     `;
 
     document.body.insertAdjacentHTML('beforeend', modalHTML);
+    updateWelcomeModalView();
+}
+
+/**
+ * Update welcome modal view based on authentication status
+ */
+function updateWelcomeModalView() {
+    const isGoogleAuth = window.isUserGoogleAuthenticated && window.isUserGoogleAuthenticated();
+    const googleSigninSection = document.getElementById('google-signin-section');
+    const profileSetupSection = document.getElementById('profile-setup-section');
+    
+    if (isGoogleAuth) {
+        // User is already authenticated, show profile setup
+        if (googleSigninSection) googleSigninSection.style.display = 'none';
+        if (profileSetupSection) profileSetupSection.style.display = 'block';
+    } else {
+        // User not authenticated, show Google sign-in
+        if (googleSigninSection) googleSigninSection.style.display = 'block';
+        if (profileSetupSection) profileSetupSection.style.display = 'none';
+    }
 }
 
 function showWelcomeModal() {
