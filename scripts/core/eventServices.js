@@ -1,4 +1,4 @@
-﻿const site_url = `https://spellcaster.sites.airnet/DJet`;
+﻿const site_url = ``;
 const site_url2 = `/DJet/newDjet/main.html`;
 const api = `${site_url}/_api`;
 

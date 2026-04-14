@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^git add index\\.html scripts/core/SETTINGS\\.js scripts/core/START\\.js scripts/core/eventServices\\.js scripts/core/load_user\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

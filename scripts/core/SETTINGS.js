@@ -47,14 +47,5 @@ const BAD_WORDS = [
 ];
 
         const settingsLinks = [
-            { emoji: "👤", text: "Users",            link: "https://spellcaster.sites.airnet/DJet/SitePages/users_new.aspx" },
-            { emoji: "💳", text: "Transactions",    link: "https://spellcaster.sites.airnet/DJet/Lists/Transactions/AllItems.aspx" },
-            { emoji: "📁", text: "Files",    link: "https://spellcaster.sites.airnet/DJet/DJet/Forms/AllItems.aspx" },
-            { emoji: "🔑", text: "Permissions",      link: "https://spellcaster.sites.airnet/DJet/Lists/Settings/view.aspx" },
-            { emoji: "💬", text: "Messages",         link: "https://spellcaster.sites.airnet/DJet/Lists/Messages/AllItems.aspx" },
-            { emoji: "🏠", text: "Rooms",            link: "https://spellcaster.sites.airnet/DJet/Lists/Rooms/AllItems.aspx" },
-            { emoji: "📊", text: "Activity",         link: "https://spellcaster.sites.airnet/DJet/Lists/Activity/AllItems.aspx" },
-            { emoji: "📄", text: "Manager Page",             link: "https://spellcaster.sites.airnet/DJet/SitePages/AdminPage.aspx" },
-            { emoji: "🔍", text: "Decoder",          link: "https://spellcaster.sites.airnet/DJet/DJet/decoder.html" },
-            { emoji: "🌐", text: "Site Content",        link: "https://spellcaster.sites.airnet/DJet/_layouts/15/viewlsts.aspx" }
+            // Admin links removed as site no longer exists
         ];

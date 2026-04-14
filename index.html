@@ -7,9 +7,6 @@
     <title>D-Jet🎧</title>
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="shortcut icon"
-        href="https://spellcaster.sites.airnet/DJet/icons/%D7%9E%D7%97%D7%95%D7%9C%D7%9C%20%D7%94%D7%AA%D7%9E%D7%95%D7%A0%D7%95%D7%AA%20(gamepad).png"
-        type="image/x-icon">
 
     <link rel="stylesheet" href="styles/reset.css">
     <link rel="stylesheet" href="styles/homepage.css">
@@ -54,7 +51,7 @@
     <script src="scripts/features/music/search.js" defer></script>
 
 
-    <script src="https://spellcaster.sites.airnet/SiteAssets/p5.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js" defer></script>
     <!-- <script src="canvases/flappyJet.js"></script>
     <script src="canvases/longArm.js"></script>
     <script src="canvases/skyDome.js"></script> -->
@@ -266,7 +263,6 @@
                         <!-- User Profile -->
 
                         <div class="nav-links">
-                            <a href="https://spellcaster.sites.airnet/DJet/DJet/old_djet/index.html">D-HISTORY</a>
                             <a onclick="shop();">DShop</a>
                             <a href="#" id="leaderboards-link">לוח תוצאות</a>
                         </div>
@@ -287,10 +283,10 @@
 
         <div class="canvas_container" id="song_mode">
             <div class="canvas_selector_nav" id="canvas_selector_nav">
-                <a onclick="document.getElementById('defaultCanvas0').style.display = 'none'; document.getElementById('gameloader').style.display = 'none';"><img src="https://spellcaster.sites.airnet/DJet/Images1/Djet_Logo.png"></a>
-                <a onclick="document.getElementById('defaultCanvas0').style.display = 'block'; document.getElementById('gameloader').style.display = 'flex';loadGame('FlappyJet')"><img src="https://spellcaster.sites.airnet/DJet/GameImages/flappyJet_icon.png"></a>
-                <a onclick="document.getElementById('defaultCanvas0').style.display = 'block'; document.getElementById('gameloader').style.display = 'flex'; loadGame('SkyDome')"><img src="https://spellcaster.sites.airnet/DJet/GameImages/SkyDome_icon.png"></a>
-                <a onclick="document.getElementById('defaultCanvas0').style.display = 'block'; document.getElementById('gameloader').style.display = 'flex'; loadGame('LongArm')"><img src="https://spellcaster.sites.airnet/DJet/GameImages/LongArm_icon.png"></a>
+                <a onclick="document.getElementById('defaultCanvas0').style.display = 'none'; document.getElementById('gameloader').style.display = 'none';"><img src=""></a>
+                <a onclick="document.getElementById('defaultCanvas0').style.display = 'block'; document.getElementById('gameloader').style.display = 'flex';loadGame('FlappyJet')"><img src=""></a>
+                <a onclick="document.getElementById('defaultCanvas0').style.display = 'block'; document.getElementById('gameloader').style.display = 'flex'; loadGame('SkyDome')"><img src=""></a>
+                <a onclick="document.getElementById('defaultCanvas0').style.display = 'block'; document.getElementById('gameloader').style.display = 'flex'; loadGame('LongArm')"><img src=""></a>
             </div>
             <div class="canvas_holder glass" id="canvas_container" onclick="mousePressed2();">
                 <img id="vinyl2" src="" onclick="togglePlay()">
@@ -518,7 +514,7 @@
 
     <script>
         function play(game, height = 800, isOnline=false) {
-            document.getElementById('game_zone').innerHTML = `<iframe src="https://spellcaster.sites.airnet/DJet/DJet/games/${game}.html" height="${height}"></iframe>`
+            document.getElementById('game_zone').innerHTML = `<iframe src="" height="${height}"></iframe>`
             clean();
             document.documentElement.scrollTop = 0;
             document.getElementById('game_zone').style.display = 'block';
