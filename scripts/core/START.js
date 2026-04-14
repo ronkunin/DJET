@@ -1,4 +1,3 @@
-load_from_api();
 
 let user_details;
 let PREMISSIONS = [];       // {userEmail:Premission,....}
@@ -9,6 +8,7 @@ let library_activity = [];
 let library_users = [];
 let library_transactions = [];
 let library_gifs = [];
+load_from_api();
 
 async function load_from_api() {
     // loads user and his premission to the site
