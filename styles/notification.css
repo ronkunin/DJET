@@ -1,0 +1,263 @@
+    /* ==============================================
+    ENHANCED NOTIFICATIONS - TOP LEFT
+    ============================================== */
+    .notification-container {
+        position: fixed;
+        top: 110px;
+        left: 20px;
+        z-index: 120;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 300px;
+        direction: rtl;
+    }
+
+    /* Regular Notification */
+    .regular-notification {
+        background: linear-gradient(135deg, rgba(138, 43, 226, 0.40), rgba(0, 212, 255, 0.40));
+        color: white;
+        padding: 15px 20px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 10px 30px rgba(138, 43, 226, 0.4);
+        animation: slideInLeft 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        cursor: pointer;
+        transform-origin: left center;
+        transition: var(--transition);
+        width: 250px;
+    }
+
+    .regular-notification:hover {
+        transform: translateX(5px) scale(1.02);
+        box-shadow: 0 15px 35px rgba(138, 43, 226, 0.5);
+    }
+
+    .regular-notification.hiding {
+        animation: slideOutLeft 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
+    }
+
+    /* System Notification */
+    .system-notification {
+        background: linear-gradient(135deg, rgba(32, 191, 107, 0.40), rgba(0, 184, 148, 0.40));
+        color: white;
+        padding: 15px 20px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 10px 30px rgba(32, 191, 107, 0.4);
+        animation: slideInLeft 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        cursor: default;
+        transform-origin: left center;
+        transition: var(--transition);
+        width: 250px;
+    }
+
+    .system-notification:hover {
+        transform: translateX(5px) scale(1.02);
+        box-shadow: 0 15px 35px rgba(32, 191, 107, 0.5);
+    }
+
+    .system-notification.hiding {
+        animation: slideOutLeft 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
+    }
+
+    .system-notification.error {
+        background: linear-gradient(135deg, rgba(255, 71, 87, 0.95), rgba(255, 107, 129, 0.95));
+        box-shadow: 0 10px 30px rgba(255, 71, 87, 0.4);
+    }
+
+    .system-notification.error:hover {
+        box-shadow: 0 15px 35px rgba(255, 71, 87, 0.5);
+    }
+
+    .system-notification.warning {
+        background: linear-gradient(135deg, rgba(253, 203, 110, 0.95), rgba(225, 112, 85, 0.95));
+        box-shadow: 0 10px 30px rgba(253, 203, 110, 0.4);
+    }
+
+    .system-notification.warning:hover {
+        box-shadow: 0 15px 35px rgba(253, 203, 110, 0.5);
+    }
+
+    .system-notification.info {
+        background: linear-gradient(135deg, rgba(0, 212, 255, 0.95), rgba(108, 92, 231, 0.95));
+        box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4);
+    }
+
+    .system-notification.info:hover {
+        box-shadow: 0 15px 35px rgba(0, 212, 255, 0.5);
+    }
+
+    /* GIF Notification - Bigger Version */
+    .gif-notification {
+        background: linear-gradient(135deg, rgba(138, 43, 226, 0.3), rgba(0, 212, 255, 0.3));
+        color: white;
+        padding: 20px;
+        border-radius: 20px;
+        box-shadow: 0 15px 40px rgba(138, 43, 226, 0.5);
+        animation: slideInLeft 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        backdrop-filter: blur(15px);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        cursor: pointer;
+        transform-origin: left center;
+        transition: var(--transition);
+        width: 250px;
+    }
+
+    .gif-notification:hover {
+        transform: translateX(5px) scale(1.02);
+        box-shadow: 0 20px 45px rgba(138, 43, 226, 0.6);
+    }
+
+    .gif-notification.hiding {
+        animation: slideOutLeft 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
+    }
+
+    .gif-notification-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+
+    .gif-notification-sender {
+        font-weight: 700;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .gif-notification-sender .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .gif-notification-body {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .gif-notification-text {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 600;
+    }
+
+    .gif-notification-preview {
+        width: 100%;
+        border-radius: 15px;
+        overflow: hidden;
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .gif-notification-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        max-width: 100px;
+    }
+
+    .gif-notification-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .notification-close {
+        background: rgba(255, 255, 255, 0.01);
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 1rem;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+    }
+
+    .notification-close:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: rotate(90deg);
+    }
+
+    .notification-timestamp {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.7);
+        direction: ltr;
+    }
+
+    @keyframes slideInLeft {
+        from {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOutLeft {
+        to {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+    }
+
+    /* Notification Badge */
+    .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: var(--accent-color);
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 700;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 3px 10px rgba(255, 0, 128, 0.5);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+        0%,
+        100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.1);
+        }
+    }

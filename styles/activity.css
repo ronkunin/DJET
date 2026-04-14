@@ -1,0 +1,142 @@
+/* Activity Section */
+.activity-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.activity-header {
+    padding: 15px 20px;
+    background: rgba(253, 121, 168, 0.1);
+    border-bottom: 1px solid rgba(253, 121, 168, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-direction: row-reverse;
+    /* Reverse for Hebrew */
+}
+
+.activity-header h4 {
+    color: var(--activity-color);
+    font-size: 1.1rem;
+}
+
+
+.activity-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+/* Custom Scrollbar */
+*::-webkit-scrollbar {
+    width: 6px;
+}
+
+*::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #ded7ff, #9782ff);
+    transition: all 0.4s ease;
+    border-radius: 10px;
+
+}
+
+.activity-item {
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: var(--transition);
+    animation: activitySlide 0.5s ease;
+    flex-direction: row-reverse;
+    /* Reverse for Hebrew */
+    text-align: right;
+    /* Right align for Hebrew */
+    direction: ltr;
+}
+
+@keyframes activitySlide {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+        /* Changed from -20px to 20px for RTL */
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.activity-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.activity-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+    flex-shrink: 0;
+    transition: all 0.4s ease;
+}
+
+.activity-item:hover .activity-icon {
+    transform: scale(1.3);
+}
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+    direction: rtl;
+}
+
+.activity-text {
+    font-size: 0.9rem;
+    color: var(--light-color);
+    margin-bottom: 3px;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+}
+
+.activity-user {
+    font-weight: 600;
+    transition: all 0.4s ease;
+
+}
+
+.activity-group {
+    font-size: 0.8rem;
+    color: #8888cc;
+    font-style: italic;
+    margin-right: 5px;
+    /* Changed from margin-left */
+    margin-left: 0;
+    /* Reset left margin */
+}
+
+.activity-time {
+    font-size: 0.75rem;
+    color: #8888cc;
+    text-align: left;
+    /* Keep time LTR */
+    direction: ltr;
+}
+
+.activity-game {
+    color: var(--primary-color);
+    font-weight: 600;
+}

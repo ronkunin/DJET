@@ -1,0 +1,520 @@
+/* ==============================================
+DCOINS COUNTER STYLES
+============================================== */
+.dcoins-counter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 30px;
+    padding: 8px 20px;
+    border-radius: 20px;
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    position: relative;
+    cursor: pointer;
+    direction: rtl;
+    transition: var(--transition);
+}
+
+.dcoins-counter:hover {
+    background: rgba(0, 255, 136, 0.15);
+    transform: translateY(-2px);
+}
+
+.dcoins-counter i {
+    position: relative;
+    font-size: 2rem;
+    color: rgba(0, 255, 21, 0.63);
+
+    animation:
+        flame-main 0.9s infinite ease-in-out,
+        flame-wobble 0.35 infinite alternate;
+
+    text-shadow:
+        0 0 6px rgba(0, 255, 136, 0.1),
+        0 0 14px rgba(0, 255, 136, 0.2),
+        0 0 28px rgba(0, 196, 104, 0.493)
+}
+
+@keyframes flame-main {
+    0% {
+        transform: scale(1) translateY(0);
+        filter: brightness(1);
+    }
+
+    50% {
+        transform: scale(1.06, 0.98) translateY(-1px);
+        filter: brightness(1.15);
+    }
+
+    100% {
+        transform: scale(1) translateY(0);
+        filter: brightness(1);
+    }
+}
+
+@keyframes flame-wobble {
+    0% {
+        transform: rotate(-0.6deg);
+    }
+
+    100% {
+        transform: rotate(0.6deg);
+    }
+}
+
+.dcoins.active {
+    animation: streakGlow 2s infinite alternate;
+}
+
+@keyframes streakGlow {
+    0% {
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+    }
+
+    100% {
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    }
+}
+
+.dcoins-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.dcoins-amount {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--dcoin-color);
+    line-height: 1;
+    transition: all 0.3s ease;
+}
+
+.dcoins-label {
+    font-size: 0.8rem;
+    color: var(--dcoin-light);
+}
+
+/* Money animation effects */
+.coin-animation {
+    position: absolute;
+    color: var(--dcoin-color);
+    font-weight: bold;
+    font-size: 1.1rem;
+    z-index: 100;
+    pointer-events: none;
+    animation: coinFloat 1.5s ease-out forwards;
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+}
+
+@keyframes coinFloat {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: translateY(-25px) scale(1.2);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-50px) scale(1.5);
+    }
+}
+
+.pulse-animation {
+    animation: pulseEffect 0.6s ease-out;
+}
+
+@keyframes pulseEffect {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7);
+    }
+
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 15px rgba(0, 255, 136, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 255, 136, 0);
+    }
+}
+
+.negative-pulse {
+    animation: negativePulse 0.6s ease-out;
+}
+
+@keyframes negativePulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7);
+    }
+
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 15px rgba(255, 71, 87, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 71, 87, 0);
+    }
+}
+
+/* ==============================================
+           DCOINS TRANSFER MODAL
+           ============================================== */
+.transfer-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+}
+
+.transfer-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.transfer-container {
+    width: 90%;
+    max-width: 450px;
+    border-radius: 20px;
+    overflow: hidden;
+    transform: translateY(30px);
+    transition: transform 0.4s ease;
+}
+
+.transfer-modal.active .transfer-container {
+    transform: translateY(0);
+}
+
+.transfer-header {
+    padding: 20px;
+    background: linear-gradient(90deg, rgba(0, 255, 136, 0.2), rgba(0, 212, 255, 0.2));
+    border-bottom: 1px solid rgba(0, 255, 136, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.transfer-header h3 {
+    color: var(--dcoin-color);
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.transfer-close {
+    background: none;
+    border: none;
+    color: var(--light-color);
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.transfer-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.transfer-content {
+    padding: 25px;
+}
+
+.transfer-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    color: var(--secondary-color);
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.transfer-input {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--light-color);
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.transfer-input:focus {
+    outline: none;
+    border-color: var(--dcoin-color);
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+}
+
+.user-search-container {
+    position: relative;
+}
+
+.search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(10, 10, 20, 0.95);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    border-radius: 12px;
+    margin-top: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.search-results.active {
+    display: block;
+}
+
+.search-result-item {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: var(--transition);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.search-result-item:hover {
+    background: rgba(0, 255, 136, 0.1);
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.result-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: white;
+}
+
+.result-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.result-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.result-group {
+    font-size: 0.8rem;
+    color: #8888cc;
+}
+
+.transfer-button {
+    background: linear-gradient(90deg, var(--dcoin-color), #00cc77);
+    color: var(--dark-color);
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.transfer-button:hover:not(:disabled) {
+    background: linear-gradient(90deg, #00cc77, var(--dcoin-color));
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 255, 136, 0.3);
+}
+
+.transfer-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.quick-amount-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.quick-amount-button {
+    flex: 1;
+    background: rgba(0, 255, 136, 0.1);
+    color: var(--dcoin-color);
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: 600;
+}
+
+.quick-amount-button:hover {
+    background: rgba(0, 255, 136, 0.2);
+}
+
+.available-balance {
+    font-size: 0.85rem;
+    color: #8888cc;
+    margin-top: 5px;
+    text-align: center;
+}
+
+.available-balance span {
+    color: var(--dcoin-color);
+    font-weight: 600;
+}
+
+.dcoins-details {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 10px;
+    padding: 20px;
+    border-radius: 12px;
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    min-width: 350px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: var(--transition);
+    z-index: 1000;
+}
+
+.dcoins-counter:hover .dcoins-details {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dcoins-details h4 {
+    color: var(--dcoin-color);
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dcoins-explanation {
+    color: var(--light-color);
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.transfer-open-button {
+    background: rgba(0, 255, 136, 0.15);
+    color: var(--dcoin-color);
+    border: 2px solid rgba(0, 255, 136, 0.3);
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    width: 100%;
+    margin: 15px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.transfer-open-button:hover {
+    background: rgba(0, 255, 136, 0.25);
+    transform: translateY(-2px);
+}
+
+.transfer-history {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.transfer-history h5 {
+    color: var(--dcoin-color);
+    margin-bottom: 15px;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.transfer-item {
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.transfer-amount {
+    color: var(--dcoin-color);
+    font-weight: 600;
+    direction: ltr;
+}
+
+.transfer-recipient {
+    color: var(--light-color);
+    font-weight: 600;
+}
+
+.transfer-reason {
+    color: #8888cc;
+    font-size: 0.85rem;
+}
+
+.transfer-time {
+    color: #8888cc;
+    font-size: 0.8rem;
+}
