@@ -18,7 +18,7 @@ let loggerID = "logger0";
 let loggerNum = 0;
 let loggerTimeMin = 5;
 create_logger();
-
+load_from_api();
 
 let user_details;
 let PREMISSIONS = [];       // {userEmail:Premission,....}
