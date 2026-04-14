@@ -2,12 +2,18 @@
 let user_details;
 let PREMISSIONS = [];       // {userEmail:Premission,....}
 let PREMISSIONS_TYPE = [];  // {Premission:what it can do,....}
+let loggerTimeMin = 30;     // Session timeout in minutes (default: 30 mins)
 
 let library_messages = [];
 let library_activity = [];
 let library_users = [];
 let library_transactions = [];
 let library_gifs = [];
+
+// Initialize site DOM elements first
+initializeSite();
+
+// Then load data
 load_from_api();
 
 async function load_from_api() {
@@ -142,7 +148,7 @@ async function load_user_details() {
         library_messages.reverse();
         loadChatMessages();
         refreshFunctions();
-        if (user_details.Modified < library_messages[library_messages.length - 1].Created && library_messages[library_messages.length - 1].AuthorId != userId)
+        if (library_messages.length > 0 && user_details.Modified < library_messages[library_messages.length - 1].Created && library_messages[library_messages.length - 1].AuthorId != userId)
             unreadMessages = 1;
         updateUnreadIndicator();
 
@@ -232,7 +238,6 @@ function buildSiteForPremission(premission) {
 
 
 }
-initializeSite();
 
 function onSessionExpired() {
     minLOg = setInterval(() => {

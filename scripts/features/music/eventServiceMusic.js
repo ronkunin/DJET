@@ -97,43 +97,56 @@ async function loadAPI_All_Playlists () {
     
     let listName = "Playlists";
     //getting the list's item-count
-    let count_response = await fetch(api + `/lists/getbytitle('${listName}')/ItemCount`,{
-        method: "GET",
-        headers: {"Accept": "application/json; odata=verbose"}
-    });
-    let count_json = await count_response.json();
-    let count = count_json.d.ItemCount;
-
-    //getting
-    
-    let filter =  `&$filter=(AuthorId eq ${userId} or isPublic ne true) and Title ne 'Deleted'`;
-    if(PREMISSIONS_TYPE[PREMISSIONS[userEmail]] == 'Full')
-        filter =  `&$filter=Title ne 'Deleted'`;
-    let response = await fetch(api + `/lists/getbytitle('${listName}')/items?&$top=${count}&$orderby=Views desc${filter}`,{
+    try {
+        let count_response = await fetch(api + `/lists/getbytitle('${listName}')/ItemCount`,{
             method: "GET",
             headers: {"Accept": "application/json; odata=verbose"}
         });
+        if (!count_response.ok) {
+            console.error(`Failed to fetch playlist count: ${count_response.status} ${count_response.statusText}`);
+            return;
+        }
+        let count_json = await count_response.json();
+        let count = count_json.d.ItemCount;
+
+        //getting
         
-    let json = await response.json();
-    let data;
+        let filter =  `&$filter=(AuthorId eq ${userId} or isPublic ne true) and Title ne 'Deleted'`;
+        if(PREMISSIONS_TYPE[PREMISSIONS[userEmail]] == 'Full')
+            filter =  `&$filter=Title ne 'Deleted'`;
+        let response = await fetch(api + `/lists/getbytitle('${listName}')/items?&$top=${count}&$orderby=Views desc${filter}`,{
+                method: "GET",
+                headers: {"Accept": "application/json; odata=verbose"}
+            });
+        
+        if (!response.ok) {
+            console.error(`Failed to fetch playlists: ${response.status} ${response.statusText}`);
+            return;
+        }
+        
+        let json = await response.json();
+        let data;
 
-    json.d.results.forEach((playlist, index) => {
-        data = library_playlist;
-        if(playlist.AuthorId == userId)
-            data = my_library_playlist;
+        json.d.results.forEach((playlist, index) => {
+            data = library_playlist;
+            if(playlist.AuthorId == userId)
+                data = my_library_playlist;
 
-        data.push({
-            id: playlist.Id,
-            title: playlist.Title,
-            string: playlist.Text,
-            version: playlist.Version,
-            views: playlist.Views,
-            author: playlist.AuthorId,
-            isPublic: playlist.isPublic,
+            data.push({
+                id: playlist.Id,
+                title: playlist.Title,
+                string: playlist.Text,
+                version: playlist.Version,
+                views: playlist.Views,
+                author: playlist.AuthorId,
+                isPublic: playlist.isPublic,
+            });
         });
-    });
 
-    show_myplaylists();
+        show_myplaylists();
+    } catch (error) {
+        console.error("Error loading playlists:", error);
+    }
 }
 
 async function savePlaylistOnSP(title, string){

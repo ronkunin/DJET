@@ -35,13 +35,17 @@ function showLoadingScreen() {
 function hideLoadingScreen() {
     const loadingScreen = document.getElementById('loading-screen');
     const loadingProgress = document.getElementById('loading-progress');
-    loadingScreen.classList.add('hidden');
-
+    
+    if (loadingScreen) {
+        loadingScreen.classList.add('hidden');
+    }
 
     const streakCounter = document.getElementById('streak-counter');
-    streakCounter.style.transform = 'scale(1.2)';
-    setTimeout(() => {
-        streakCounter.style.transform = 'scale(1)';
-        document.body.style.overflowY = 'scroll';
-    }, 300);
+    if (streakCounter) {
+        streakCounter.style.transform = 'scale(1.2)';
+        setTimeout(() => {
+            streakCounter.style.transform = 'scale(1)';
+            document.body.style.overflowY = 'scroll';
+        }, 300);
+    }
 }
