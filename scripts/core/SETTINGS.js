@@ -1,0 +1,60 @@
+function generateOptions() {
+    const bases = [
+        { name: "רמת דוד", icon: "🛩️" },
+        { name: "פלמחים", icon: "🏖️" },
+        { name: "תל־נוף", icon: "🏞️" },
+        { name: "חצור", icon: "🛫" },
+        { name: "חצרים", icon: "🌳" },
+        { name: "נבטים", icon: "🌵" },
+        { name: "רמון", icon: "🏜️" },
+        { name: "עובדה", icon: "🏝️" },
+        { name: "עין שמר", icon: "🌾" },
+        { name: "כנף 2", icon: "✈️" },
+        { name: "ביסל״א", icon: "🛡️" },
+        { name: "ביסל״ח", icon: "⚙️" },
+        { name: "הטכני", icon: "🛠️" },
+        { name: "צריפין", icon: "📻" },
+        { name: "יב״א", icon: "👀" },
+        { name: "המטה", icon: "🔢" }
+    ];
+    return bases.map(base => `<option value="${base.name}">${base.icon} ${base.name}</option>`).join('\n');
+}
+
+
+const BAD_WORDS = [
+    // Hebrew (100+)
+    "זונה", "בן זונה", "זין", "זיונים", "כוס", "כוסית", "כוס אמא", "חרא", "חראבן",
+    "מזדיין", "מזוין", "מטומטם", "מטומטמת", "אידיוט", "אידיוטית", "מפגר", "מפגרת",
+    "שרמוטה", "שרמוט", "כלבה", "בן כלבה", "זבל", "נאצי", "חזיר", "חמור",
+    "טיפש", "טיפשה", "אפס", "עלוב", "מניאק", "סמרטוט", "קרציה", "סתום", "סתומה",
+    "דפוק", "דפוקה", "פסיכי", "פסיכית", "חולה נפש", "מגעיל", "מגעילה",
+    "בן אלף", "בן אלף זונות", "נבלה", "נבל", "קוקסינל", "הומו", "לסבית",
+    "מכוער", "מכוערת", "טינופת", "חרא של בן אדם", "פח", "אפס מאופס",
+    "בהמה", "בהמית", "חלאה", "אידיוט מושלם", "סתום מוח", "ראש אבן",
+    "מוח עקום", "עקום", "אידיוט על", "טמבל", "טמבלית", "טינופת אנושית",
+    "זוהמה", "מנוול", "מנוולת", "חסר מוח", "חסרת מוח",
+    "זבל אנושי", "פושע", "מגעיל רצח", "דוחה", "דוחה ברמות", "מסריח","קטינה","קטין",
+    "אדיוט", "אדיוטית", "מטונף", "מטונפת", "חרא אנושי", "בן שרמוטה", "באלי למות", "hitler", "היטלר",
+    "הומו", "הומואים", "גייז", "גיי", "יגיי", "יהומו", "יהומואים", "GAY", "שמילה"
+    , "בולבול", "מיני", "המיני", "קטינות", "הבולבול", "זין", "יזין", "KKK", "קקי","קונין", "נמי", 'נמ"י', "עמית רומם", "עמית חנגל", "shmila", "שמילא", "ספוטיפיי",
+    // English
+    "fuck", "fucking", "shit", "bullshit", "bitch", "asshole", "dick", "cock",
+    "pussy", "bastard", "motherfucker", "cunt", "slut", "whore", "spotify",
+    "idiot", "לשמילא", "jerk", "loser", "scumbag", "nigger", "כוס", "בילבל", "בולבול", "בילביל",
+
+
+    "כפות רגליים","ז*ן","חלב","לזיין","ביצה","ביצים","פלוץ","ציצים","מסריח"
+];
+
+        const settingsLinks = [
+            { emoji: "👤", text: "Users",            link: "http://spellcaster.sites.airnet/DJet/SitePages/users_new.aspx" },
+            { emoji: "💳", text: "Transactions",    link: "http://spellcaster.sites.airnet/DJet/Lists/Transactions/AllItems.aspx" },
+            { emoji: "📁", text: "Files",    link: "http://spellcaster.sites.airnet/DJet/DJet/Forms/AllItems.aspx" },
+            { emoji: "🔑", text: "Permissions",      link: "http://spellcaster.sites.airnet/DJet/Lists/Settings/view.aspx" },
+            { emoji: "💬", text: "Messages",         link: "http://spellcaster.sites.airnet/DJet/Lists/Messages/AllItems.aspx" },
+            { emoji: "🏠", text: "Rooms",            link: "http://spellcaster.sites.airnet/DJet/Lists/Rooms/AllItems.aspx" },
+            { emoji: "📊", text: "Activity",         link: "http://spellcaster.sites.airnet/DJet/Lists/Activity/AllItems.aspx" },
+            { emoji: "📄", text: "Manager Page",             link: "http://spellcaster.sites.airnet/DJet/SitePages/AdminPage.aspx" },
+            { emoji: "🔍", text: "Decoder",          link: "http://spellcaster.sites.airnet/DJet/DJet/decoder.html" },
+            { emoji: "🌐", text: "Site Content",        link: "http://spellcaster.sites.airnet/DJet/_layouts/15/viewlsts.aspx" }
+        ];
