@@ -6,7 +6,11 @@ let library = [];
 let library_playlist = [];
 let library_highlights = [];
 
-let playlist = [];
+let playlist = [{
+    id: 'djet',
+    title: 'DJET',
+    link: 'https://ronkunin.github.io/DJET/scripts/features/music/DJET.mp3'
+}];
 let playlistData = null;
 
 let results = [];
@@ -21,6 +25,8 @@ let loaded = -1;
 
 async function loadAPI_songs() {
     audio.addEventListener("ended", playNext);
+    audio.addEventListener("play", updatePlayButtonState);
+    audio.addEventListener("pause", updatePlayButtonState);
     // event listeners
     // the playlist appearance .................................................................
     document.getElementById("results").addEventListener('scroll', function() {
@@ -57,6 +63,20 @@ async function loadAPI_songs() {
     });
     show_highlights();
 
+    // Initialize play button state
+    updatePlayButtonState();
+    disableBtn();
+}
+
+function updatePlayButtonState() {
+    const btn = document.getElementById('button_play');
+    if (!btn) return;
+    if (playlist.length == 0) {
+        btn.classList.add('disable');
+    } else {
+        btn.classList.remove('disable');
+    }
+    btn.innerHTML = audio && !audio.paused ? '<i class="fa fa-pause"></i>' : '<i class="fa fa-play"></i>';
 }
 
 

@@ -246,6 +246,15 @@ const CONFIG = {
   me: { name:'רון', unit:'אלפא', id:'32' }
 };
 
+/* Set user_details for offline mode */
+if (typeof user_details === 'undefined') {
+    user_details = {
+        Id: CONFIG.me.id,
+        username: CONFIG.me.name,
+        unit: CONFIG.me.unit
+    };
+}
+
 /* MODIFY: Second player used only in offline/pass-and-play mode. */
 const OFFLINE_ENEMY = { name:'יריב', unit:'חיל הים', id:'user-dana' };
 

@@ -1,5 +1,9 @@
 let site_url = `http://spellcaster.sites.airnet/DJet`;
-let playlist = [];
+let playlist = [{
+    id: 'djet',
+    title: 'DJET',
+    link: 'https://ronkunin.github.io/DJET/scripts/features/music/DJET.mp3'
+}];
 let playlistData = null;
 let results = [];
 let results_playlist = [];
@@ -14,10 +18,7 @@ let black_list = [];
 let userId, userEmail, userTitle;
 
 // Get audio element safely
-let audio = null;
-setTimeout(() => {
-    audio = document.getElementById("timeline");
-}, 100);
+let audio = document.getElementById("timeline");
 
 async function load_user_id() {
     const user = window.firebaseRTDB.currentUser || window.firebaseRTDB.auth.currentUser;
@@ -117,9 +118,15 @@ async function onLoad() {
     // event listeners
     if (audio) {
         audio.addEventListener("ended", playNext);
+        audio.addEventListener("play", updatePlayButtonState);
+        audio.addEventListener("pause", updatePlayButtonState);
     }
     window.addEventListener('keydown', key_click);
     
+    // Setup initial audio UI state
+    visualise(true, true);
+    updatePlayButtonState();
+
     // Setup results scroll listener if needed
     const resultsEl = document.getElementById("results");
     if (resultsEl) {
@@ -130,6 +137,17 @@ async function onLoad() {
             }
         });
     }
+}
+
+function updatePlayButtonState() {
+    const btn = document.getElementById('button_play');
+    if (!btn) return;
+    if (playlist.length == 0) {
+        btn.classList.add('disable');
+    } else {
+        btn.classList.remove('disable');
+    }
+    btn.innerHTML = audio && !audio.paused ? '<i class="fa fa-pause"></i>' : '<i class="fa fa-play"></i>';
 }
 
 function key_click(event) {

@@ -38,7 +38,7 @@ async function load_from_api() {
     // })();
 
 
-  // loadAPI_songs();
+  loadAPI_songs();
 }
 
 async function load_user_details() {
