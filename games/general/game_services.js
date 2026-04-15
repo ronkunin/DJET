@@ -293,7 +293,6 @@ async function ensureFirebaseReady() {
 }
 
 async function firebaseListSnapshot(listName) {
-    if (!await isRealtimeDbOnline()) return {};
     try {
         await ensureFirebaseReady();
         const listRef = window.firebaseRTDB.ref(window.firebaseRTDB.database, `lists/${listName}`);
@@ -306,10 +305,6 @@ async function firebaseListSnapshot(listName) {
 }
 
 async function updateSPValuesInList(listName, itemID, data, IF_MATCH = "*") {
-    if (!await isRealtimeDbOnline()) {
-        console.warn('Realtime DB offline, skipping updateSPValuesInList', listName, itemID);
-        return null;
-    }
     try {
         const itemRef = window.firebaseRTDB.ref(window.firebaseRTDB.database, `lists/${listName}/${normalizeId(itemID)}`);
         const updateData = { ...data };
@@ -366,7 +361,6 @@ async function addTransactionOnSP(amount, reason = "פעילות במערכת") 
 }
 
 async function loadItemsFromSP(listName, options = {}) {
-    if (!await isRealtimeDbOnline()) return [];
     let {
         select = "",
         filter = "",
@@ -410,10 +404,6 @@ function fillNullsReturnFilled(data, map = {}) {
 }
 
 async function addItemToList(listName, fields) {
-    if (!await isRealtimeDbOnline()) {
-        console.warn('Realtime DB offline, skipping addItemToList', listName);
-        return null;
-    }
     try {
         const listRef = window.firebaseRTDB.ref(window.firebaseRTDB.database, `lists/${listName}`);
         const now = new Date().toISOString();
