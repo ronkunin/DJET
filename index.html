@@ -794,6 +794,7 @@
     </div>
 
     <nav class="mobile-nav" id="mobile-nav">
+        <div class="mobile-nav-indicator"></div>
         <button class="mobile-nav-btn active" data-section="home">
             <i class="fas fa-home"></i>
             <span>בית</span>
@@ -844,6 +845,14 @@
                 switchSection('game');
                 document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
                 document.querySelector('.mobile-nav-btn[data-section="game"]').classList.add('active');
+                // Move indicator
+                const indicator = document.querySelector('.mobile-nav-indicator');
+                if (indicator) {
+                    const buttons = Array.from(document.querySelectorAll('.mobile-nav-btn'));
+                    const activeBtn = document.querySelector('.mobile-nav-btn.active');
+                    const index = buttons.indexOf(activeBtn);
+                    indicator.style.transform = `translateX(${index * (100 / 7)}%)`;
+                }
             } else {
                 clean();
                 document.documentElement.scrollTop = 0;
@@ -869,6 +878,14 @@
                 switchSection('home');
                 document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
                 document.querySelector('.mobile-nav-btn[data-section="home"]').classList.add('active');
+                // Move indicator
+                const indicator = document.querySelector('.mobile-nav-indicator');
+                if (indicator) {
+                    const buttons = Array.from(document.querySelectorAll('.mobile-nav-btn'));
+                    const activeBtn = document.querySelector('.mobile-nav-btn.active');
+                    const index = buttons.indexOf(activeBtn);
+                    indicator.style.transform = `translateX(${index * (100 / 7)}%)`;
+                }
             } else {
                 clean();
                 document.getElementById('hero').style.display = 'block';
@@ -882,6 +899,14 @@
                 switchSection('shop');
                 document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
                 document.querySelector('.mobile-nav-btn[data-section="shop"]').classList.add('active');
+                // Move indicator
+                const indicator = document.querySelector('.mobile-nav-indicator');
+                if (indicator) {
+                    const buttons = Array.from(document.querySelectorAll('.mobile-nav-btn'));
+                    const activeBtn = document.querySelector('.mobile-nav-btn.active');
+                    const index = buttons.indexOf(activeBtn);
+                    indicator.style.transform = `translateX(${index * (100 / 7)}%)`;
+                }
                 startTimer();
             } else {
                 clean();
@@ -905,6 +930,13 @@
                         // Update active button
                         document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
                         btn.classList.add('active');
+                        // Move indicator
+                        const indicator = document.querySelector('.mobile-nav-indicator');
+                        if (indicator) {
+                            const buttons = Array.from(mobileNav.querySelectorAll('.mobile-nav-btn'));
+                            const index = buttons.indexOf(btn);
+                            indicator.style.transform = `translateX(${index * (100 / 7)}%)`;
+                        }
                     }
                 });
             }
@@ -918,6 +950,14 @@
                         switchSection('leaderboard');
                         document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
                         document.querySelector('.mobile-nav-btn[data-section="leaderboard"]').classList.add('active');
+                        // Move indicator
+                        const indicator = document.querySelector('.mobile-nav-indicator');
+                        if (indicator) {
+                            const buttons = Array.from(document.querySelectorAll('.mobile-nav-btn'));
+                            const activeBtn = document.querySelector('.mobile-nav-btn.active');
+                            const index = buttons.indexOf(activeBtn);
+                            indicator.style.transform = `translateX(${index * (100 / 7)}%)`;
+                        }
                     }
                 });
             }
