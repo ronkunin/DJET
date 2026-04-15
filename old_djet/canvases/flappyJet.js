@@ -9,7 +9,7 @@ let flappyJet_background_img;
 let flappyJet_end_img;
 
 function flappyJet_preload() {
-  flappyJet_start_img = loadImage('../old_djet/images/flappyJet_start.png'); // Start screen image
+  flappyJet_start_img = loadImage('../old_djet/images/flappyJet_startImg.png'); // Start screen image
   flappyJet_building_img = loadImage('../old_djet/images/flappyJet_building.png'); // Image  building
   flappyJet_background_img = loadImage('../old_djet/images/flappyJet_background.jpg'); // Background image
   flappyJet_flappy_img = loadImage('../old_djet/images/flappyJet_uav.png');
