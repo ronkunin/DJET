@@ -16,6 +16,11 @@ initializeSite();
 // Then initialize Google authentication and load data
 initializeAndLoad();
 
+function initializeSite() {
+    addLoadingScreen();
+    showLoadingScreen();
+}
+
 async function initializeAndLoad() {
     // Build the site layout first
     buildSite();
@@ -42,6 +47,9 @@ async function load_from_api() {
 
 
   loadAPI_songs();
+  
+  // Ensure loader is hidden after loading
+  setTimeout(() => hideLoadingScreen(), 1000);
 }
 
 async function load_user_details() {
