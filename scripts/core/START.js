@@ -17,6 +17,9 @@ initializeSite();
 initializeAndLoad();
 
 async function initializeAndLoad() {
+    // Build the site layout first
+    buildSite();
+    
     // Initialize Google authentication first, if available
     if (typeof initializeGoogleAuth === 'function') {
         await initializeGoogleAuth();

@@ -90,6 +90,7 @@ function getColorScheme(streak) {
 function applyColorScheme(streak) {
     const scheme = getColorScheme(streak);
     const streaker = document.getElementById('streak-counter');
+    if (!streaker) return; // Element not yet created
     const streakIcon = document.getElementById('streak-icon');
     const streakDays = document.getElementById('streak-days');
     const streakLabel = document.getElementById('streak-label');
