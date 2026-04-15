@@ -132,20 +132,6 @@ function playlistFromId(id, source="library") {
 }
 
 
-function create_logger () {
-    const logging_delay_in_secs = 1;
-    setTimeout(function() {
-        let body = document.querySelector("body");
-        let logger = document.createElement("iframe");
-        logger.setAttribute("id","logger");
-        logger.setAttribute("style","display:none");
-        logger.setAttribute("src",`http://spellcaster.sites.airnet/DJet/SitePages/logger.aspx`);
-        body.appendChild(logger);
-    }, logging_delay_in_secs*1000);
-}
-create_logger();
-
-
 async function logView (id, amount=1) {
     let current_views = await getSPValue("Songs","Views",id);
     updateSPValueInLibrary("Songs","Views",id,current_views+amount);

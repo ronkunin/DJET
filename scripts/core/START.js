@@ -289,7 +289,7 @@ function buildSiteForPremission(premission) {
 function onSessionExpired() {
     minLOg = setInterval(() => {
         loggerNum++;
-        create_logger();
+        // create_logger(); // Removed as logger is no longer used, switched to Firebase
         //showSystemNotification("warning", "יש לבצע רענון", "לאחר חצי שעה");
     }, loggerTimeMin * 60 * 1000)
 }
