@@ -520,7 +520,7 @@ function addLeaderBoardModal() {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 
     const leaderboardsLink = document.getElementById('leaderboards-link');
-    leaderboardsLink.addEventListener('click', (e) => {
+    if (leaderboardsLink) leaderboardsLink.addEventListener('click', (e) => {
         e.preventDefault();
         openLeaderboards();
     });
