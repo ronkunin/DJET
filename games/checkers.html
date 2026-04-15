@@ -994,7 +994,7 @@
     /* ═══════════════════════════════════════════════════════════════════
        ROUTING WRAPPERS + PASS-AND-PLAY TOGGLE
        ═══════════════════════════════════════════════════════════════════ */
-    let passPlayMode = false;   /* ברירת מחדל: אונליין */
+    let passPlayMode = true;   /* ברירת מחדל: מקומי */
 
     async function spLoad(f, o = '') { return passPlayMode ? _simLoad(f) : loadItemsFromSPList(SP_LIST, SP_FIELDS, f, o); }
     async function spCreate(d) { return passPlayMode ? _simCreate(d) : createItemOnSP(SP_LIST, d); }
@@ -1656,9 +1656,19 @@
     async function showScreen() {
       document.getElementById("loadingScreen").classList.remove("hidden-children");
 
-      showLoading('מחפש משחק...', 'מתחבר לשרת...');
-      await joinGameFlow();
+      if (passPlayMode) {
+        document.getElementById('btnPP').classList.add('active');
+        document.getElementById('ppBanner').style.display = 'block';
+        document.getElementById('subtitleEl').textContent = 'מקומי';
+        hideLoading();
+        await initPassPlay();
+      } else {
+        showLoading('מחפש משחק...', 'מתחבר לשרת...');
+        await joinGameFlow();
+      }
     }
+
+  window.addEventListener('load', showScreen);
 
   </script>
 </body>

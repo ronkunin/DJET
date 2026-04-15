@@ -701,7 +701,7 @@ async function _simDelete(id) { _simDb = _simDb.filter(r => r.Id !== id); delete
 /* ══════════════════════════════════════════════════════════════════════
    OFFLINE MODE + ROUTING WRAPPERS
    ══════════════════════════════════════════════════════════════════════ */
-let offlineMode = false;
+let offlineMode = true;
 
 function toggleOfflineMode() {
   offlineMode = !offlineMode;
@@ -1361,12 +1361,14 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2600);
 }
 
+window.addEventListener('load', showScreen);
+
 async function showScreen() {
     document.getElementById("loadingScreen").classList.remove("hidden-children");
 
   buildColHints(false);
   if (offlineMode) {
-    hideLoading(); document.getElementById('subtitleEl').textContent = 'מצב לא מקוון';
+    hideLoading(); document.getElementById('offlineBanner').style.display = 'block'; document.getElementById('btnOffline').classList.add('active'); document.getElementById('subtitleEl').textContent = 'מצב לא מקוון';
     await initOffline();
   } else {
     showLoading('ארבע בשורה', 'מחפש משחק...');

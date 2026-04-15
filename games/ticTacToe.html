@@ -448,7 +448,7 @@ async function _simDelete(id) { _simDb = _simDb.filter(r => r.Id !== id); delete
    raw SP functions directly. The wrappers switch based on offlineMode.
    PORTING NOTE: if you add SP operations, add a wrapper here too.
    ══════════════════════════════════════════════════════════════════════ */
-let offlineMode = false;
+let offlineMode = true;
 
 function toggleOfflineMode() {
   offlineMode = !offlineMode;
@@ -522,6 +522,7 @@ async function showScreen() {
   document.getElementById("loadingScreen").classList.remove("hidden-children");
   if (offlineMode) {
     hideLoading();
+    document.getElementById('offlineBanner').style.display = 'block';
     document.getElementById('subtitleEl').textContent = 'מצב לא מקוון';
     await initOffline();
   } else {
@@ -1044,6 +1045,7 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2600);
 }
 
+window.addEventListener('load', showScreen);
 
 </script>
 </body>
