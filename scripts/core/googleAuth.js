@@ -117,15 +117,22 @@ async function googleSignOut() {
 /**
  * Resume application loading after successful Google authentication
  */
-function resumeLoadingAfterAuth(googleUser) {
-    // Show welcome modal for profile setup if needed
+async function resumeLoadingAfterAuth(googleUser) {
+    // If the user has no local profile cached yet, let load_user_details decide.
     if (!window.getStoredDjetUserName() || !window.getStoredDjetUserUnit()) {
         hideLoadingScreen();
+        if (typeof load_user_details === 'function') {
+            await load_user_details();
+            return;
+        }
         updateWelcomeModalView();
         showWelcomeModal();
-    } else {
-        // User already has profile set up, proceed with loading
-        load_user_details();
+        return;
+    }
+
+    // User already has local profile data, proceed with loading
+    if (typeof load_user_details === 'function') {
+        await load_user_details();
     }
 }
 
