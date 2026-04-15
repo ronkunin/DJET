@@ -125,6 +125,15 @@ async function load_user_details() {
     }
 
     user_details = userItems?.[0];
+    if (user_details) {
+        if (user_details.Id === undefined && user_details.ID !== undefined) {
+            user_details.Id = user_details.ID;
+        }
+        if (user_details.ID === undefined && user_details.Id !== undefined) {
+            user_details.ID = user_details.Id;
+        }
+    }
+
     if (!user_details) {
         user_details = getOfflineUserProfile();
         user_details.Id = userId;
@@ -138,8 +147,24 @@ async function load_user_details() {
     }
 
     fillNullsReturnFilled(user_details, {
-        Queens_Level: 1, numbers_games: 0, numbers_max: 0, tetris_games: 0, tetris_max: 0, blockblast_games: 0,
-        blockblast_max: 0, minesweeper_games: 0, minesweeper_scoe: 0, soduku_level: 1,
+        Queens_Level: 1,
+        numbers_games: 0,
+        numbers_max: 0,
+        tetris_games: 0,
+        tetris_max: 0,
+        blockblast_games: 0,
+        blockblast_max: 0,
+        minesweeper_games: 0,
+        minesweeper_score: 0,
+        soduku_level: 1,
+        bubbles_games: 0,
+        bubbles_max: 0,
+        tower_games: 0,
+        tower_max: 0,
+        wordle_games: 0,
+        dcoins: 0,
+        LogInStreak: 0,
+        logs: 0
     });
 }
 
@@ -214,11 +239,11 @@ function projectItem(item, select) {
     const projected = {};
     keys.forEach(key => {
         if (key === 'ID') {
-            projected.ID = item.Id;
+            projected.ID = item.ID !== undefined ? item.ID : item.Id;
             return;
         }
         if (key === 'Id') {
-            projected.Id = item.Id;
+            projected.Id = item.Id !== undefined ? item.Id : item.ID;
             return;
         }
         if (item.hasOwnProperty(key)) {
@@ -397,7 +422,7 @@ async function loadItemsFromSP(listName, options = {}) {
 function fillNullsReturnFilled(data, map = {}) {
     const filled = {};
     for (const key in map) {
-        if (data[key] === null) {
+        if (data[key] === null || data[key] === undefined) {
             data[key] = map[key];
             filled[key] = map[key];
         }
