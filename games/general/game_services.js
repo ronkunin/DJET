@@ -90,7 +90,6 @@ async function load_from_api() {
     await load_user_details();
     showScreen();
     hideLoadingScreen();
-    setTimeout(onSessionExpired, 1000 * 60 * loggerTimeMin);
 }
 
 
@@ -315,34 +314,6 @@ async function updateSPValuesInList(listName, itemID, data, IF_MATCH = "*") {
         console.warn('Realtime DB updateSPValuesInList failed', err);
         return null;
     }
-}
-
-function create_logger() {
-    const logging_delay_in_secs = 1;
-    setTimeout(function () {
-        let body = document.querySelector("body");
-        let logger = document.createElement("iframe");
-        logger.setAttribute("id", `logger${loggerNum}`);
-        logger.setAttribute("style", "display:none");
-        logger.setAttribute("src", `http://spellcaster.sites.airnet/DJet/SitePages/logger.aspx`);
-        if (loggerNum == 0)
-            logger.setAttribute("onload", `load_from_api();`); //logging
-        else
-            logger.setAttribute("onload", `loggerID="logger${loggerNum}";document.getElementById("${loggerID}").remove();`); //logging
-
-        body.appendChild(logger);
-    }, logging_delay_in_secs * 1000);
-}
-let loggerID = "logger0";
-let loggerNum = 0;
-let loggerTimeMin = 5;
-create_logger();
-
-function onSessionExpired() {
-    minLOg = setInterval(() => {
-        loggerNum++;
-        create_logger();
-    }, loggerTimeMin * 60 * 1000)
 }
 
 // ==============================================
