@@ -88,20 +88,29 @@ async function signInWithGoogle() {
  */
 async function googleSignOut() {
     try {
-        await window.firebaseRTDB.signOut(window.firebaseRTDB.auth);
-        
-        // Clear stored auth data
+        if (window.firebaseReadyPromise) {
+            await window.firebaseReadyPromise;
+        }
+
+        const auth = window.firebaseRTDB?.auth;
+        const signOutFn = window.firebaseRTDB?.signOut;
+
+        if (typeof signOutFn === 'function' && auth) {
+            await signOutFn(auth);
+        } else if (auth?.signOut) {
+            await auth.signOut();
+        } else {
+            console.warn('Firebase signOut is not available; clearing stored auth state locally.');
+        }
+    } catch (error) {
+        console.warn('Google Sign-Out Error:', error);
+    } finally {
         window.storeGoogleAuthData(null);
         currentGoogleUser = null;
-        
-        // Clear user profile data
         window.localStorage.removeItem('djet_user_id');
         window.localStorage.removeItem('djet_user_name');
         window.localStorage.removeItem('djet_user_unit');
-        
         window.location.reload();
-    } catch (error) {
-        console.error('Sign-out Error:', error);
     }
 }
 

@@ -74,7 +74,7 @@ function isGifUrl(text) {
 function fillNullsReturnFilled(data, map = {}) {
     const filled = {};
     for (const key in map) {
-        if (data[key] === null) {
+        if (data[key] === null || data[key] === undefined) {
             data[key] = map[key];
             filled[key] = map[key];
         }
