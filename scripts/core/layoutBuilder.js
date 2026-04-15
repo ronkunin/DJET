@@ -189,7 +189,11 @@ function getHeaderHTML() {
                             <span class="dcoins-amount" id="dcoins-amount">500</span>
                             <span class="dcoins-label">DCoins</span>
                         </div>
-                        <div class="dcoins-details" id="dcoins-details" dir="rtl"></div>
+                        <div class="dcoins-details" id="dcoins-details" dir="rtl">
+                            <div id="dcoins-title"></div>
+                            <div id="dcoins-status"></div>
+                            <div id="dcoins-warning"></div>
+                        </div>
                     </div>
                     <div class="nav-links">
                         <a href="old_djet/index.html">D-History</a>
@@ -235,7 +239,11 @@ function getMainContentHTML() {
                                 <span class="dcoins-amount" id="dcoins-amount">500</span>
                                 <span class="dcoins-label">DCoins</span>
                             </div>
-                            <div class="dcoins-details" id="dcoins-details" dir="rtl"></div>
+                            <div class="dcoins-details" id="dcoins-details" dir="rtl">
+                                <div id="dcoins-title"></div>
+                                <div id="dcoins-status"></div>
+                                <div id="dcoins-warning"></div>
+                            </div>
                         </div>
                         <div class="nav-links">
                             <a href="old_djet/index.html">D-History</a>
