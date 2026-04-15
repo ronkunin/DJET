@@ -254,9 +254,12 @@ function updateStreakDisplay() {
     const currentStreak = user_details["LogInStreak"];
     const daysSinceLastLog = getDaysBetweenDates(user_details["Modified"], today);
 
-    document.getElementById('streak-days').textContent = currentStreak;
-    document.getElementById('current-streak').textContent = `${currentStreak} ${currentStreak === 1 ? 'יום' : 'ימים'}`;
-    document.getElementById('first-log-date').textContent = user_details["Created"].toLocaleDateString('he-IL', {
+    const streakDaysEl = document.getElementById('streak-days');
+    if (streakDaysEl) streakDaysEl.textContent = currentStreak;
+    const currentStreakEl = document.getElementById('current-streak');
+    if (currentStreakEl) currentStreakEl.textContent = `${currentStreak} ${currentStreak === 1 ? 'יום' : 'ימים'}`;
+    const firstLogDateEl = document.getElementById('first-log-date');
+    if (firstLogDateEl) firstLogDateEl.textContent = user_details["Created"].toLocaleDateString('he-IL', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'

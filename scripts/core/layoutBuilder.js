@@ -132,6 +132,15 @@ function buildPc() {
             </div>
             <div class="dcoins-details" id="dcoins-details" dir="rtl"></div>
         </div>
+
+        <div class="streak-counter" id="streak-counter">
+            <i class="fas fa-fire" id="streak-icon"></i>
+            <div class="streak-info">
+                <span class="streak-days" id="streak-days">0</span>
+                <span class="streak-label" id="streak-label">רצף יומי</span>
+            </div>
+            <div class="streak-details" id="streak-details" dir="rtl"></div>
+        </div>
     `;
     
     // Create main content
