@@ -36,6 +36,10 @@ async function setupNewUser() {
 
     user_details["username"] = username;
     user_details["unit"] = selectedGroup;
+    if (!user_details || !user_details.Id) {
+        user_details = await createUserOnSP();
+    }
+
     window.localStorage.setItem('djet_user_name', user_details["username"]);
     window.localStorage.setItem('djet_user_unit', user_details["unit"]);
 
@@ -60,8 +64,38 @@ function updateUserDisplay() {
 
 }
 
+function normalizeEmail(email) {
+    return String(email || '').trim().toLowerCase();
+}
 
+async function findUserByEmail(email) {
+    const normalizedEmail = normalizeEmail(email);
+    if (!normalizedEmail || !await window.isRealtimeDbOnline?.()) return null;
+    const items = await loadItemsFromSP("Users", { filter: `Email eq '${normalizedEmail}'`, top: 1 });
+    return items && items.length > 0 ? items[0] : null;
+}
 
+async function findUserByGoogleUid(uid) {
+    if (!uid || !await window.isRealtimeDbOnline?.()) return null;
+    const items = await loadItemsFromSP("Users", { filter: `GoogleUid eq '${uid}'`, top: 1 });
+    return items && items.length > 0 ? items[0] : null;
+}
+
+async function loadUserById(id) {
+    if (!id || !await window.isRealtimeDbOnline?.()) return null;
+    try {
+        const userRef = window.firebaseRTDB.ref(window.firebaseRTDB.database, `lists/Users/${normalizeId(id)}`);
+        const snapshot = await window.firebaseRTDB.get(userRef);
+        if (!snapshot.exists()) return null;
+        const user = snapshot.val();
+        if (user.Id === undefined) user.Id = isNaN(Number(id)) ? id : Number(id);
+        if (user.ID === undefined) user.ID = user.Id;
+        return user;
+    } catch (err) {
+        console.warn('loadUserById failed', err);
+        return null;
+    }
+}
 
 function saveSettings() {
     const newUsername = document.getElementById('username-input').value.trim();
@@ -193,9 +227,35 @@ function calculateCurrentStreak() {
 
 
 async function createUserOnSP() {
-    const id = userId || localStorage.getItem('djet_user_id') || `guest_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+    const storedGoogleUid = window.getStoredDjetGoogleUid && window.getStoredDjetGoogleUid();
+    const storedGoogleEmail = normalizeEmail(window.getStoredDjetGoogleEmail());
+    let id = userId || localStorage.getItem('djet_user_id') || storedGoogleUid || `guest_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+
+    if (storedGoogleUid) {
+        const existingByUid = await findUserByGoogleUid(storedGoogleUid);
+        if (existingByUid) {
+            const existingId = existingByUid.Id || existingByUid.ID || id;
+            id = existingId;
+            userId = id;
+            window.setStoredDjetUserId(id);
+            return existingByUid;
+        }
+    }
+
+    if (storedGoogleEmail) {
+        const existingByEmail = await findUserByEmail(storedGoogleEmail);
+        if (existingByEmail) {
+            const existingId = existingByEmail.Id || existingByEmail.ID || id;
+            id = existingId;
+            userId = id;
+            window.setStoredDjetUserId(id);
+            return existingByEmail;
+        }
+    }
+
     if (!userId) {
-        localStorage.setItem('djet_user_id', id);
+        userId = id;
+        window.setStoredDjetUserId(id);
     }
 
     const now = new Date().toISOString();
@@ -235,6 +295,8 @@ async function createUserOnSP() {
         skyDome_maxT: 0,
         longArm_games: 0,
         longArm_max: 0,
+        Email: storedGoogleEmail || null,
+        GoogleUid: storedGoogleUid || null,
     };
 
     if (!await window.isRealtimeDbOnline?.()) {

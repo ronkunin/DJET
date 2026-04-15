@@ -41,6 +41,10 @@ function getStoredUserUnit() {
 
 function ensureLocalUserId() {
     let id = getStoredUserId();
+    const storedGoogleUid = window.getStoredDjetGoogleUid && window.getStoredDjetGoogleUid();
+    if (!id && storedGoogleUid) {
+        id = String(storedGoogleUid);
+    }
     if (window._spPageContextInfo?.userId) {
         id = String(window._spPageContextInfo.userId);
     }
@@ -52,8 +56,8 @@ function ensureLocalUserId() {
 
 async function load_user_id() {
     userId = ensureLocalUserId();
-    userEmail = (window._spPageContextInfo?.userEmail || getStoredUserName() || '').toUpperCase();
-    userTitle = window._spPageContextInfo?.userDisplayName || getStoredUserName() || '';
+    userEmail = (window._spPageContextInfo?.userEmail || window.getStoredDjetGoogleEmail() || getStoredUserName() || '').toUpperCase();
+    userTitle = window._spPageContextInfo?.userDisplayName || window.getStoredDjetGoogleDisplayName() || getStoredUserName() || '';
 }
 
 function normalizeId(id) {

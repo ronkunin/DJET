@@ -103,6 +103,33 @@ async function load_user_details() {
     //     else
             buildSiteForPremission("Full");
 
+    await load_user_id();
+    if (userId) {
+        user_details = await loadUserById(userId);
+    }
+    if (!user_details || !user_details.Id) {
+        const storedGoogleUid = window.getStoredDjetGoogleUid && window.getStoredDjetGoogleUid();
+        if (storedGoogleUid) {
+            const existingByUid = await findUserByGoogleUid(storedGoogleUid);
+            if (existingByUid) {
+                user_details = existingByUid;
+                userId = existingByUid.Id || existingByUid.ID || userId;
+                window.setStoredDjetUserId(userId);
+            }
+        }
+    }
+    if ((!user_details || !user_details.Id) && window.getStoredDjetGoogleEmail) {
+        const storedGoogleEmail = normalizeEmail(window.getStoredDjetGoogleEmail());
+        if (storedGoogleEmail) {
+            const existingByEmail = await findUserByEmail(storedGoogleEmail);
+            if (existingByEmail) {
+                user_details = existingByEmail;
+                userId = existingByEmail.Id || existingByEmail.ID || userId;
+                window.setStoredDjetUserId(userId);
+            }
+        }
+    }
+
     // user_details = (await loadItemsFromSP("Users", {
     //     select: `ID,username,unit,Modified,Queens_Level,Created,dcoins,LogInStreak,streams,liked,items,logs,fluppyjet_games,fluppyjet_max,skyDome_games,skyDome_maxS,skyDome_maxT,longArm_games,longArm_max,
     // numbers_games,numbers_max,tetris_games,tetris_max,blockblast_games,blockblast_max,minesweeper_games,minesweeper_score,soduku_level,bubbles_games,bubbles_max,tower_games,tower_max,wordle_games`, top: 1, filter: `AuthorId eq ${userId}`
