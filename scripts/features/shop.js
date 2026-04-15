@@ -28,18 +28,29 @@ function updateTimer() {
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-    const updateElements = (prefix) => {
-        const hoursEl = document.getElementById(`${prefix}timer-hours`);
-        const minutesEl = document.getElementById(`${prefix}timer-minutes`);
-        const secondsEl = document.getElementById(`${prefix}timer-seconds`);
-        
-        if (hoursEl) hoursEl.textContent = hours.toString().padStart(2, '0');
-        if (minutesEl) minutesEl.textContent = minutes.toString().padStart(2, '0');
-        if (secondsEl) secondsEl.textContent = seconds.toString().padStart(2, '0');
+    const timeStr = {
+        hours: hours.toString().padStart(2, '0'),
+        minutes: minutes.toString().padStart(2, '0'),
+        seconds: seconds.toString().padStart(2, '0')
     };
 
-    updateElements('');
-    updateElements('timer-');
+    // Update desktop timer
+    const hoursEl = document.getElementById('timer-hours');
+    const minutesEl = document.getElementById('timer-minutes');
+    const secondsEl = document.getElementById('timer-seconds');
+    
+    if (hoursEl) hoursEl.textContent = timeStr.hours;
+    if (minutesEl) minutesEl.textContent = timeStr.minutes;
+    if (secondsEl) secondsEl.textContent = timeStr.seconds;
+
+    // Update mobile timer
+    const hoursElMobile = document.getElementById('timer-hours_mobile');
+    const minutesElMobile = document.getElementById('timer-minutes_mobile');
+    const secondsElMobile = document.getElementById('timer-seconds_mobile');
+    
+    if (hoursElMobile) hoursElMobile.textContent = timeStr.hours;
+    if (minutesElMobile) minutesElMobile.textContent = timeStr.minutes;
+    if (secondsElMobile) secondsElMobile.textContent = timeStr.seconds;
 }
 
 function hideDailyTimer() {
@@ -206,6 +217,7 @@ function loadAllGIFs() {
     
     loadIntoContainer(allGifsContainer, dshoptitle);
     loadIntoContainer(allGifsMobile, dshoptitleMobile);
+}
 
 function selectGifCard(cardElement, gif) {
     // Remove active class from all cards
