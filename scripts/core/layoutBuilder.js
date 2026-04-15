@@ -131,6 +131,7 @@ function buildPc() {
 function buildPhone() {
     const body = document.body;
     body.style.flexDirection = 'column';
+    body.classList.add('mobile-layout');
     
     // Create simplified display structure for mobile
     const container = document.createElement('div');

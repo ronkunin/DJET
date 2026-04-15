@@ -40,10 +40,10 @@ async function load_from_api() {
     // loads user and his premission to the site
     load_user_details();
 
-    // (async () => {
-    //     library_activity = await loadItemsFromSP("Activity", { select: "ID,name,unit,Created,type,message", top: 500, orderBy: "Created desc" });
-    //     loadActivities();
-    // })();
+    (async () => {
+        library_activity = await loadItemsFromSP("Activity", { select: "ID,name,unit,Created,type,message", top: 500, orderBy: "Created desc" });
+        loadActivities();
+    })();
 
 
   loadAPI_songs();
