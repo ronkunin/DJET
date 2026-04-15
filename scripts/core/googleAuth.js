@@ -40,7 +40,7 @@ async function signInWithGoogle() {
         const btn = document.getElementById('google-signin-btn');
         if (btn) {
             btn.disabled = true;
-            btn.textContent = 'جاري المعالجة...';
+            btn.textContent = 'טוען...';
         }
 
         // Create Google provider and sign in
@@ -105,6 +105,7 @@ function resumeLoadingAfterAuth(googleUser) {
     // Show welcome modal for profile setup if needed
     if (!window.getStoredDjetUserName() || !window.getStoredDjetUserUnit()) {
         hideLoadingScreen();
+        updateWelcomeModalView();
         showWelcomeModal();
     } else {
         // User already has profile set up, proceed with loading
@@ -117,37 +118,24 @@ function resumeLoadingAfterAuth(googleUser) {
  */
 function showGoogleSignInPrompt() {
     hideLoadingScreen();
-    const modalHTML = `
-    <!-- Google Sign-In Modal -->
-    <div class="welcome-modal" id="welcome-modal">
-        <div class="welcome-container glass">
-            <div class="welcome-header">
-                <h2>🎧 ברוכים הבאים ל-DJET!</h2>
-                <p>כדי להתחיל, עליך להתחבר עם חשבון Google</p>
-            </div>
-            <div class="welcome-content">
-                <div style="text-align: center; padding: 20px 0;">
-                    <p style="margin-bottom: 20px; font-size: 1.1em;">
-                        ✅ התחברות עם Google תבטיח שפרופילך יישמר ויהיה זמין בכל מכשיר
-                    </p>
-                    <button class="welcome-button" id="google-signin-btn" onclick="signInWithGoogle();" style="font-size: 1.1em; padding: 12px 24px;">
-                        🔐 התחבר עם Google
-                    </button>
-                </div>
-                <p id="welcome-warning" style="text-align: center; margin-top: 20px;"></p>
-            </div>
-        </div>
-    </div>
-    `;
-    
-    const existingModal = document.getElementById('welcome-modal');
-    if (existingModal) {
-        existingModal.remove();
+    const welcomeModal = document.getElementById('welcome-modal');
+    if (welcomeModal) {
+        updateWelcomeModalView();
+        welcomeModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        const warning = document.getElementById('welcome-warning');
+        if (warning) {
+            warning.textContent = '';
+        }
+        const btn = document.getElementById('google-signin-btn');
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '🔐 התחבר עם Google';
+        }
+        return;
     }
-    
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    document.getElementById('welcome-modal').classList.add('active');
-    document.body.style.overflow = 'hidden';
+
+    hideLoadingScreen();
 }
 
 /**
