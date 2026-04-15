@@ -38,7 +38,7 @@ async function onLoad() {
     await load_user_id();
     
     if (!userId) {
-        console.error('Failed to get user ID');
+        console.info('No authenticated Firebase user found. Showing Google sign-in prompt.');
         exit_loader();
         showSignInPrompt();
         return;
