@@ -8,7 +8,7 @@ let flappyJet_building_img;
 let flappyJet_background_img;
 let flappyJet_end_img;
 
-function flappyJet_preload() {
+function flappyJet_preload() {//old_djet/images/flappyJet_startImg.png
   flappyJet_start_img = loadImage('../old_djet/images/flappyJet_startImg.png'); // Start screen image
   flappyJet_building_img = loadImage('../old_djet/images/flappyJet_building.png'); // Image  building
   flappyJet_background_img = loadImage('../old_djet/images/flappyJet_background.jpg'); // Background image

@@ -1,0 +1,1050 @@
+
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>איקס עיגול</title>
+<style>
+/* ─────────────────────────────────────────────────────────────────
+   STYLES
+   To port this to a different game: you generally don't need to
+   change anything here except:
+     - .board grid columns (currently 3x3 for XO)
+     - .cell sizing / aspect ratio
+     - win-cell animation colors if you want a different theme
+   ───────────────────────────────────────────────────────────────── */
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Segoe UI',Arial,sans-serif;
+  background:#0a0b14; color:#f0f0f0;
+  min-height:100vh;
+  display:flex; flex-direction:column; align-items:center;
+  padding:20px 20px 80px; overflow-x:hidden;
+  direction:rtl;
+}
+.sym-x,.sym-o { display:inline-flex; align-items:center; justify-content:center; font-weight:700; line-height:1; }
+.cell .sym-x,.cell .sym-o { font-size:2.4rem; }
+.sym-x.sm,.sym-o.sm { font-size:1.1rem; }
+.sym-x { color:#00d4ff; }
+.sym-o { color:#a855f7; }
+.title {
+    font-size: 30px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.subtitle { color:#404060; font-size:.85rem; text-align:center; margin-bottom:24px; display: none;}
+.card { background:#131320; border-radius:16px; border:1px solid rgba(255,255,255,.05); box-shadow:0 8px 30px rgba(0,0,0,.4); overflow:hidden; position:relative; width:100%; }
+.card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,#00d4ff,#a855f7); }
+.game-center { display:flex; flex-direction:column; align-items:center; gap:14px; width:100%; max-width:420px; }
+.matchup { width:100%; display:flex; align-items:center; justify-content:space-between; padding:10px 20px; }
+.player { display:flex; align-items:center; gap:8px; min-width:100px; }
+.player.left { flex-direction:row-reverse; }
+.p-turn-indicator { width:6px; height:6px; border-radius:50%; background:#1e2035; transition:background .3s,box-shadow .3s; flex-shrink:0; }
+.p-turn-indicator.on-x { background:#00d4ff; box-shadow:0 0 8px #00d4ff; }
+.p-turn-indicator.on-o { background:#a855f7; box-shadow:0 0 8px #a855f7; }
+.p-info { display:flex; flex-direction:column; gap:2px; }
+.p-name { font-size:13px; font-weight:700; color:#a0a0c0; }
+.p-unit { font-size:10px; font-weight:700; letter-spacing:.5px; color:#505070; }
+.p-sym  { display:flex; align-items:center; }
+.vs-sep { font-size:.8rem; font-weight:700; color:#252540; letter-spacing:2px; }
+/* Board — 3×3 XO grid.
+   PORTING: change grid-template-columns for other grid sizes
+   e.g. repeat(7,1fr) for Connect Four, repeat(8,1fr) for chess */
+.board-card { width:100%; }
+.board-wrap { padding:14px; }
+.board { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; background:#0a0b14; border-radius:10px; padding:6px; }
+.cell { aspect-ratio:1; background:#0f0f1a; border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .16s cubic-bezier(.4,0,.2,1); user-select:none; border:1px solid rgba(255,255,255,.05); }
+.cell:hover:not(.taken):not(.locked) { background:#161628; transform:scale(1.05); box-shadow:0 0 14px rgba(0,212,255,.14); border-color:rgba(0,212,255,.25); }
+.cell.taken  { cursor:default; }
+.cell.locked { cursor:not-allowed; opacity:.85; }
+.cell.cx { filter:drop-shadow(0 0 10px rgba(0,212,255,.7)); }
+.cell.co { filter:drop-shadow(0 0 10px rgba(168,85,247,.7)); }
+.cell.win-cell { background:#091520!important; border-color:#00d4ff!important; box-shadow:0 0 22px rgba(0,212,255,.4)!important; animation:winP .9s ease-in-out infinite; }
+@keyframes winP { 0%,100%{box-shadow:0 0 14px rgba(0,212,255,.3)} 50%{box-shadow:0 0 30px rgba(0,212,255,.7)} }
+.cell-pop { animation:pop .22s cubic-bezier(.34,1.56,.64,1); }
+@keyframes pop { 0%{transform:scale(.35);opacity:0} 100%{transform:scale(1);opacity:1} }
+.status-bar { display:flex; align-items:center; justify-content:center; gap:6px; padding:10px 14px 6px; font-size:14px; font-weight:700; color:#505070; min-height:40px; transition:color .3s; direction:rtl; }
+.status-bar svg { width:1em; height:1em; flex-shrink:0; }
+.status-bar.mt { color:#00d4ff; }
+.status-bar.et { color:#a855f7; }
+.btn-row { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.btn-leave { display:flex; align-items:center; gap:8px; padding:9px 24px; border-radius:10px; background:rgba(255,77,109,.08); color:#ff4d6d; border:1px solid rgba(255,77,109,.22); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; transition:all .18s; direction:rtl; }
+.btn-leave svg { width:1em; height:1em; }
+.btn-leave:hover { background:rgba(255,77,109,.2); transform:scale(1.02); }
+.btn-offline { display:flex; align-items:center; gap:8px; padding:9px 20px; border-radius:10px; background:rgba(168,85,247,.08); color:#a855f7; border:1px solid rgba(168,85,247,.22); font-family:inherit; font-size:12px; font-weight:700; cursor:pointer; transition:all .18s; direction:rtl; }
+.btn-offline:hover { background:rgba(168,85,247,.18); transform:scale(1.02); }
+.btn-offline.active { background:rgba(168,85,247,.22); border-color:rgba(168,85,247,.5); }
+.overlay { position:fixed; inset:0; background:rgba(5,6,15,.9); display:flex; align-items:center; justify-content:center; z-index:200; backdrop-filter:blur(7px); opacity:0; pointer-events:none; transition:opacity .3s; }
+.overlay.show { opacity:1; pointer-events:all; }
+.ov-box { background:#131320; border:1px solid rgba(0,212,255,.25); border-radius:20px; padding:40px 52px; text-align:center; box-shadow:0 0 48px rgba(0,212,255,.14); transform:scale(.87); transition:transform .3s cubic-bezier(.34,1.56,.64,1); max-width:340px; width:90%; direction:rtl; }
+.overlay.show .ov-box { transform:scale(1); }
+.ov-icon { display:flex; justify-content:center; margin-bottom:14px; }
+.ov-icon svg { width:3.4rem; height:3.4rem; }
+.ov-title { display:flex; align-items:center; justify-content:center; gap:8px; font-size:1.8rem; font-weight:700; color:#f0f0f0; margin-bottom:8px; }
+.ov-sub   { font-size:14px; color:#505070; margin-bottom:24px; }
+.btn-new  { display:inline-flex; align-items:center; gap:10px; padding:11px 30px; background:linear-gradient(135deg,#00d4ff,#0090aa); color:#060810; border:none; border-radius:10px; font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; transition:all .18s; }
+.btn-new svg { width:1em; height:1em; }
+.btn-new:hover { transform:scale(1.05); }
+/* Loading screen */
+#loadingScreen { position:fixed; inset:0; background:#0a0b14; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:400; gap:28px; transition:opacity .4s ease; }
+#loadingScreen.hidden { opacity:0; pointer-events:none; }
+.loading-logo { display:flex; gap:12px; align-items:center; }
+.loading-logo .sym-x { font-size:3rem; }
+.loading-logo .sym-o { font-size:3rem; }
+.loading-card { background:#131320; border:1px solid rgba(255,255,255,.06); border-radius:20px; padding:32px 40px; text-align:center; max-width:320px; width:90%; box-shadow:0 8px 40px rgba(0,0,0,.5); position:relative; overflow:hidden; }
+.loading-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,#00d4ff,#a855f7); }
+.loading-title { font-size:1.1rem; font-weight:700; color:#d0d0e8; margin-bottom:8px; }
+.loading-msg   { font-size:.82rem; color:#505070; margin-bottom:24px; line-height:1.6; }
+.dots-wrap { display:flex; gap:10px; justify-content:center; }
+.dot { width:9px; height:9px; border-radius:50%; background:linear-gradient(135deg,#00d4ff,#a855f7); animation:dotBounce 1.2s ease-in-out infinite; opacity:.25; }
+.dot:nth-child(1){animation-delay:0s;} .dot:nth-child(2){animation-delay:.2s;} .dot:nth-child(3){animation-delay:.4s;}
+@keyframes dotBounce { 0%,80%,100%{transform:scale(.6);opacity:.25;} 40%{transform:scale(1.2);opacity:1;} }
+.room-badge { display:none; margin-top:16px; padding:4px 14px; border-radius:20px; background:rgba(0,212,255,.07); border:1px solid rgba(0,212,255,.18); font-size:11px; font-weight:700; color:#00d4ff; letter-spacing:.5px; }
+.offline-banner { background:rgba(168,85,247,.1); border:1px solid rgba(168,85,247,.3); border-radius:10px; padding:8px 16px; font-size:12px; color:#a855f7; font-weight:700; text-align:center; width:100%; max-width:420px; margin-bottom:-6px; }
+.toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(80px); background:#131320; border:1px solid rgba(0,212,255,.28); border-radius:30px; padding:8px 22px; font-size:13px; font-weight:700; color:#00d4ff; box-shadow:0 4px 20px rgba(0,0,0,.45); transition:transform .26s cubic-bezier(.34,1.56,.64,1); z-index:600; white-space:nowrap; direction:rtl; }
+.toast.show { transform:translateX(-50%) translateY(0); }
+
+#loadingScreen.hidden-children > * {display: none;}
+</style>
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="general/new_loader.css">
+  <script src="general/loader.js" defer></script>
+  <script type="module" defer src="general/firebaseRtdb.js"></script>
+  <script src="general/game_services.js" defer></script>
+
+</head>
+<body>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-trophy"    viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H3a1 1 0 0 1-1-1V5h4M18 9h3a1 1 0 0 0 1-1V5h-4"/><path d="M6 2h12v10a6 6 0 0 1-12 0z"/><path d="M12 18v4M8 22h8"/></symbol>
+  <symbol id="icon-handshake" viewBox="0 0 24 24" fill="none" stroke="#a0a0c0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></symbol>
+  <symbol id="icon-leave"     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+  <symbol id="icon-refresh"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
+  <symbol id="icon-flag"      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></symbol>
+  <symbol id="icon-pointer"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l7.07 17 2.51-7.39L21 11.07z"/></symbol>
+  <symbol id="icon-wifi-off"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></symbol>
+  <symbol id="icon-clock"     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+</svg>
+
+<!-- LOADING SCREEN — covers the game UI during all matchmaking phases -->
+<div id="loadingScreen" class="hidden-children">
+  <div class="loading-logo">
+    <span class="sym-x">איקס</span> 
+    <span class="sym-o">עיגול</span>
+  </div>
+  <div class="loading-card">
+    <div class="loading-title" id="loadTitle">מחפש משחק...</div>
+    <div class="loading-msg"   id="loadMsg">מתחבר לשרת</div>
+    <div class="dots-wrap"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <div class="room-badge" id="roomBadge"></div>
+  </div>
+</div>
+
+<!-- GAME UI -->
+<div class="title">
+    <span class="sym-x">איקס</span> 
+    <span class="sym-o">עיגול</span>
+</div>
+<div class="subtitle" id="subtitleEl">משחק מקוון</div>
+<div class="offline-banner" id="offlineBanner" style="display:none">⚡ מצב לא מקוון — שני שחקנים על מסך אחד</div>
+
+<div class="game-center">
+  <div class="card matchup">
+    <div class="player">
+      <div class="p-turn-indicator" id="dotP"></div>
+      <div class="p-info">
+        <div class="p-name" id="pName">—</div>
+        <div class="p-unit" id="pUnit">—</div>
+      </div>
+      <div class="p-sym"><span class="sym-x sm">X</span></div>
+    </div>
+    <div class="vs-sep">נגד</div>
+    <div class="player left">
+      <div class="p-turn-indicator" id="dotE"></div>
+      <div class="p-info" style="align-items:flex-end">
+        <div class="p-name" id="eName">—</div>
+        <div class="p-unit" id="eUnit">—</div>
+      </div>
+      <div class="p-sym"><span class="sym-o sm">O</span></div>
+    </div>
+  </div>
+
+  <div class="card board-card">
+    <div class="board-wrap">
+      <div class="board" id="board"></div>
+      <div class="status-bar" id="statusBar"></div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-leave" onclick="leaveGame()">
+      <svg style="color:#ff4d6d"><use href="#icon-leave"/></svg> עזוב משחק
+    </button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="ov-box">
+    <div class="ov-icon"  id="ovIcon"></div>
+    <div class="ov-title" id="ovTitle">סיום!</div>
+    <div class="ov-sub"   id="ovSub"></div>
+    <button class="btn-new" onclick="restartGame()">
+      <svg><use href="#icon-refresh"/></svg> משחק חדש
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ╔══════════════════════════════════════════════════════════════════════╗
+   ║  GENERIC SHAREPOINT 2016 MULTIPLAYER ENGINE                        ║
+   ║                                                                    ║
+   ║  SECTION 1 — GAME CONFIG          ← CHANGE THIS FOR EACH GAME     ║
+   ║  SECTION 2 — SP DATA LAYER        ← generic, do not modify         ║
+   ║  SECTION 3 — MATCHMAKING ENGINE   ← generic, do not modify         ║
+   ║  SECTION 4 — GAME LOGIC           ← CHANGE THIS FOR EACH GAME     ║
+   ║                                                                    ║
+   ║  STATUS LIFECYCLE:                                                 ║
+   ║    waiting       → room Created, no enemy yet                      ║
+   ║    joined        → enemy joined; player (creator) flips coin       ║
+   ║    playingPlayer → creator is X/first-symbol, goes first           ║
+   ║    playingEnemy  → joiner is X/first-symbol, goes first            ║
+   ║    ended         → someone won                                     ║
+   ║    tie           → draw                                            ║
+   ║    left          → someone abandoned                               ║
+   ║                                                                    ║
+   ║  SP LIST COLUMNS (all Text type):                                  ║
+   ║    playerName, playerUnit, playerID                                ║
+   ║    enemyName,  enemyUnit,  enemyID                                 ║
+   ║    gameStatus, gameInfo, Created                                   ║
+   ╚══════════════════════════════════════════════════════════════════════╝ */
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 1 — GAME CONFIG  ← MODIFY FOR EACH GAME
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* MODIFY: Your SP 2016 site's absolute URL.
+   In classic SP pages you can also write:
+     const SP_SITE_URL = _spPageContextInfo.webAbsoluteUrl;            */
+const SP_SITE_URL = 'http://spellcaster.sites.airnet/DJet';
+
+/* MODIFY: Exact display name of your SharePoint list (one list per game). */
+const SP_LIST = 'Rooms';
+
+/* MODIFY: Current player's identity.
+   In production replace with:
+     user_details["Id"]   = String(_spPageContextInfo.userId)
+     user_details["username"] = _spPageContextInfo.userDisplayName
+   The id MUST be unique — it's how we reconnect without browser storage. */
+const CONFIG = {
+  me: { name:'רון', unit:'אלפא', id:'32' }
+};
+
+/* MODIFY: Second player used only in offline/pass-and-play mode. */
+const OFFLINE_ENEMY = { name:'יריב', unit:'חיל הים', id:'user-dana' };
+
+/* MODIFY: The string stored in gameInfo for a fresh empty board.
+   XO:        ' , , , , , , , , '  (9 comma-separated spaces)
+   Connect 4: 42 commas for 7×6 grid
+   Chess:     FEN string of starting position                          */
+const GAME_EMPTY_STATE = ' , , , , , , , , ';
+
+/* MODIFY: Rooms older than this (ms) are ignored by matchmaking. */
+const ROOM_MAX_AGE_MS = 10 * 60 * 1000;
+
+/* MODIFY: How often (ms) clients poll SP. 3000ms suits most turn-based games. */
+const POLL_INTERVAL_MS = 1000;
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 2 — SP DATA LAYER  ← do not modify for new games
+   ══════════════════════════════════════════════════════════════════════
+   Three public functions: loadItemsFromSPList, createItemOnSP, updateItemOnSP
+   All SP-specific quirks (MERGE, 204, ETag, digest) are isolated here.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Columns fetched on every query.
+   MODIFY: add custom columns here if you extend your SP list.         */
+const SP_FIELDS = 'Id,Title,playerName,playerUnit,playerID,enemyName,enemyUnit,enemyID,gameStatus,gameInfo,Created,Created';
+
+/* _getDigest() — SP 2016 CSRF token, required for all writes.
+   MODIFY: uncomment Option A for a classic SP-hosted page (recommended),
+           or Option B for a standalone/iframe app.
+
+   Option A (classic SP page — __REQUESTDIGEST input is always present):
+     const el = document.getElementById('__REQUESTDIGEST');
+     if (el && el.value) return el.value;
+
+   Option B (standalone/iframe — fetch a fresh digest):
+     const res  = await fetch(`${SP_SITE_URL}/_api/contextinfo`,
+       { method:'POST', headers:{ Accept:'application/json;odata=verbose' } });
+     const json = await res.json();
+     return json.d.GetContextWebInformation.FormDigestValue;           */
+async function _getDigest() {
+  // ── UNCOMMENT ONE OF THE OPTIONS ABOVE ──
+  throw new Error('_getDigest() not configured — see comments above in SECTION 2');
+}
+
+/* loadItemsFromSPList(listName, fields, filter?, orderBy?)
+   Generic item fetch. Returns array of plain objects (empty on error).
+   All SP errors are caught and logged — callers always get an array.  */
+async function loadItemsFromSPList(listName, fields, filter = '', orderBy = '') {
+  try {
+    let url = `${SP_SITE_URL}/_api/web/lists/getbytitle('${encodeURIComponent(listName)}')/items?$select=${fields}&$top=10000`;
+    if (filter)  url += `&$filter=${encodeURIComponent(filter)}`;
+    if (orderBy) url += `&$orderby=${encodeURIComponent(orderBy)}`;
+    const res = await fetch(url, { headers:{ Accept:'application/json;odata=verbose' } });
+    if (!res.ok) { console.error(`[SP] load ${listName} ${res.status}`, await res.text()); return []; }
+    const json = await res.json();
+    return json.d.results || [];
+  } catch(e) {
+    console.error('[SP] loadItemsFromSPList network error', e);
+    return [];
+  }
+}
+
+/* createItemOnSP(listName, data)
+   Creates a new SP list row. Returns { item, etag } or null on error.
+   MODIFY: If your list name has spaces (e.g. "My Games"), the entity
+   type becomes 'SP.Data.My_x0020_GamesListItem' — the replace handles this. */
+async function createItemOnSP(listName, data) {
+  try {
+        let logger = document.getElementById(loggerID);
+    const digest     = logger.contentWindow.document.getElementById("__REQUESTDIGEST").value;
+    const entityType = `SP.Data.${listName.replace(/ /g,'_x0020_')}ListItem`;
+    const body       = JSON.stringify({ __metadata:{ type:entityType }, ...data });
+    const res = await fetch(
+      `${SP_SITE_URL}/_api/web/lists/getbytitle('${encodeURIComponent(listName)}')/items`,
+      { method:'POST', headers:{
+          'Content-Type':'application/json;odata=verbose',
+          'Accept':'application/json;odata=verbose',
+          'X-RequestDigest':digest
+        }, body }
+    );
+    if (!res.ok) { console.error(`[SP] create ${listName} ${res.status}`, await res.text()); return null; }
+    const json = await res.json();
+    spLog('יצירה', json.d);
+    return { item:json.d, etag:json.d.__metadata.etag };
+  } catch(e) {
+    console.error('[SP] createItemOnSP error', e);
+    return null;
+  }
+}
+
+/* updateItemOnSP(listName, id, data, etag)
+   ETag-protected partial update (MERGE). Returns { item, newEtag } or null.
+   null on 412 conflict = someone else wrote first — caller must handle.
+   SP 2016: uses X-HTTP-Method:MERGE (no PATCH), returns 204 no-body → re-fetch. */
+async function updateItemOnSP(listName, id, data, etag) {
+  try {
+        let logger = document.getElementById(loggerID);
+    const digest     = logger.contentWindow.document.getElementById("__REQUESTDIGEST").value;
+        const entityType = `SP.Data.${listName.replace(/ /g,'_x0020_')}ListItem`;
+    const body       = JSON.stringify({ __metadata:{ type:entityType }, ...data });
+    const res = await fetch(
+      `${SP_SITE_URL}/_api/web/lists/getbytitle('${encodeURIComponent(listName)}')/items(${id})`,
+      { method:'POST', headers:{
+          'Content-Type':'application/json;odata=verbose',
+          'Accept':'application/json;odata=verbose',
+          'X-RequestDigest':digest,
+          'X-HTTP-Method':'MERGE',  // SP 2016: no PATCH
+          'IF-MATCH':etag           // 412 if stale → conflict
+        }, body }
+    );
+    if (res.status === 412) { console.warn(`[SP] 412 conflict #${id}`); return null; }
+    if (!res.ok && res.status !== 204) { console.error(`[SP] update ${id} ${res.status}`, await res.text()); return null; }
+    // 204 No Content → re-fetch for the updated item + new ETag
+    const rows = await loadItemsFromSPList(listName, SP_FIELDS, `Id eq ${id}`);
+    if (!rows.length) { console.error(`[SP] re-fetch after update failed for #${id}`); return null; }
+    const item    = rows[0];
+    const newEtag = item.__metadata.etag;
+    spLog('עדכון', item);
+    return { item, newEtag };
+  } catch(e) {
+    console.error('[SP] updateItemOnSP error', e);
+    return null;
+  }
+}
+
+/* deleteItemOnSP — hard-delete, used only for orphan room cleanup.
+   Force-delete with IF-MATCH:* (no ETag check needed for cleanup).    */
+async function deleteItemOnSP(listName, id) {
+  try {
+        let logger = document.getElementById(loggerID);
+    const digest     = logger.contentWindow.document.getElementById("__REQUESTDIGEST").value;
+        await fetch(
+      `${SP_SITE_URL}/_api/web/lists/getbytitle('${encodeURIComponent(listName)}')/items(${id})`,
+      { method:'POST', headers:{ 'X-RequestDigest':digest, 'X-HTTP-Method':'DELETE', 'IF-MATCH':'*' } }
+    );
+  } catch(e) { console.warn('[SP] delete error', e); }
+}
+
+function spLog(action, item) {
+  console.group(`[SP] ${action} — #${item.Id}`);
+  console.log(JSON.stringify(item, null, 2));
+  console.groupEnd();
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   IN-MEMORY SIMULATION (offline mode only — not SP)
+   Mirrors the SP API shape exactly (ETag locking, same fields) so all
+   engine code above works identically offline and online.
+   ▸ DO NOT MODIFY.
+   ══════════════════════════════════════════════════════════════════════ */
+let _simDb = [], _simSeq = 1, _simEtags = {};
+const _now     = () => new Date().toISOString();
+const _newEtag = id => { const t = '"' + Math.random().toString(36).slice(2) + '"'; _simEtags[id] = t; return t; };
+
+async function _simLoad(filter) {
+  let rows = [..._simDb];
+  if (filter) {
+    // Supports: 'field eq value', 'field eq null', AND combinations
+    for (const part of filter.split(' and ').map(s => s.trim())) {
+      const m = part.match(/^(\w+)\s+eq\s+'?([^']*)'?$/);
+      if (!m) continue;
+      const [, col, val] = m;
+      rows = rows.filter(r => val === 'null'
+        ? (r[col] === null || r[col] === undefined)
+        : String(r[col]) === val
+      );
+    }
+  }
+  return rows.map(r => ({ ...r, __metadata:{ etag:_simEtags[r.Id] } }));
+}
+
+async function _simCreate(data) {
+  const id   = _simSeq++;
+  const etag = _newEtag(id);
+  const item = { Id:id, Title:`חדר ${id}`, Created:_now(), ...data, __metadata:{ etag } };
+  _simDb.push(item);
+  spLog('יצירה [sim]', item);
+  return { item:{ ...item }, etag };
+}
+
+async function _simUpdate(id, data, etag) {
+  if (_simEtags[id] !== etag) { console.warn(`[SIM] 412 — #${id}`); return null; }
+  const item = _simDb.find(r => r.Id === id);
+  if (!item) return null;
+  Object.assign(item, data, { modified:_now() });
+  const newEtag = _newEtag(id);
+  item.__metadata = { etag:newEtag };
+  spLog('עדכון [sim]', item);
+  return { item:{ ...item }, newEtag };
+}
+
+async function _simDelete(id) { _simDb = _simDb.filter(r => r.Id !== id); delete _simEtags[id]; }
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   OFFLINE MODE + ROUTING WRAPPERS
+   All engine code calls spLoad/spCreate/spUpdate/spDelete — never the
+   raw SP functions directly. The wrappers switch based on offlineMode.
+   PORTING NOTE: if you add SP operations, add a wrapper here too.
+   ══════════════════════════════════════════════════════════════════════ */
+let offlineMode = false;
+
+function toggleOfflineMode() {
+  offlineMode = !offlineMode;
+  //document.getElementById('btnOffline').classList.toggle('active', offlineMode);
+  document.getElementById('offlineBanner').style.display = offlineMode ? 'block' : 'none';
+  document.getElementById('overlay').classList.remove('show');
+  resetSessionState();
+  if (offlineMode) {
+    _simDb = []; _simSeq = 1; _simEtags = {};
+    hideLoading();
+    document.getElementById('subtitleEl').textContent = 'מצב לא מקוון';
+    initOffline();
+  } else {
+    document.getElementById('subtitleEl').textContent = 'משחק מקוון';
+    showLoading('מחפש משחק...', 'מתחבר לשרת');
+    joinGameFlow();
+  }
+}
+
+async function spLoad(filter, orderBy = '') {
+  if (offlineMode) return _simLoad(filter);
+  return loadItemsFromSPList(SP_LIST, SP_FIELDS, filter, orderBy);
+}
+async function spCreate(data) {
+  if (offlineMode) return _simCreate(data);
+  return createItemOnSP(SP_LIST, data);
+}
+async function spUpdate(id, data, etag) {
+  if (offlineMode) return _simUpdate(id, data, etag);
+  return updateItemOnSP(SP_LIST, id, data, etag);
+}
+async function spDelete(id) {
+  if (offlineMode) { await _simDelete(id); return; }
+  await deleteItemOnSP(SP_LIST, id);
+}
+
+/* spGetOne(id) — fetch a single room by its Id.
+   BUG FIX: previous version had duplicate etag expression.
+   Now correctly reads __metadata.etag from the item.                  */
+async function spGetOne(id) {
+  const rows = await spLoad(`Id eq ${id}`);
+  if (!rows.length) return null;
+  const item = rows[0];
+  return { item, etag: item.__metadata.etag };
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SESSION STATE — all in memory, no browser storage
+   ══════════════════════════════════════════════════════════════════════ */
+let ROOM          = null;  // current SP room object
+let MY_ETAG       = null;  // last-known ETag for this room
+let MY_ROLE       = null;  // 'player' (creator) | 'enemy' (joiner)
+let FLIP_STATUS   = null;  // 'playingPlayer'|'playingEnemy' — set ONCE at game start, NEVER re-derived
+let winCells      = [];
+let gamePollTimer = null;
+let matchPollTimer= null;
+
+function resetSessionState() {
+  stopGamePoll(); stopMatchPoll();
+  ROOM = null; MY_ETAG = null; MY_ROLE = null; FLIP_STATUS = null; winCells = [];
+  document.getElementById('board').innerHTML = '';
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 3 — MATCHMAKING ENGINE  ← do not modify for new games
+   ══════════════════════════════════════════════════════════════════════ */
+
+async function showScreen() {
+  document.getElementById("loadingScreen").classList.remove("hidden-children");
+  if (offlineMode) {
+    hideLoading();
+    document.getElementById('subtitleEl').textContent = 'מצב לא מקוון';
+    await initOffline();
+  } else {
+    showLoading('מחפש משחק...', 'מתחבר לשרת');
+    await joinGameFlow();
+  }
+}
+
+/* joinGameFlow()
+   Full matchmaking: reconnect → join open room → create room.
+   All SP calls are wrapped in try/catch inside spLoad/spCreate/spUpdate
+   (errors return null/[] so the flow degrades gracefully).             */
+async function joinGameFlow() {
+
+  /* STEP 1: reconnect to an existing active room (e.g. after page refresh) */
+  showLoading('בודק משחק קיים...', 'מחפש חדר פעיל שייך לך');
+  const existing = await spGetMyActiveRoom();
+
+  if (existing) {
+    ROOM = existing.item; MY_ETAG = existing.etag; MY_ROLE = existing.role;
+
+    if (ROOM.gameStatus === 'waiting') {
+      showLoading('ממתין לשחקן שני...', 'החדר שלך פתוח', ROOM.Id);
+      updateUI(); startMatchPoll(); return;
+    }
+    if (ROOM.gameStatus === 'joined') {
+      if (MY_ROLE === 'player') { await doFlipAndStart(); }
+      else { showLoading('ממתין לתחילת המשחק...', 'היריב שלך מגריל מי פותח 🎲'); startGamePoll(); }
+      return;
+    }
+    if (ROOM.gameStatus === 'playingPlayer' || ROOM.gameStatus === 'playingEnemy') {
+      FLIP_STATUS = ROOM.gameStatus;
+    }
+    hideLoading();
+    document.getElementById('subtitleEl').textContent = offlineMode ? 'מצב לא מקוון' : 'משחק מקוון';
+    updateUI();
+    if (['playingPlayer','playingEnemy'].includes(ROOM.gameStatus)) {
+      startGamePoll();
+    } else {
+      // Terminal state on reconnect — FLIP_STATUS may be null if we never reached playingX.
+      // showEndOverlay falls back to 'playingPlayer' which is safe (just a display edge case).
+      const board = parseBoard(ROOM.gameInfo);
+      winCells = getWinCells(board, checkWinner(board));
+      renderBoard();
+      showEndOverlay(ROOM.gameStatus === 'ended' ? checkWinner(board) : ROOM.gameStatus);
+    }
+    return;
+  }
+
+  /* STEP 2: join the oldest open room */
+  showLoading('מחפש יריב...', 'מחפש חדרים פתוחים');
+  const openRooms = await spGetOpenRooms();
+
+  for (const { item, etag } of openRooms) {
+    if (item.playerID === user_details["Id"]) continue;
+    // Enemy joins: writes identity + status='joined'. No flip, no board — player does that.
+    const result = await spUpdate(item.Id, {
+      enemyName:user_details["username"], enemyUnit:user_details["unit"], enemyID:user_details["Id"], gameStatus:'joined'
+    }, etag);
+    if (result) {
+      ROOM = result.item; MY_ETAG = result.newEtag; MY_ROLE = 'enemy';
+      showLoading('הצטרפת לחדר!', 'ממתין לתחילת המשחק — היריב שלך מגריל מי פותח 🎲', ROOM.Id);
+      startGamePoll(); return;
+    }
+    // null = 412 (room taken) → try next
+  }
+
+  /* STEP 3: no open rooms — create one and wait */
+  showLoading('יוצר חדר חדש...', 'לא נמצאו חדרים פתוחים');
+  const Created = await spCreate({
+    playerName: user_details["username"], playerUnit: user_details["unit"], playerID: user_details["Id"],
+    gameStatus:'waiting', Title:"tictactoe",
+  });
+  if (!Created) { showToast('שגיאה ביצירת חדר — נסה שוב'); showLoading('שגיאה', 'לא ניתן ליצור חדר, נסה לרענן'); return; }
+  saveActivityOnSP(`פתח חדר של איקס עיגול`, "online");
+
+  // Race-check: a lower-Id room appeared while we were creating?
+  const recheck = await spGetOpenRooms();
+  const lower   = recheck.find(r => r.item.Id < Created.item.Id && r.item.playerID !== user_details["Id"]);
+  if (lower) {
+    await spDelete(Created.item.Id);
+    const result = await spUpdate(lower.item.Id, {
+      enemyName:user_details["username"], enemyUnit:user_details["unit"], enemyID:user_details["Id"], gameStatus:'joined'
+    }, lower.etag);
+    if (result) {
+      ROOM = result.item; MY_ETAG = result.newEtag; MY_ROLE = 'enemy';
+      showLoading('הצטרפת לחדר!', 'ממתין לתחילת המשחק🎲', ROOM.Id);
+      startGamePoll(); return;
+    }
+    await joinGameFlow(); return; // both failed → retry from scratch
+  }
+
+  ROOM = Created.item; MY_ETAG = Created.etag; MY_ROLE = 'player';
+  showLoading('ממתין לשחקן שני...', 'החדר שלך פתוח', ROOM.Id);
+  updateUI(); startMatchPoll();
+}
+
+/* spGetMyActiveRoom — find MY room by playerID or enemyID.
+   SP 2016 doesn't support OR across columns in one $filter request,
+   so we fire two parallel requests and merge in JS.                   */
+async function spGetMyActiveRoom() {
+  const liveStatuses = ['waiting','joined','playingPlayer','playingEnemy'];
+  if (offlineMode) {
+    const hits = _simDb
+      .filter(r => _isRoomFresh(r) && liveStatuses.includes(r.gameStatus) &&
+        (r.playerID === user_details["Id"] || r.enemyID === user_details["Id"]))
+      .sort((a,b) => b.Id - a.Id);
+    if (!hits.length) return null;
+    const item = hits[0];
+    return { item:{ ...item }, etag:_simEtags[item.Id], role:item.playerID === user_details["Id"] ? 'player':'enemy' };
+  }
+  const sf = `(gameStatus eq 'waiting' or gameStatus eq 'joined' or gameStatus eq 'playingPlayer' or gameStatus eq 'playingEnemy')`;
+  const [asPlayer, asEnemy] = await Promise.all([
+    loadItemsFromSPList(SP_LIST, SP_FIELDS, `playerID eq '${user_details["Id"]}' and ${sf} and Title eq 'tictactoe'`),
+    loadItemsFromSPList(SP_LIST, SP_FIELDS, `enemyID  eq '${user_details["Id"]}' and ${sf} and Title eq 'tictactoe'`)
+  ]);
+  const all = [
+    ...asPlayer.map(item => ({ item, role:'player' })),
+    ...asEnemy .map(item => ({ item, role:'enemy'  }))
+  ];
+  const fresh = all.filter(r => _isRoomFresh(r.item)).sort((a,b) => b.item.Id - a.item.Id);
+  if (!fresh.length) return null;
+  const { item, role } = fresh[0];
+  return { item, etag:item.__metadata.etag, role };
+}
+
+async function spGetOpenRooms() {
+  const rows = await spLoad(`enemyID eq null and gameStatus eq 'waiting' and Title eq 'tictactoe'`, `Id asc`);
+  return rows.filter(_isRoomFresh).map(item => ({ item, etag:item.__metadata.etag }));
+}
+
+function _isRoomFresh(item) {
+  const ts = item.Created || item.Created;
+  if (!ts) return true;
+  return (Date.now() - new Date(ts).getTime()) < ROOM_MAX_AGE_MS;
+}
+
+/* doFlipAndStart — player's coin flip.
+   BUG FIX (prev version): if spUpdate failed, FLIP_STATUS was set to
+   ROOM.gameStatus which was still 'joined' — an invalid value.
+   Now: only set FLIP_STATUS if the resulting status is a valid playing state. */
+async function doFlipAndStart() {
+  const firstTurn = Math.random() < 0.5 ? 'playingPlayer' : 'playingEnemy';
+  const myTurn    = (MY_ROLE === 'player' && firstTurn === 'playingPlayer') ||
+                    (MY_ROLE === 'enemy'  && firstTurn === 'playingEnemy');
+
+  showLoading(myTurn ? '🎉 אתה מתחיל!' : 'היריב מתחיל!',
+              myTurn ? 'הגרלה בוצעה — תורך לפתוח' : 'הגרלה בוצעה — היריב פותח');
+
+  const result = await spUpdate(ROOM.Id, {
+    gameStatus:firstTurn, gameInfo:GAME_EMPTY_STATE
+  }, MY_ETAG);
+
+  if (result) {
+    ROOM = result.item; MY_ETAG = result.newEtag;
+  } else {
+    // Write failed — re-fetch to see what state we're actually in
+    const fresh = await spGetOne(ROOM.Id);
+    if (fresh) { ROOM = fresh.item; MY_ETAG = fresh.etag; }
+    // If re-fetch also failed, ROOM is unchanged — still 'joined', can't proceed
+    if (!ROOM || (ROOM.gameStatus !== 'playingPlayer' && ROOM.gameStatus !== 'playingEnemy')) {
+      showToast('שגיאה בהתחלת המשחק — נסה שוב');
+      showLoading('שגיאה בהגרלה', 'נא לרענן את הדף');
+      return;
+    }
+  }
+
+  // BUG FIX: only set FLIP_STATUS if we actually have a valid playing status
+  if (ROOM.gameStatus === 'playingPlayer' || ROOM.gameStatus === 'playingEnemy') {
+    FLIP_STATUS = ROOM.gameStatus;
+  }
+
+  hideLoading();
+  document.getElementById('subtitleEl').textContent = offlineMode ? 'מצב לא מקוון' : 'משחק מקוון';
+  updateUI(); startGamePoll();
+}
+
+/* Match poll — player side, waits for status 'waiting' → 'joined' */
+function startMatchPoll() {
+  stopMatchPoll();
+  matchPollTimer = setInterval(async () => {
+    if (!ROOM) return;
+    const fresh = await spGetOne(ROOM.Id);
+    if (!fresh) return; // network blip — skip this tick
+    ROOM = fresh.item; MY_ETAG = fresh.etag;
+    if (ROOM.gameStatus === 'joined') {
+      stopMatchPoll();
+      await doFlipAndStart();
+    }
+  }, POLL_INTERVAL_MS);
+}
+function stopMatchPoll() { clearInterval(matchPollTimer); matchPollTimer = null; }
+
+/* Game poll — both sides, from 'joined' through the whole game.
+   BUG FIX: terminal branch now null-checks gameInfo before parseBoard. */
+function startGamePoll() {
+  stopGamePoll();
+  gamePollTimer = setInterval(async () => {
+    if (!ROOM) return;
+    const fresh = await spGetOne(ROOM.Id);
+    if (!fresh) return;
+
+    const changed = fresh.item.gameInfo !== ROOM.gameInfo || fresh.item.gameStatus !== ROOM.gameStatus;
+    if (!changed) return;
+
+    ROOM = fresh.item; MY_ETAG = fresh.etag;
+
+    // Transition: joined → playingX (player just did the flip)
+    if ((ROOM.gameStatus === 'playingPlayer' || ROOM.gameStatus === 'playingEnemy') && !FLIP_STATUS) {
+      FLIP_STATUS = ROOM.gameStatus;
+      hideLoading();
+      document.getElementById('subtitleEl').textContent = offlineMode ? 'מצב לא מקוון' : 'משחק מקוון';
+      updateUI(); return;
+    }
+
+    if (['ended','tie','left'].includes(ROOM.gameStatus)) {
+      stopGamePoll(); hideLoading();
+      // BUG FIX: gameInfo can be null if player left before the game started
+      const board = parseBoard(ROOM.gameInfo); // parseBoard handles null → empty board
+      winCells    = getWinCells(board, ROOM.gameStatus === 'ended' ? checkWinner(board) : null);
+      renderBoard();
+      showEndOverlay(ROOM.gameStatus === 'ended' ? checkWinner(board) : ROOM.gameStatus);
+    } else {
+      updateUI();
+    }
+  }, POLL_INTERVAL_MS);
+}
+function stopGamePoll() { clearInterval(gamePollTimer); gamePollTimer = null; }
+
+/* leaveGame — write 'left' to SP so opponent's poll sees it.
+   Safe to call in any state including 'waiting' and 'joined'.         */
+async function leaveGame() {
+  if (!ROOM) return;
+  stopGamePoll(); stopMatchPoll();
+  const result = await spUpdate(ROOM.Id, { gameStatus:'left' }, MY_ETAG);
+  if (result) { ROOM = result.item; MY_ETAG = result.newEtag; }
+  // Even if the write failed, show the overlay locally
+  hideLoading(); showEndOverlay('left');
+}
+
+/* Page unload — best-effort beacon to set 'left'.
+   NOTE: sendBeacon can't send custom headers, so X-RequestDigest is missing.
+   In SP 2016 this may 403. If this is a problem, remove the sendBeacon call
+   and accept that abrupt tab closes won't signal 'left' to the opponent.  */
+window.addEventListener('beforeunload', () => {
+  if (!ROOM || offlineMode) return;
+  if (!['waiting','joined','playingPlayer','playingEnemy'].includes(ROOM.gameStatus)) return;
+  if (navigator.sendBeacon) {
+    const url  = `${SP_SITE_URL}/_api/web/lists/getbytitle('${SP_LIST}')/items(${ROOM.Id})`;
+    const data = new Blob(
+      [JSON.stringify({ __metadata:{ type:`SP.Data.${SP_LIST.replace(/ /g,'_x0020_')}ListItem` }, gameStatus:'left' })],
+      { type:'application/json;odata=verbose' }
+    );
+    navigator.sendBeacon(url, data);
+  }
+});
+
+async function restartGame() {
+  document.getElementById('overlay').classList.remove('show');
+  resetSessionState();
+  if (offlineMode) {
+    _simDb = []; _simSeq = 1; _simEtags = {};
+    await initOffline();
+  } else {
+    showLoading('מחפש משחק...', 'מתחבר לשרת');
+    await joinGameFlow();
+  }
+}
+
+/* initOffline — create + join + flip in-memory, no SP calls */
+async function initOffline() {
+  const Created = await spCreate({
+    playerName:user_details["username"], playerUnit:user_details["unit"], playerID:user_details["Id"],
+    gameStatus:'waiting', gameInfo:null,
+    enemyName:null, enemyUnit:null, enemyID:null, Created:_now()
+  });
+  if (!Created) { showToast('שגיאה'); return; }
+
+  const joined = await spUpdate(Created.item.Id, {
+    enemyName:OFFLINE_ENEMY.name, enemyUnit:OFFLINE_ENEMY.unit,
+    enemyID:OFFLINE_ENEMY.id, gameStatus:'joined'
+  }, Created.etag);
+  if (!joined) { showToast('שגיאה'); return; }
+
+  ROOM = joined.item; MY_ETAG = joined.newEtag; MY_ROLE = 'player';
+
+  const firstTurn = Math.random() < 0.5 ? 'playingPlayer' : 'playingEnemy';
+  const started = await spUpdate(ROOM.Id, { gameStatus:firstTurn, gameInfo:GAME_EMPTY_STATE }, MY_ETAG);
+  if (!started) { showToast('שגיאה'); return; }
+
+  ROOM = started.item; MY_ETAG = started.newEtag;
+  FLIP_STATUS = firstTurn;
+  hideLoading(); updateUI(); startGamePoll();
+}
+
+/* Loading screen helpers */
+function showLoading(title, msg, roomId) {
+  document.getElementById('loadTitle').textContent = title;
+  document.getElementById('loadMsg').textContent   = msg;
+  const badge = document.getElementById('roomBadge');
+  if (roomId) { badge.textContent = `חדר #${roomId}`; badge.style.display = 'inline-block'; }
+  else        { badge.style.display = 'none'; }
+  document.getElementById('loadingScreen').classList.remove('hidden');
+}
+function hideLoading() { document.getElementById('loadingScreen').classList.add('hidden'); }
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   SECTION 4 — GAME LOGIC (TIC-TAC-TOE)  ← REPLACE FOR EACH GAME
+   ══════════════════════════════════════════════════════════════════════
+   CONTRACT (functions the engine calls):
+     parseBoard(gameInfo)     → board representation (null-safe!)
+     checkWinner(board)       → 'X'|'O'|'draw'|null
+     getWinCells(board, sym)  → [indices]
+     handleMove(cellIndex)    → validate + write move
+     renderBoard()            → paint #board element
+     updateUI()               → refresh all UI from ROOM
+     showEndOverlay(result)   → display end screen
+
+   PORTING:
+     Connect Four → 7×6 grid, drop-to-bottom moves, run-of-4 check
+     Chess        → FEN in gameInfo, piece rendering, legal move check
+   ══════════════════════════════════════════════════════════════════════ */
+
+function symX(cls) { return `<span class="sym-x${cls?' '+cls:''}">${'X'}</span>`; }
+function symO(cls) { return `<span class="sym-o${cls?' '+cls:''}">${'O'}</span>`; }
+function symFor(s,cls) { return s==='X' ? symX(cls) : symO(cls); }
+
+/* parseBoard — null-safe. Always returns a valid 9-element array.
+   BUG FIX: added explicit null/undefined guard before split.          */
+function parseBoard(s) {
+  if (s === null || s === undefined || s === '') return Array(9).fill(' ');
+  return s.split(',').map(c => {
+    const t = c.trim();
+    return (t === '' || t === 'null') ? ' ' : t;
+  });
+}
+
+const WIN_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+function checkWinner(board) {
+  if (!board) return null;
+  for (const [a,b,c] of WIN_LINES)
+    if (board[a]!==' ' && board[a]===board[b] && board[b]===board[c]) return board[a];
+  return board.every(c => c!==' ') ? 'draw' : null;
+}
+
+function getWinCells(board, sym) {
+  if (!board || !sym || sym==='draw') return [];
+  for (const line of WIN_LINES) if (line.every(i => board[i]===sym)) return line;
+  return [];
+}
+
+/* getMySymbol — derives this player's symbol from FLIP_STATUS + MY_ROLE.
+   FLIP_STATUS='playingPlayer' → creator(player)=X,  joiner(enemy)=O
+   FLIP_STATUS='playingEnemy'  → creator(player)=O,  joiner(enemy)=X
+   Falls back to 'playingPlayer' if FLIP_STATUS is somehow null.       */
+function getMySymbol() {
+  const flip = FLIP_STATUS || 'playingPlayer';
+  return MY_ROLE === 'player'
+    ? (flip==='playingPlayer' ? 'X' : 'O')
+    : (flip==='playingPlayer' ? 'O' : 'X');
+}
+
+/* handleMove — validates, applies, writes move.
+   PORTING: replace the board manipulation and win check for your game. */
+async function handleMove(index) {
+  if (!ROOM) return;
+  if (ROOM.gameStatus!=='playingPlayer' && ROOM.gameStatus!=='playingEnemy') return;
+  const board = parseBoard(ROOM.gameInfo); // null-safe
+  if (board[index] !== ' ') return;
+
+  const filled  = board.filter(c => c!==' ').length;
+  const turnSym = filled%2===0 ? 'X' : 'O'; // X on even counts (0,2,4,6,8)
+
+  // Online: enforce turn. Offline: pass-and-play, either player can click.
+  if (!offlineMode && getMySymbol() !== turnSym) { showToast('לא תורך! ⏳'); return; }
+
+  board[index] = turnSym;
+  const newInfo   = board.join(',');
+  const winner    = checkWinner(board);
+  // gameStatus stays 'playingPlayer'/'playingEnemy' throughout game —
+  // only changes to terminal status on win/draw.
+  const newStatus = winner==='draw' ? 'tie' : winner ? 'ended' : ROOM.gameStatus;
+
+  const result = await spUpdate(ROOM.Id, { gameInfo:newInfo, gameStatus:newStatus }, MY_ETAG);
+  if (!result) { showToast('התנגשות — נסה שוב'); return; }
+
+  ROOM = result.item; MY_ETAG = result.newEtag;
+  if (winner) {
+    winCells = getWinCells(board, winner==='draw' ? null : winner);
+    stopGamePoll(); renderBoard(); showEndOverlay(winner); return;
+  }
+  updateUI();
+}
+
+/* renderBoard — paints the 3×3 grid.
+   Null-safe: if ROOM.gameInfo is null, renders an empty locked board.
+   PORTING: replace entirely for your game's board rendering.          */
+function renderBoard() {
+  const el = document.getElementById('board');
+  // BUG FIX: don't bail on null gameInfo — render empty locked cells instead
+  const board   = parseBoard(ROOM ? ROOM.gameInfo : null);
+  const filled  = board.filter(c => c!==' ').length;
+  const playing = ROOM && (ROOM.gameStatus==='playingPlayer' || ROOM.gameStatus==='playingEnemy');
+  const ended   = ROOM && ['ended','tie','left'].includes(ROOM.gameStatus);
+  const turnSym = filled%2===0 ? 'X' : 'O';
+  // Online: click only on your turn. Offline: always.
+  const canClick = !ended && playing && (offlineMode ? true : getMySymbol()===turnSym);
+
+  el.innerHTML = '';
+  for (let i=0; i<9; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    const ch = board[i];
+    if      (ch==='X') { cell.innerHTML=symX(); cell.classList.add('cx','taken','cell-pop'); }
+    else if (ch==='O') { cell.innerHTML=symO(); cell.classList.add('co','taken','cell-pop'); }
+    else {
+      if (canClick) cell.onclick = () => handleMove(i);
+      else          cell.classList.add('locked');
+    }
+    if (winCells.includes(i)) cell.classList.add('win-cell');
+    el.appendChild(cell);
+  }
+}
+
+function updateUI() {
+  if (!ROOM) return;
+  document.getElementById('pName').textContent = ROOM.playerName || '—';
+  document.getElementById('pUnit').textContent = ROOM.playerUnit || '—';
+  document.getElementById('eName').textContent = ROOM.enemyName  || '—';
+  document.getElementById('eUnit').textContent = ROOM.enemyUnit  || '—';
+  renderBoard(); updateMatchupDots(); updateStatusBar();
+}
+
+/* updateMatchupDots — highlights the active player's dot.
+   Null-safe: if gameInfo is null (waiting/joined), board is empty →
+   filled=0 → xTurn=false during non-playing states → no dot lights up. */
+function updateMatchupDots() {
+  if (!ROOM) return;
+  const board   = parseBoard(ROOM.gameInfo);
+  const filled  = board.filter(c => c!==' ').length;
+  const playing = ROOM.gameStatus==='playingPlayer' || ROOM.gameStatus==='playingEnemy';
+  const flip    = FLIP_STATUS || 'playingPlayer';
+  const pIsX    = flip==='playingPlayer';
+  const xTurn   = filled%2===0 && playing;
+  const oTurn   = filled%2===1 && playing;
+  document.getElementById('dotP').className = 'p-turn-indicator' + ((pIsX?xTurn:oTurn)   ? (pIsX?' on-x':' on-o') : '');
+  document.getElementById('dotE').className = 'p-turn-indicator' + ((!pIsX?xTurn:oTurn)  ? (!pIsX?' on-x':' on-o') : '');
+}
+
+/* updateStatusBar — shows the current game phase as a message.
+   BUG FIX: previous version had no branch for 'waiting' or 'joined',
+   so the status bar was blank during those phases.                    */
+function updateStatusBar() {
+  if (!ROOM) return;
+  const bar    = document.getElementById('statusBar');
+  const board  = parseBoard(ROOM.gameInfo);
+  const filled = board.filter(c => c!==' ').length;
+  const xTurn  = filled%2===0;
+  const playing= ROOM.gameStatus==='playingPlayer' || ROOM.gameStatus==='playingEnemy';
+
+  if (ROOM.gameStatus === 'waiting') {
+    bar.innerHTML = `<svg><use href="#icon-clock"/></svg> ממתין לשחקן שני...`;
+    bar.className = 'status-bar';
+  } else if (ROOM.gameStatus === 'joined') {
+    // Player sees "about to start", enemy sees "waiting for flip"
+    const msg = (MY_ROLE === 'player') ? 'מגריל מי פותח...' : 'ממתין לתחילת המשחק...';
+    bar.innerHTML = `<svg><use href="#icon-clock"/></svg> ${msg}`;
+    bar.className = 'status-bar';
+  } else if (playing) {
+    const flip  = FLIP_STATUS || 'playingPlayer';
+    const pIsX  = flip==='playingPlayer';
+    const name  = xTurn
+      ? (pIsX ? ROOM.playerName : ROOM.enemyName)
+      : (pIsX ? ROOM.enemyName  : ROOM.playerName);
+    bar.innerHTML = `<svg><use href="#icon-pointer"/></svg> תור של ${name||'?'}&nbsp;(${symFor(xTurn?'X':'O','sm')})`;
+    bar.className = 'status-bar '+(xTurn?'mt':'et');
+  } else if (ROOM.gameStatus === 'ended') {
+    bar.innerHTML = `<svg><use href="#icon-flag"/></svg> המשחק הסתיים`;
+    bar.className = 'status-bar';
+  } else if (ROOM.gameStatus === 'tie') {
+    bar.innerHTML = `<svg><use href="#icon-handshake"/></svg> תיקו!`;
+    bar.className = 'status-bar';
+  } else if (ROOM.gameStatus === 'left') {
+    bar.innerHTML = `<svg><use href="#icon-leave"/></svg> שחקן עזב`;
+    bar.className = 'status-bar';
+  }
+}
+
+/* showEndOverlay — displays win/draw/left screen.
+   Uses FLIP_STATUS (never ROOM.gameStatus) for symbol→name mapping
+   because at this point gameStatus is already 'ended'/'tie'/'left'.  */
+function showEndOverlay(result) {
+  updateMatchupDots(); updateStatusBar();
+  const flip  = FLIP_STATUS || 'playingPlayer';
+  const pIsX  = flip==='playingPlayer';
+  const xName = ROOM ? (pIsX  ? ROOM.playerName : ROOM.enemyName)  : '';
+  const oName = ROOM ? (!pIsX ? ROOM.playerName : ROOM.enemyName)  : '';
+  const map = {
+    'X'   : { iconId:'icon-trophy',    title:symX('sm')+' ניצח!', sub:xName||'שחקן X' },
+    'O'   : { iconId:'icon-trophy',    title:symO('sm')+' ניצח!', sub:oName||'שחקן O' },
+    'draw': { iconId:'icon-handshake', title:'תיקו!',              sub:'משחק טוב לשניכם' },
+    'left': { iconId:'icon-leave',     title:'המשחק הופסק',        sub:'שחקן עזב את המשחק' }
+  };
+  const m = map[result] || map['draw'];
+  document.getElementById('ovIcon').innerHTML  = `<svg><use href="#${m.iconId}"/></svg>`;
+  document.getElementById('ovTitle').innerHTML = m.title;
+  document.getElementById('ovSub').textContent  = m.sub;
+  setTimeout(() => document.getElementById('overlay').classList.add('show'), 280);
+  if(result == 'X' || result == 'O' || result === 'draw')
+      addTransactionOnSP(5, "משחק איקס עיגול");
+
+
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+
+</script>
+</body>
+</html>

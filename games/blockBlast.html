@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Block Blast</title>
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="http://spellcaster.sites.airnet/SiteAssets/p5.min.js" defer></script>
+  <link rel="stylesheet" href="general/new_loader.css">
+  <script src="general/loader.js" defer></script>
+    <script type="module" defer src="general/firebaseRtdb.js"></script>
+  <style>
+    :root {
+      --bg: #1E1A2F;
+      --panel: #332c50;
+      --text: #EDEDED;
+      --accent: #332c50;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: transparent;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    #game-wrap {
+      display: none;
+      justify-content: center;
+      padding-top: 10px;
+    }
+
+    canvas {
+      display: block;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+    }
+
+    #overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 9999;
+      color: var(--text);
+      flex-direction: column;
+    }
+
+    #overlay.show {
+      display: flex;
+    }
+
+    #overlay h1 {
+      margin: 0 0 8px 0;
+      font-size: 40px;
+    }
+
+    #overlay h2 {
+      margin: 0 0 18px 0;
+      font-size: 22px;
+      font-weight: 400;
+      color: #ccc1fa;
+    }
+
+    button {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #streakPopup {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      font-size: 42px;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 0 0 12px rgba(0, 0, 0, 0.8);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 30;
+    }
+
+    #streakPopup.show {
+      animation: streakPop 0.7s ease-out forwards;
+    }
+
+    @keyframes streakPop {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.6);
+      }
+
+      20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1);
+      }
+
+      60% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -60%) scale(0.9);
+      }
+    }
+
+    #scorePopup {
+      position: fixed;
+      left: 50%;
+      top: 80px;
+      transform: translateX(-50%);
+      font-size: 26px;
+      font-weight: bold;
+      color: #fff;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 25;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+    }
+
+    #scorePopup.show {
+      animation: scoreFloat 0.8s ease-out forwards;
+    }
+
+    @keyframes scoreFloat {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, 0);
+      }
+
+      15% {
+        opacity: 1;
+      }
+
+      70% {
+        opacity: 1;
+        transform: translate(-50%, -35px);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50px);
+      }
+    }
+
+    #flashOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.15);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    #flashOverlay.show {
+      animation: flashLines 0.25s ease-out forwards;
+    }
+
+    @keyframes flashLines {
+      0% {
+        opacity: 0.7;
+      }
+
+      100% {
+        opacity: 0;
+      }
+    }
+  </style>
+  <style>
+    :root {
+      --text-main: #f7f5ff;
+      --text-muted: #b9b4d6;
+      --bg-panel: rgba(15, 10, 30, 0.92);
+      --score-bg: linear-gradient(135deg, #3a3158, #2a2140);
+      --btn-bg: linear-gradient(135deg, #8c7bff, #b8a9ff);
+      --shadow-btn: 0 8px 18px rgba(140, 123, 255, 0.35);
+    }
+
+    .game-header {
+      position: absolute;
+      top: 20px;
+      font-family: system-ui, sans-serif;
+      width: 100%;
+      max-width: 700px;
+      background: var(--bg-panel);
+      padding: 24px 30px;
+      border-radius: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      display: none;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.55);
+    }
+
+    .title-block h1 {
+      margin: 0;
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #ffffff;
+    }
+
+    .title-block span {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .controls-block {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .scores-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .score-box {
+      min-width: 120px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: var(--score-bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .score-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    .score-value {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 3px;
+    }
+
+    /* ? Smaller, lower-height button */
+    .btn {
+      border: none;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 8px 16px;
+      /* reduced height */
+      font-size: 12px;
+      /* smaller text */
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: var(--btn-bg);
+      color: #120f24;
+      box-shadow: var(--shadow-btn);
+      transition: 0.15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: 0 6px 14px rgba(140, 123, 255, 0.3);
+    }
+
+    #overlay1 {
+      display: none;
+    }
+
+    #gameContainer {
+      position: relative;
+    }
+
+
+    .status {
+      font-size: 13px;
+      color: #4B3A80;
+      margin-top: 6px;
+      text-align: center
+    }
+
+    .end-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      visibility: hidden;
+      opacity: 0;
+      align-items: center;
+      justify-content: center;
+      background: rgba(40, 20, 80, 0.32);
+      backdrop-filter: blur(6px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease;
+      z-index: 60
+    }
+
+
+    .end-screen.visible {
+      opacity: 1;
+      pointer-events: all;
+      visibility: visible;
+    }
+
+
+    .end-box {
+      background: #F6F3FF;
+      border: 2px solid #B8A9FF;
+      border-radius: 18px;
+      padding: 28px 36px;
+      text-align: center;
+      box-shadow: 0 12px 30px rgba(20, 10, 60, 0.12);
+      animation: endPop .35s ease-out
+    }
+
+    @keyframes endPop {
+      0% {
+        transform: scale(.7);
+        opacity: 0
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1
+      }
+    }
+
+    .end-emoji {
+      font-size: 56px;
+      margin-bottom: 8px
+    }
+
+    .end-message {
+      font-size: 22px;
+      font-weight: 700;
+      color: #4B3A80;
+      margin-bottom: 16px
+    }
+
+    .end-restart {
+      background: linear-gradient(135deg, #C4B5FF, #8C7BFF);
+      border: none;
+      padding: 10px 22px;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(76, 56, 160, 0.28)
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ======= UPPER BAR / HEADER ======= -->
+  <div class="game-header" id="head">
+    <div class="title-block">
+      <h1>Block Blast</h1>
+    </div>
+
+    <div class="controls-block">
+      <div class="scores-row">
+        <div class="score-box">
+          <div class="score-label">ניקוד</div>
+          <div class="score-value" id="score">0</div>
+        </div>
+
+        <div class="score-box">
+          <div class="score-label">שיא</div>
+          <div class="score-value" id="mscore">0</div>
+        </div>
+      </div>
+
+      <button class="btn" id="new-game-btn" onclick="restartGame()">משחק חדש</button>
+    </div>
+  </div>
+  <div id="game-wrap" style="margin-top: 80px;"></div>
+
+
+  <div id="overlay">
+    <div class="end-box">
+      <div id="endEmoji" class="end-emoji">🎉</div>
+      <div id="finalScore" class="end-message">!ניצחת</div>
+      <button id="restartBtn" class="end-restart">שחק שוב</button>
+    </div>
+  </div>
+
+  <div id="streakPopup"></div>
+  <div id="scorePopup"></div>
+  <div id="flashOverlay"></div>
+
+  <script>
+    function showScreen() {
+      //unlockedLevel = user_details["Queens_Level"];
+      document.getElementById("game-wrap").style.display = "flex";
+      document.getElementById("head").style.display = "flex";
+      maxScore = user_details["blockblast_max"];
+      loadAPI_topPlayers("blockblast_max");
+
+    }
+
+
+    /* =========================================================
+       CONFIG
+    ========================================================= */
+    const GRID_SIZE = 8;
+    const CELL_SIZE = 65;
+    const BOARD_WIDTH = GRID_SIZE * CELL_SIZE;
+
+    const STORAGE_CELL_SIZE = BOARD_WIDTH / 17;
+    const STORAGE_SLOT_SIZE = 5 * STORAGE_CELL_SIZE; // 5x5 storage slot
+    const STORAGE_GAP = STORAGE_CELL_SIZE;
+
+    const CANVAS_W = BOARD_WIDTH + 200;
+    const CANVAS_H = 850;
+
+    const GRID_OFFSET_X = (CANVAS_W - BOARD_WIDTH) / 2;
+    const GRID_OFFSET_Y = 100;
+
+    const BLOCK_AREA_Y = GRID_OFFSET_Y + BOARD_WIDTH + 40;
+    const MAX_SET_ATTEMPTS = 80;
+
+    /* =========================================================
+       STATE
+    ========================================================= */
+    let grid;
+    let colorGrid;
+    let blocks;
+    let draggingBlock = null;
+    let dragOffset = { x: 0, y: 0 };
+    let score = 0;
+    let maxScore = 0;
+
+    let streak = 0;
+    let piecesPlacedThisSet = 0;
+    let lastPlacementCleared = false;
+    let maxScoreElement;
+
+    let gameOver = false;
+    let waitingForNextSet = false;
+
+    let lastPlacedCells = [];
+    let lastPlacedColor = null;
+    let placedPop = [];
+    let clearAnim = null;
+
+    /* =========================================================
+       SHAPES (original shapes + only the Big L rotations requested)
+    ========================================================= */
+    const SHAPES = [
+      [[1]],
+      [[1, 1]],
+      [[1, 1, 1]],
+      [[1, 1, 1, 1]],
+      [[1, 1, 1, 1, 1]],
+      [[1], [1]],
+      [[1], [1], [1]],
+      [[1], [1], [1], [1]],
+      [[1, 1], [1, 1]],
+      [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+      [[1, 0], [1, 0], [1, 1]],
+      [[0, 1], [0, 1], [1, 1]],
+      [[1, 1, 1], [0, 1, 0]],
+      [[1, 1, 0], [0, 1, 1]],
+
+      // Big L (3x3) - only these four rotations as requested
+      [[1, 0, 0], [1, 0, 0], [1, 1, 1]],
+      [[1, 1, 1], [1, 0, 0], [1, 0, 0]],
+      [[1, 1, 1], [0, 0, 1], [0, 0, 1]],
+      [[0, 0, 1], [0, 0, 1], [1, 1, 1]]
+    ];
+
+    /* =========================================================
+       UTILITIES & DOM helpers
+    ========================================================= */
+    function randomPastelColor() {
+      const hue = Math.floor(Math.random() * 360);
+      return `hsl(${hue}, 70%, 65%)`;
+    }
+
+    const streakPopupEl = document.getElementById('streakPopup');
+    const scorePopupEl = document.getElementById('scorePopup');
+    const flashOverlayEl = document.getElementById('flashOverlay');
+
+    function showStreakPopup(value) {
+      streakPopupEl.textContent = `STREAK ${value}`;
+      streakPopupEl.classList.remove('show');
+      void streakPopupEl.offsetWidth;
+      streakPopupEl.classList.add('show');
+    }
+
+    function showScorePopup(amount) {
+      scorePopupEl.textContent = `+${amount}`;
+      scorePopupEl.classList.remove('show');
+      void scorePopupEl.offsetWidth;
+      scorePopupEl.classList.add('show');
+    }
+
+    function flashLines() {
+      flashOverlayEl.classList.remove('show');
+      void flashOverlayEl.offsetWidth;
+      flashOverlayEl.classList.add('show');
+    }
+
+    /* =========================================================
+       p5 SETUP
+    ========================================================= */
+    function setup() {
+      document.getElementById('overlay').classList.remove('show');
+
+      const canvas = createCanvas(CANVAS_W, CANVAS_H);
+      canvas.parent('game-wrap');
+      textFont('Arial');
+
+      restartGame();
+
+      document.getElementById('restartBtn').addEventListener('click', () => {
+        document.getElementById('overlay').classList.remove('show');
+        restartGame();
+
+      });
+      maxScoreElement = document.getElementById('maxScore');
+    }
+
+    function updateUI() {
+      if (maxScoreElement && user_details) maxScoreElement.textContent = user_details["blockblast_max"];
+    }
+
+    /* =========================================================
+       RESTART
+    ========================================================= */
+    function restartGame() {
+      grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
+      colorGrid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
+      blocks = [null, null, null];
+      draggingBlock = null;
+      score = 0;
+
+      streak = 0;
+      piecesPlacedThisSet = 0;
+      lastPlacementCleared = false;
+
+      gameOver = false;
+      waitingForNextSet = false;
+
+      lastPlacedCells = [];
+      lastPlacedColor = null;
+      placedPop = [];
+      clearAnim = null;
+
+      document.getElementById("overlay").style.display = "none";
+
+      generateThreeBlocks();
+    }
+
+    /* =========================================================
+       GENERATE / SOLVABILITY
+    ========================================================= */
+    function generateThreeBlocks() {
+      waitingForNextSet = false;
+      const shapesTriple = generateSolvableShapeTriple(grid);
+
+      for (let i = 0; i < 3; i++) {
+        const shape = deepClone(shapesTriple[i]);
+        blocks[i] = {
+          shape,
+          slot: i,
+          slotX: GRID_OFFSET_X + i * (STORAGE_SLOT_SIZE + STORAGE_GAP),
+          slotY: BLOCK_AREA_Y,
+          placed: false,
+          color: randomPastelColor()
+        };
+      }
+    }
+
+    function generateSolvableShapeTriple(currentGrid) {
+      let attempts = 0;
+      while (attempts < MAX_SET_ATTEMPTS) {
+        attempts++;
+        const shapes = [
+          deepClone(randomFrom(SHAPES)),
+          deepClone(randomFrom(SHAPES)),
+          deepClone(randomFrom(SHAPES))
+        ];
+        if (isSetSolvable(currentGrid, shapes)) return shapes;
+      }
+      return [
+        deepClone(randomFrom(SHAPES)),
+        deepClone(randomFrom(SHAPES)),
+        deepClone(randomFrom(SHAPES))
+      ];
+    }
+
+    /* Generalized solvability check (works for any number of shapes) */
+    function isSetSolvable(startGrid, shapes) {
+      const indices = shapes.map((_, i) => i);
+      const perms = permutations(indices);
+
+      for (const perm of perms) {
+        const ordered = perm.map(i => shapes[i]);
+        if (canPlaceSequence(startGrid, ordered)) return true;
+      }
+      return false;
+    }
+
+    function updateGameOverUI() {
+      const overlay = document.getElementById("overlay");
+      if (gameOver) {
+        overlay.classList.add("show");
+      } else {
+        overlay.classList.remove("show");
+      }
+    }
+
+    function canPlaceSequence(currGrid, shapesLeft) {
+      if (shapesLeft.length === 0) return true;
+
+      const shape = shapesLeft[0];
+      const placements = getAllPlacements(currGrid, shape);
+      if (placements.length === 0) return false;
+
+      for (const p of placements) {
+        const nextGrid = p.newGrid;
+        const remaining = shapesLeft.slice(1);
+        if (canPlaceSequence(nextGrid, remaining)) return true;
+      }
+      return false;
+    }
+
+    function getAllPlacements(currGrid, shape) {
+      const results = [];
+      for (let gy = 0; gy < GRID_SIZE; gy++) {
+        for (let gx = 0; gx < GRID_SIZE; gx++) {
+          if (canPlaceOnGrid(currGrid, shape, gx, gy)) {
+            const placedGrid = placeOnGridSim(currGrid, shape, gx, gy);
+            const clearedResult = clearLinesSim(placedGrid);
+            results.push({
+              gx,
+              gy,
+              newGrid: clearedResult.newGrid,
+              cleared: clearedResult.cleared
+            });
+          }
+        }
+      }
+      return results;
+    }
+
+    /* =========================================================
+       GRID SIM / HELPERS
+    ========================================================= */
+    function canPlaceOnGrid(g, shape, gx, gy) {
+      for (let y = 0; y < shape.length; y++) {
+        for (let x = 0; x < shape[y].length; x++) {
+          if (!shape[y][x]) continue;
+          const nx = gx + x;
+          const ny = gy + y;
+          if (nx < 0 || ny < 0 || nx >= GRID_SIZE || ny >= GRID_SIZE || g[ny][nx]) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    function placeOnGridSim(g, shape, gx, gy) {
+      const newGrid = cloneGrid(g);
+      for (let y = 0; y < shape.length; y++) {
+        for (let x = 0; x < shape[y].length; x++) {
+          if (shape[y][x]) newGrid[gy + y][gx + x] = 1;
+        }
+      }
+      return newGrid;
+    }
+
+    function clearLinesSim(g) {
+      const newGrid = cloneGrid(g);
+      let cleared = 0;
+
+      for (let y = 0; y < GRID_SIZE; y++) {
+        if (newGrid[y].every(v => v === 1)) {
+          newGrid[y].fill(0);
+          cleared++;
+        }
+      }
+
+      for (let x = 0; x < GRID_SIZE; x++) {
+        let full = true;
+        for (let y = 0; y < GRID_SIZE; y++) {
+          if (!newGrid[y][x]) full = false;
+        }
+        if (full) {
+          for (let y = 0; y < GRID_SIZE; y++) newGrid[y][x] = 0;
+          cleared++;
+        }
+      }
+
+      return { newGrid, cleared };
+    }
+
+    function getClearedLinesFromGrid(g) {
+      const rows = [];
+      const cols = [];
+      for (let y = 0; y < GRID_SIZE; y++) {
+        if (g[y].every(v => v === 1)) rows.push(y);
+      }
+      for (let x = 0; x < GRID_SIZE; x++) {
+        let full = true;
+        for (let y = 0; y < GRID_SIZE; y++) {
+          if (!g[y][x]) full = false;
+        }
+        if (full) cols.push(x);
+      }
+      return { rows, cols };
+    }
+
+    /* =========================================================
+       DRAW LOOP
+       - preview computed first, placement preview drawn before blocks so block is on top
+    ========================================================= */
+    function draw() {
+      background("#1E1A2F");
+
+      // compute preview placement grid and cleared lines only when draggingBlock exists
+      let previewPlacement = null;
+      let previewCleared = { rows: [], cols: [] };
+      if (draggingBlock && draggingBlock.shape) {
+        const shape = draggingBlock.shape;
+        const gx = Math.round((draggingBlock.x - GRID_OFFSET_X) / CELL_SIZE);
+        const gy = Math.round((draggingBlock.y - GRID_OFFSET_Y) / CELL_SIZE);
+
+        const insideBoard =
+          gx >= 0 &&
+          gy >= 0 &&
+          gx + shape[0].length <= GRID_SIZE &&
+          gy + shape.length <= GRID_SIZE;
+
+        if (insideBoard && canPlace(shape, gx, gy)) {
+          previewPlacement = placeOnGridSim(grid, shape, gx, gy);
+          previewCleared = getClearedLinesFromGrid(previewPlacement);
+        }
+      }
+
+      // draw grid (with preview fill)
+      drawGrid(previewPlacement, previewCleared);
+
+      // piece pop animation
+      drawPlacedPop();
+
+      // clear animation
+      drawClearAnimation();
+
+      // storage background
+      drawStorageBackground();
+
+      // draw preview outlines BEFORE blocks so blocks appear on top
+      drawPlacementPreview();
+
+      // blocks (including dragging block) now drawn on top
+      drawBlocks();
+
+      // score box
+      drawScore();
+    }
+
+    /* GRID RENDERING */
+    function drawGrid(previewPlacement = null, previewCleared = { rows: [], cols: [] }) {
+      stroke("#5A4FB3");
+      strokeWeight(2);
+
+      for (let y = 0; y < GRID_SIZE; y++) {
+        for (let x = 0; x < GRID_SIZE; x++) {
+          let cellFilled = grid[y][x] === 1;
+          let cellColor = cellFilled ? colorGrid[y][x] : "#2A2540";
+
+          if (previewPlacement && previewPlacement[y][x] === 1 && grid[y][x] === 0) {
+            cellColor = draggingBlock.color;
+            cellFilled = true;
+          }
+
+          if (previewPlacement) {
+            if (previewCleared.rows.includes(y) || previewCleared.cols.includes(x)) {
+              cellColor = draggingBlock.color;
+              cellFilled = true;
+            }
+          }
+
+          if (cellFilled) fill(cellColor);
+          else fill("#2A2540");
+
+          rect(
+            GRID_OFFSET_X + x * CELL_SIZE,
+            GRID_OFFSET_Y + y * CELL_SIZE,
+            CELL_SIZE,
+            CELL_SIZE,
+            6
+          );
+        }
+      }
+    }
+
+    /* STORAGE BACKGROUND */
+    function drawStorageBackground() {
+      fill("#332c50");
+      noStroke();
+      rect(
+        GRID_OFFSET_X - 50,
+        BLOCK_AREA_Y - 10,
+        BOARD_WIDTH + 100,
+        STORAGE_SLOT_SIZE + 20,
+        12
+      );
+    }
+
+    /* BLOCKS + STORAGE SLOTS */
+    function drawBlocks() {
+      noStroke();
+
+      for (let i = 0; i < blocks.length; i++) {
+        const block = blocks[i];
+
+        const slotX = GRID_OFFSET_X + i * (STORAGE_SLOT_SIZE + STORAGE_GAP);
+        const slotY = BLOCK_AREA_Y;
+
+        stroke("rgba(255,255,255,0.25)");
+        strokeWeight(2);
+        noFill();
+        rect(slotX, slotY, STORAGE_SLOT_SIZE, STORAGE_SLOT_SIZE, 10);
+        noStroke();
+
+        if (!block || block.placed || block === draggingBlock) continue;
+
+        const shape = block.shape;
+        const shapeW = shape[0].length;
+        const shapeH = shape.length;
+
+        // center the piece inside the 5x5 slot
+        const offsetCellsX = Math.floor((5 - shapeW) / 2);
+        const offsetCellsY = Math.floor((5 - shapeH) / 2);
+
+        const baseX = slotX + offsetCellsX * STORAGE_CELL_SIZE;
+        const baseY = slotY + offsetCellsY * STORAGE_CELL_SIZE;
+
+        fill(block.color);
+        for (let y = 0; y < shapeH; y++) {
+          for (let x = 0; x < shape[y].length; x++) {
+            if (!shape[y][x]) continue;
+            rect(
+              baseX + x * STORAGE_CELL_SIZE + 3,
+              baseY + y * STORAGE_CELL_SIZE + 3,
+              STORAGE_CELL_SIZE - 6,
+              STORAGE_CELL_SIZE - 6,
+              8
+            );
+          }
+        }
+      }
+
+      // draw dragging block on top
+      if (draggingBlock && !draggingBlock.placed) {
+        const shape = draggingBlock.shape;
+        fill(draggingBlock.color);
+        for (let y = 0; y < shape.length; y++) {
+          for (let x = 0; x < shape[y].length; x++) {
+            if (!shape[y][x]) continue;
+            rect(
+              draggingBlock.x + x * CELL_SIZE + 4,
+              draggingBlock.y + y * CELL_SIZE + 4,
+              CELL_SIZE - 8,
+              CELL_SIZE - 8,
+              8
+            );
+          }
+        }
+      }
+    }
+
+    /* SCORE BOX */
+    function drawScore() {
+      document.getElementById("score").textContent = score;
+      document.getElementById("mscore").textContent = maxScore;
+      return;
+      const boxW = 220;
+      const boxH = 70;
+      const boxX = CANVAS_W / 2 - boxW / 2;
+      const boxY = GRID_OFFSET_Y - 80;
+
+      fill("#2A2540");
+      stroke("#5A4FB3");
+      strokeWeight(3);
+      rect(boxX, boxY, boxW, boxH, 12);
+
+      noStroke();
+      fill("#EDEDED");
+      textAlign(CENTER, CENTER);
+
+      textSize(22);
+      text("Score: " + score, CANVAS_W / 2, boxY + 24);
+
+      textSize(16);
+      text("Max Score: " + maxScore, CANVAS_W / 2, boxY + 50);
+    }
+
+    /*function saveMaxScore() {
+         
+         user_details["blockblast_games"]++;
+         if(user_details["blockblast_games"] % 25 == 0)
+                       saveActivityOnSP(`שיחק ב-!Block Blast כבר ${user_details["blockblast_games"]} משחקים!`,"counter");
+         if(user_details["blockblast_max"] < score) {
+             maxScore = score;
+             saveActivityOnSP(` שבר את שיאו ב-!Block Blast והגיע ל-${score} נק'!`);
+         }
+         user_details["blockblast_max"] = Math.max(user_details["blockblast_max"], score);
+         updateSPValueInList20("Users", "blockblast_games", "blockblast_max", user_details["Id"], user_details["blockblast_games"], user_details["blockblast_max"], true);
+   
+       // if(user_details["blockblast_max"] < score) {
+        //    saveActivityOnSP(` שבר את השיא שלו בבלוק בלאסט והגיע ל-${score} נקודות`);
+      // }
+   
+    }*/
+    function saveMaxScore() {
+
+      user_details["blockblast_games"]++;
+      addTransactionOnSP(Math.max(0, Math.min(30, Math.round(30 * score / 40000))), "משחק בלוקסלאסט");
+
+      if (user_details["blockblast_max"] < score) {
+        if (score > library_top[0].blockblast_max)
+          saveActivityOnSP(`עקף את המקום הראשון ב-!Block Blast עם ${score.toLocaleString()} נק'!`, "medal");
+        else if (score > library_top[1].blockblast_max)
+          saveActivityOnSP(`עקף את המקום השני ב-!Block Blast עם ${score.toLocaleString()} נק'!`, "medal");
+        else if (score > library_top[2].blockblast_max)
+          saveActivityOnSP(`עקף את המקום השלישי ב-!Block Blast עם ${score.toLocaleString()} נק'!`, "medal");
+        else if (score > library_top[3].blockblast_max)
+          saveActivityOnSP(`עקף את המקום הרביעי ב-!Block Blast עם ${score.toLocaleString()} נק'!`, "medal");
+        else if (score > library_top[4].blockblast_max)
+          saveActivityOnSP(`עקף את המקום החמישי ב-!Block Blast עם ${score.toLocaleString()} נק'!`, "medal");
+        else
+          saveActivityOnSP(` שבר את השיא שלו ב-!Block Blast והגיע ל-${score.toLocaleString()} נק'`, "level_up");
+      }
+      else if (user_details["blockblast_games"] % 25 == 0)
+        saveActivityOnSP(`שיחק ב-!Block Blast ${user_details["blockblast_games"].toLocaleString()} משחקים!`, "counter");
+
+      user_details["blockblast_max"] = Math.max(user_details["blockblast_max"], score);
+      updateSPValueInList2("Users", "blockblast_games", "blockblast_max", user_details["Id"], user_details["blockblast_games"], user_details["blockblast_max"]);
+
+    }
+
+
+    /* =========================================================
+       CLEAR ANIMATION (accepts onComplete)
+    ========================================================= */
+    function startClearAnimation(rows, cols, color, onComplete) {
+      clearAnim = {
+        rows: rows.slice(),
+        cols: cols.slice(),
+        color: color || "#ffffff",
+        timer: 12,
+        clearedYet: false,
+        onComplete: typeof onComplete === "function" ? onComplete : null
+      };
+    }
+
+    function drawClearAnimation() {
+      if (!clearAnim) return;
+
+      const alpha = map(clearAnim.timer, 0, 12, 0, 0.85);
+      let c;
+      try { c = color(clearAnim.color); } catch (e) { c = color("#ffffff"); }
+      c.setAlpha(alpha * 255);
+
+      push();
+      noStroke();
+      fill(c);
+
+      clearAnim.rows.forEach(y => {
+        rect(
+          GRID_OFFSET_X,
+          GRID_OFFSET_Y + y * CELL_SIZE,
+          GRID_SIZE * CELL_SIZE,
+          CELL_SIZE
+        );
+      });
+
+      clearAnim.cols.forEach(x => {
+        rect(
+          GRID_OFFSET_X + x * CELL_SIZE,
+          GRID_OFFSET_Y,
+          CELL_SIZE,
+          GRID_SIZE * CELL_SIZE
+        );
+      });
+
+      pop();
+
+      clearAnim.timer--;
+
+      if (clearAnim.timer <= 0 && !clearAnim.clearedYet) {
+        // actually clear the grid now
+        clearAnim.rows.forEach(y => {
+          grid[y].fill(0);
+          colorGrid[y].fill(0);
+        });
+
+        clearAnim.cols.forEach(x => {
+          for (let y = 0; y < GRID_SIZE; y++) {
+            grid[y][x] = 0;
+            colorGrid[y][x] = 0;
+          }
+        });
+
+        flashLines();
+        clearAnim.clearedYet = true;
+
+        if (clearAnim.onComplete) {
+          const cb = clearAnim.onComplete;
+          clearAnim.onComplete = null;
+          setTimeout(() => { try { cb(); } catch (e) { } }, 60);
+        }
+      }
+
+      if (clearAnim.timer <= -6) clearAnim = null;
+    }
+
+    /* =========================================================
+       PIECE POP ANIMATION
+    ========================================================= */
+    function drawPlacedPop() {
+      for (let i = placedPop.length - 1; i >= 0; i--) {
+        const p = placedPop[i];
+        const t = p.timer;
+        const scaleFactor = 1 + t / 20;
+
+        push();
+        noStroke();
+
+        p.cells.forEach(c => {
+          const colStr = p.color || colorGrid[c.y][c.x] || "#ffffff";
+          let col;
+          try { col = color(colStr); } catch (e) { col = color("#fff"); }
+          col.setAlpha(map(t, 0, 10, 0, 255));
+          fill(col);
+
+          const cx = GRID_OFFSET_X + c.x * CELL_SIZE + CELL_SIZE / 2;
+          const cy = GRID_OFFSET_Y + c.y * CELL_SIZE + CELL_SIZE / 2;
+
+          push();
+          translate(cx, cy);
+          scale(scaleFactor);
+          rect(-CELL_SIZE / 2 + 4, -CELL_SIZE / 2 + 4, CELL_SIZE - 8, CELL_SIZE - 8, 8);
+          pop();
+        });
+
+        pop();
+
+        p.timer--;
+        if (p.timer <= 0) placedPop.splice(i, 1);
+      }
+    }
+
+    /* =========================================================
+       MOUSE INTERACTION
+       - Updated: clicking anywhere inside the 5x5 storage slot picks up the piece
+    ========================================================= */
+    function mousePressed() {
+      if (gameOver) return;
+
+      // iterate slots top-to-bottom so later slots (rightmost) get priority if overlapping
+      for (let i = blocks.length - 1; i >= 0; i--) {
+        const block = blocks[i];
+        if (!block || block.placed) continue;
+
+        // slot rectangle (full 5x5 area)
+        const slotX = GRID_OFFSET_X + i * (STORAGE_SLOT_SIZE + STORAGE_GAP);
+        const slotY = BLOCK_AREA_Y;
+        const slotW = STORAGE_SLOT_SIZE;
+        const slotH = STORAGE_SLOT_SIZE;
+
+        // If click is inside the 5x5 slot area, pick up the block
+        if (
+          mouseX >= slotX && mouseX <= slotX + slotW &&
+          mouseY >= slotY && mouseY <= slotY + slotH
+        ) {
+          draggingBlock = block;
+
+          // compute the visual size of the block when dragged (in board cell units)
+          const shape = block.shape;
+          const shapeW = shape[0].length;
+          const shapeH = shape.length;
+
+          // center the dragging block under the mouse (same behavior as before)
+          const fullW = shapeW * CELL_SIZE;
+          const fullH = shapeH * CELL_SIZE;
+
+          draggingBlock.x = mouseX - fullW / 2;
+          draggingBlock.y = mouseY - fullH / 2;
+          dragOffset.x = mouseX - draggingBlock.x;
+          dragOffset.y = mouseY - draggingBlock.y;
+
+          break;
+        }
+      }
+    }
+
+    function mouseDragged() {
+      if (draggingBlock && !gameOver) {
+        draggingBlock.x = mouseX - dragOffset.x;
+        draggingBlock.y = mouseY - dragOffset.y;
+      }
+    }
+
+    function mouseReleased() {
+      if (!draggingBlock || gameOver) return;
+
+      const shape = draggingBlock.shape;
+      const shapeW = shape[0].length;
+      const shapeH = shape.length;
+
+      const gx = Math.round((draggingBlock.x - GRID_OFFSET_X) / CELL_SIZE);
+      const gy = Math.round((draggingBlock.y - GRID_OFFSET_Y) / CELL_SIZE);
+
+      if (canPlace(shape, gx, gy)) {
+        lastPlacedCells = [];
+        lastPlacedColor = draggingBlock.color;
+
+        placeBlock(shape, gx, gy, draggingBlock.color);
+
+        draggingBlock.placed = true;
+        blocks[draggingBlock.slot] = null;
+
+        placedPop.push({
+          cells: lastPlacedCells.map(c => ({ x: c.x, y: c.y })),
+          color: lastPlacedColor,
+          timer: 10
+        });
+
+        let gained = 10;
+
+        // Provide a callback that will run after the clear animation actually clears the grid
+        const afterClear = () => {
+          // After clears applied, generate next set if needed and then check game over
+          if (blocks.every(b => b === null)) {
+            generateThreeBlocks();
+          }
+          waitingForNextSet = false;
+          checkGameOver();
+
+        };
+
+        // clearLinesReal now accepts an onComplete callback
+        const cleared = clearLinesReal(afterClear);
+
+        // update score/streak immediately (visuals will show)
+        if (cleared > 0) {
+          lastPlacementCleared = true;
+          gained += 100;
+          if (cleared > 1) gained += (cleared - 1) * 200;
+
+          streak++;
+          if (streak >= 2) showStreakPopup(streak);
+
+          if (streak >= 2 && streak <= 5) gained = Math.floor(gained * 1.5);
+          else if (streak >= 6) gained = Math.floor(gained * 2);
+
+          score += gained;
+          showScorePopup(gained);
+
+          // Defer next-set generation and game-over check until after clear animation finishes
+          waitingForNextSet = true;
+
+        } else {
+          // No lines cleared: immediate flow
+          lastPlacementCleared = false;
+
+          if (streak >= 2 && streak <= 5) gained = Math.floor(gained * 1.5);
+          else if (streak >= 6) gained = Math.floor(gained * 2);
+
+          score += gained;
+          showScorePopup(gained);
+
+          piecesPlacedThisSet++;
+
+          if (piecesPlacedThisSet === 3) {
+            if (!lastPlacementCleared) streak = 0;
+            piecesPlacedThisSet = 0;
+            lastPlacementCleared = false;
+          }
+
+          // Generate next set immediately if needed, then check game over
+          if (blocks.every(b => b === null) && !waitingForNextSet) {
+            waitingForNextSet = true;
+            setTimeout(() => {
+              generateThreeBlocks();
+              waitingForNextSet = false;
+              checkGameOver();
+
+            }, 180);
+          } else {
+            checkGameOver();
+
+          }
+        }
+      }
+
+      draggingBlock = null;
+    }
+
+    /* =========================================================
+       PLACEMENT PREVIEW
+    ========================================================= */
+    function drawPlacementPreview() {
+      if (!draggingBlock || !draggingBlock.shape) return;
+
+      const shape = draggingBlock.shape;
+      const shapeW = shape[0].length;
+      const shapeH = shape.length;
+
+      const gx = Math.round((draggingBlock.x - GRID_OFFSET_X) / CELL_SIZE);
+      const gy = Math.round((draggingBlock.y - GRID_OFFSET_Y) / CELL_SIZE);
+
+      const insideBoard =
+        gx >= 0 &&
+        gy >= 0 &&
+        gx + shapeW <= GRID_SIZE &&
+        gy + shapeH <= GRID_SIZE;
+
+      if (!insideBoard) return;
+
+      const canPlaceHere = canPlace(shape, gx, gy);
+      const valid = canPlaceHere;
+
+      fill(valid ? "rgba(0,255,0,0.25)" : "rgba(255,0,0,0.25)");
+      noStroke();
+
+      for (let y = 0; y < shapeH; y++) {
+        for (let x = 0; x < shape[y].length; x++) {
+          if (!shape[y][x]) continue;
+          rect(
+            GRID_OFFSET_X + (gx + x) * CELL_SIZE,
+            GRID_OFFSET_Y + (gy + y) * CELL_SIZE,
+            CELL_SIZE,
+            CELL_SIZE
+          );
+        }
+      }
+    }
+
+    /* =========================================================
+       GAME LOGIC
+    ========================================================= */
+    function canPlace(shape, gx, gy) {
+      return canPlaceOnGrid(grid, shape, gx, gy);
+    }
+
+    function placeBlock(shape, gx, gy, color) {
+      for (let y = 0; y < shape.length; y++) {
+        for (let x = 0; x < shape[y].length; x++) {
+          if (shape[y][x]) {
+            const ny = gy + y;
+            const nx = gx + x;
+            if (ny < 0 || ny >= GRID_SIZE || nx < 0 || nx >= GRID_SIZE) continue;
+            grid[ny][nx] = 1;
+            colorGrid[ny][nx] = color;
+            lastPlacedCells.push({ x: nx, y: ny });
+          }
+        }
+      }
+    }
+
+    /* Modified clearLinesReal to accept onComplete callback */
+    function clearLinesReal(onComplete) {
+      let rowsToClear = [];
+      let colsToClear = [];
+
+      for (let y = 0; y < GRID_SIZE; y++) {
+        if (grid[y].every(v => v === 1)) rowsToClear.push(y);
+      }
+
+      for (let x = 0; x < GRID_SIZE; x++) {
+        let full = true;
+        for (let y = 0; y < GRID_SIZE; y++) {
+          if (!grid[y][x]) full = false;
+        }
+        if (full) colsToClear.push(x);
+      }
+
+      const totalCleared = rowsToClear.length + colsToClear.length;
+      if (totalCleared === 0) return 0;
+
+      // start animation and attach caller's callback
+      startClearAnimation(rowsToClear, colsToClear, lastPlacedColor, onComplete);
+      return totalCleared;
+    }
+
+    /* =========================================================
+       checkGameOver (only runs when board is stable)
+       - returns early while waitingForNextSet or while clearAnim is active and not yet applied
+    ========================================================= */
+    function checkGameOver() {
+      // If a clear animation is pending (not yet applied) or we're waiting for next set, don't evaluate
+      if (waitingForNextSet) return;
+      if (clearAnim && !clearAnim.clearedYet) return;
+
+      const remainingBlocks = blocks.filter(b => b !== null);
+      if (remainingBlocks.length === 0) return;
+
+      const shapes = remainingBlocks.map(b => b.shape);
+
+      if (isSetSolvable(grid, shapes)) {
+        return;
+      }
+
+      gameOver = true;
+      updateGameOverUI();
+      saveMaxScore();
+      document.getElementById("overlay").classList.add("show");
+
+      document.getElementById("finalScore").innerText = "ניקוד סופי: " + score;
+      document.getElementById("overlay").style.display = "flex";
+
+    }
+
+    /* =========================================================
+       UTILS
+    ========================================================= */
+    function cloneGrid(g) {
+      return g.map(row => row.slice());
+    }
+
+    function deepClone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    function randomFrom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function permutations(arr) {
+      if (arr.length <= 1) return [arr.slice()];
+      const result = [];
+      function backtrack(path, remaining) {
+        if (remaining.length === 0) {
+          result.push(path.slice());
+          return;
+        }
+        for (let i = 0; i < remaining.length; i++) {
+          path.push(remaining[i]);
+          const nextRem = remaining.slice(0, i).concat(remaining.slice(i + 1));
+          backtrack(path, nextRem);
+          path.pop();
+        }
+      }
+      backtrack([], arr.slice());
+      return result;
+    }
+
+    window.restartGame = restartGame;
+  </script>
+</body>
+
+</html>

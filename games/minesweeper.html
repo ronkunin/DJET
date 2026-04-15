@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Minesweeper — Centered Board with Chording</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+  <link rel="stylesheet" href="general/new_loader.css">
+  <script src="general/loader.js" defer></script>
+    <script type="module" defer src="general/firebaseRtdb.js"></script>
+  <style>
+    :root {
+      --cell-size: 24px;
+      --cols: 9;
+      --rows: 9;
+
+
+      --panel-soft: #F3EEFF;
+      --border-soft: #D4CFF5;
+      --border-strong: #B8A9FF;
+      --text-main: #2A2140;
+      --accent-strong: #8C7BFF;
+      --gap: 2px;
+
+      --board-shell-width: 520px;
+      --board-shell-height: 520px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: radial-gradient(circle at top, #FFFFFF, var(--bg) 55%, #E0D8FF 100%);
+      color: var(--text-main);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .app {
+      width: min(1100px, 96vw);
+      max-width: 1100px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      align-items: stretch;
+      position: relative;
+      min-height: calc(100vh - 24px);
+    }
+
+    .top-panel {
+      position: fixed;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px;
+      border-radius: 12px;
+      background: #503b90;
+      border: 2px solid #c6abff;
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      z-index: 30;
+      flex-shrink: 0;
+    }
+
+    .left-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .right-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .counters {
+      display: flex;
+      gap: 10px;
+      align-items: center
+    }
+
+    .counter {
+      background: #fff;
+      border-radius: 10px;
+      padding: 6px 10px;
+      border: 1px solid var(--border-soft);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 84px;
+    }
+
+    .counter-label {
+      font-size: 9px;
+      color: #6B5A9A;
+      text-transform: uppercase;
+      letter-spacing: .12em
+    }
+
+    .counter-value {
+      font-family: "Roboto Mono", monospace;
+      font-size: 18px;
+      color: var(--text-main)
+    }
+
+    .difficulty-group {
+      display: flex;
+      gap: 8px;
+      align-items: center
+    }
+
+    .diff-btn {
+      border: 1px solid var(--border-soft);
+      background: var(--panel-soft);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: #4B3A80;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: all .12s ease;
+    }
+
+    .diff-btn.active {
+      background: linear-gradient(135deg, #C4B5FF, #8C7BFF);
+      color: #fff;
+      border-color: var(--accent-strong);
+      box-shadow: 0 2px 6px rgba(76, 56, 160, 0.28);
+    }
+
+    .restart-button {
+      height: 36px;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: linear-gradient(135deg, #C4B5FF, #c6abff);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+      padding: 6px 12px;
+    }
+
+    .restart-button .icon {
+      font-size: 18px;
+      margin-right: 8px
+    }
+
+    .restart-button:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25)
+    }
+
+
+
+
+    .board-shell {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: var(--board-shell-width);
+      height: var(--board-shell-height);
+      border-radius: 12px;
+      padding: 6px;
+      background: #503b90;
+      border: 1px solid #c6abff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 20px rgba(30, 20, 60, 0.06), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+      overflow: hidden;
+      z-index: 10;
+      pointer-events: auto;
+    }
+
+    .board-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      padding: 4px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(var(--cols), var(--cell-size));
+      grid-template-rows: repeat(var(--rows), var(--cell-size));
+      gap: var(--gap);
+      background: transparent;
+    }
+
+    .cell {
+      width: var(--cell-size);
+      height: var(--cell-size);
+      background: #B8A9FF;
+      border: 1px solid #6a5aa8;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 22px;
+      color: #1E1E1E;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 0 2px 3px rgba(0, 0, 0, 0.18);
+      transition: transform .08s ease, filter .08s ease;
+      flex-shrink: 0;
+    }
+
+    .cell.revealed {
+      background: #c9c2eb;
+      border: 1px solid #6a5aa8;
+      box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.12);
+      animation: revealPop .18s ease-out;
+    }
+
+    .cell.revealed.empty {
+      color: transparent
+    }
+
+    .cell.flagged::after {
+      content: "🚩";
+      font-size: 26px;
+      animation: flagBounce .25s ease-out
+    }
+
+    .cell.mine.revealed::before {
+      content: "💣";
+      font-size: 26px
+    }
+
+    .cell.num-1.revealed {
+      color: #1976D2
+    }
+
+    .cell.num-2.revealed {
+      color: #388E3C
+    }
+
+    .cell.num-3.revealed {
+      color: #D32F2F
+    }
+
+    .cell.num-4.revealed {
+      color: #512DA8
+    }
+
+    .cell.num-5.revealed {
+      color: #F9A825
+    }
+
+    .cell.num-6.revealed {
+      color: #00897B
+    }
+
+    .cell.num-7.revealed {
+      color: #C62828
+    }
+
+    .cell.num-8.revealed {
+      color: #546E7A
+    }
+
+    @media (hover:hover) {
+      .cell:not(.revealed):hover {
+        filter: brightness(1.08);
+        transform: translateY(-1px)
+      }
+    }
+
+    @keyframes revealPop {
+      0% {
+        transform: scale(.85);
+        opacity: 0
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1
+      }
+    }
+
+    @keyframes flagBounce {
+      0% {
+        transform: scale(.4) rotate(-20deg);
+        opacity: 0
+      }
+
+      100% {
+        transform: scale(1) rotate(0);
+        opacity: 1
+      }
+    }
+
+    .mine-hit {
+      animation: mineShake .4s ease-in-out
+    }
+
+    @keyframes mineShake {
+
+      0%,
+      100% {
+        transform: translate(0, 0)
+      }
+
+      20% {
+        transform: translate(-3px, 2px)
+      }
+
+      40% {
+        transform: translate(3px, -2px)
+      }
+
+      60% {
+        transform: translate(-2px, 3px)
+      }
+
+      80% {
+        transform: translate(2px, -3px)
+      }
+    }
+
+    .status {
+      font-size: 13px;
+      color: #4B3A80;
+      margin-top: 6px;
+      text-align: center
+    }
+
+    .end-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(40, 20, 80, 0.32);
+      backdrop-filter: blur(6px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease;
+      z-index: 60
+    }
+
+    .end-screen.visible {
+      opacity: 1;
+      pointer-events: all
+    }
+
+    .end-box {
+      background: #F6F3FF;
+      border: 2px solid #B8A9FF;
+      border-radius: 18px;
+      padding: 28px 36px;
+      text-align: center;
+      box-shadow: 0 12px 30px rgba(20, 10, 60, 0.12);
+      animation: endPop .35s ease-out
+    }
+
+    @keyframes endPop {
+      0% {
+        transform: scale(.7);
+        opacity: 0
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1
+      }
+    }
+
+    .end-emoji {
+      font-size: 56px;
+      margin-bottom: 8px
+    }
+
+    .end-message {
+      font-size: 22px;
+      font-weight: 700;
+      color: #4B3A80;
+      margin-bottom: 16px
+    }
+
+    .end-restart {
+      background: linear-gradient(135deg, #C4B5FF, #8C7BFF);
+      border: none;
+      padding: 10px 22px;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(76, 56, 160, 0.28)
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app" id="app">
+    <div class="top-panel" id="topPanel">
+      <div class="left-controls">
+        <div class="counters">
+          <div class="counter">
+            <div class="counter-label">מוקשים</div>
+            <div id="mineCount" class="counter-value">10</div>
+          </div>
+          <div class="counter">
+            <div class="counter-label">דגלים</div>
+            <div id="flagCount" class="counter-value">00</div>
+          </div>
+          <div class="counter">
+            <div class="counter-label">נקודות</div>
+            <div id="scoreCount" class="counter-value">00</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-controls">
+        <div class="difficulty-group" role="tablist" aria-label="Difficulty">
+          <button class="diff-btn" data-diff="hard">רב אלוף</button>
+          <button class="diff-btn" data-diff="medium">רב סרן</button>
+          <button class="diff-btn active" data-diff="easy">טוראי</button>
+        </div>
+
+        <button id="resetButton" class="restart-button"><span class="icon">⟳</span><span class="label">התחל
+            מחדש</span></button>
+      </div>
+    </div>
+
+    <div id="boardShell" class="board-shell" aria-hidden="false">
+      <div class="board-container">
+        <div id="board" class="board" role="grid" aria-label="Minesweeper board"></div>
+      </div>
+    </div>
+
+    <div id="status" class="status"></div>
+  </div>
+
+  <div id="endScreen" class="end-screen" aria-hidden="true">
+    <div class="end-box">
+      <div id="endEmoji" class="end-emoji">🎉</div>
+      <div id="endMessage" class="end-message">!ניצחת</div>
+      <button id="endRestart" class="end-restart">שחק שוב</button>
+    </div>
+  </div>
+
+  <script>
+    const DIFFICULTIES = {
+      easy: { cols: 9, rows: 9, mines: 10 },
+      medium: { cols: 16, rows: 16, mines: 40 },
+      hard: { cols: 30, rows: 16, mines: 99 }
+    };
+    const LONG_PRESS_TIME = 450;
+    const MIN_CELL = 6;
+    const MAX_CELL = 64;
+
+    let currentDiff = 'easy';
+    let cols = 9, rows = 9, totalMines = 10;
+    let grid = [];
+    let flagsPlaced = 0;
+    let gameOver = false;
+    let cellsRevealed = 0;
+    let firstClickDone = false;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.diff-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const diff = btn.dataset.diff;
+          if (diff === currentDiff) return;
+          document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          startGame(diff);
+        });
+      });
+
+      document.getElementById('resetButton').addEventListener('click', () => {
+        hideEndScreen();
+        startGame(currentDiff);
+      });
+
+      document.getElementById('endRestart').addEventListener('click', () => {
+        hideEndScreen();
+        startGame(currentDiff);
+      });
+
+      document.addEventListener('contextmenu', e => e.preventDefault());
+
+      startGame(currentDiff);
+      window.addEventListener('resize', () => computeAndApplySizes());
+    });
+
+    function startGame(diff) {
+      const cfg = DIFFICULTIES[diff];
+      currentDiff = diff;
+      cols = cfg.cols; rows = cfg.rows; totalMines = cfg.mines;
+      flagsPlaced = 0; gameOver = false; cellsRevealed = 0; firstClickDone = false;
+
+      buildGrid();
+      placeMines();
+      countNeighbors();
+      renderBoard();
+      updateCounters();
+      setStatus('');
+      computeAndApplySizes();
+    }
+
+    function buildGrid() {
+      grid = [];
+      for (let y = 0; y < rows; y++) {
+        const row = [];
+        for (let x = 0; x < cols; x++) {
+          row.push({ x, y, isMine: false, neighborMines: 0, revealed: false, flagged: false, element: null });
+        }
+        grid.push(row);
+      }
+    }
+
+    function placeMines() {
+      let placed = 0;
+      while (placed < totalMines) {
+        const x = Math.floor(Math.random() * cols);
+        const y = Math.floor(Math.random() * rows);
+        const c = grid[y][x];
+        if (!c.isMine) { c.isMine = true; placed++; }
+      }
+    }
+
+    function countNeighbors() {
+      const dirs = [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]];
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const cell = grid[y][x];
+          if (cell.isMine) { cell.neighborMines = 0; continue; }
+          let count = 0;
+          for (const [dx, dy] of dirs) {
+            const nx = x + dx, ny = y + dy;
+            if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && grid[ny][nx].isMine) count++;
+          }
+          cell.neighborMines = count;
+        }
+      }
+    }
+
+    function renderBoard() {
+      const board = document.getElementById('board');
+      board.innerHTML = '';
+      document.documentElement.style.setProperty('--cols', cols);
+      document.documentElement.style.setProperty('--rows', rows);
+
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const cell = grid[y][x];
+          const div = document.createElement('div');
+          div.className = 'cell';
+          div.dataset.x = x; div.dataset.y = y;
+          attachCellEvents(div);
+          cell.element = div;
+          board.appendChild(div);
+        }
+      }
+    }
+
+    function attachCellEvents(div) {
+      div.addEventListener('mousedown', e => {
+        if (gameOver) return;
+        const x = parseInt(div.dataset.x, 10), y = parseInt(div.dataset.y, 10);
+        const cell = grid[y][x];
+
+        if (e.button === 2) { e.preventDefault(); toggleFlag(x, y); return; }
+
+        if (e.button === 0) {
+          e.preventDefault();
+          if (cell.revealed && cell.neighborMines > 0) {
+            chordReveal(cell);
+            return;
+          }
+          revealAt(x, y);
+        }
+      });
+
+      let touchTimer = null, longPress = false;
+      div.addEventListener('touchstart', e => {
+        if (gameOver) return;
+        longPress = false;
+        const x = parseInt(div.dataset.x, 10), y = parseInt(div.dataset.y, 10);
+        touchTimer = setTimeout(() => { toggleFlag(x, y); longPress = true; touchTimer = null; }, LONG_PRESS_TIME);
+      }, { passive: true });
+      const cancel = () => { if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; } };
+      div.addEventListener('touchend', e => {
+        if (gameOver) return;
+        const x = parseInt(div.dataset.x, 10), y = parseInt(div.dataset.y, 10);
+        const cell = grid[y][x];
+        if (!longPress) {
+          if (cell.revealed && cell.neighborMines > 0) chordReveal(cell);
+          else revealAt(x, y);
+        }
+        cancel();
+      });
+      div.addEventListener('touchmove', cancel);
+      div.addEventListener('touchcancel', cancel);
+    }
+
+    function toggleFlag(x, y) {
+      if (gameOver) return;
+      const cell = grid[y][x];
+      if (cell.revealed) return;
+      cell.flagged = !cell.flagged;
+      flagsPlaced += cell.flagged ? 1 : -1;
+      updateCellClasses(cell);
+      updateCounters();
+    }
+
+    function revealAt(x, y) {
+      if (gameOver) return;
+      const cell = grid[y][x];
+      if (cell.revealed || cell.flagged) return;
+
+      if (!firstClickDone) {
+        firstClickDone = true;
+        ensureFirstClickSafe(cell);
+        countNeighbors();
+      }
+
+      revealCell(cell);
+
+      if (cell.isMine) {
+        gameOver = true;
+        setStatus('Boom! You hit a mine.');
+        if (cell.element) cell.element.classList.add('mine-hit');
+        revealAllMines(cell);
+        setTimeout(() => showEndScreen(false), 600);
+      } else {
+        if (cell.neighborMines === 0) floodReveal(cell);
+        checkWin();
+      }
+    }
+    function showScreen() {
+      startGame(currentDiff);
+      document.getElementById("app").style.display = "flex";
+      document.getElementById('scoreCount').textContent = String(user_details["minesweeper_score"]).padStart(1, '0');
+    }
+    function ensureFirstClickSafe(cell) {
+      const neighbors = getNeighbors(cell);
+      cell.isMine = false;
+      neighbors.forEach(n => n.isMine = false);
+
+      let missing = totalMines - countMines();
+      while (missing > 0) {
+        const rx = Math.floor(Math.random() * cols);
+        const ry = Math.floor(Math.random() * rows);
+        const c = grid[ry][rx];
+        if (!c.isMine && c !== cell && !neighbors.includes(c)) {
+          c.isMine = true;
+          missing--;
+        }
+      }
+    }
+
+    function getNeighbors(cell) {
+      const dirs = [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]];
+      const list = [];
+      for (const [dx, dy] of dirs) {
+        const nx = cell.x + dx, ny = cell.y + dy;
+        if (nx >= 0 && nx < cols && ny >= 0 && ny < rows) list.push(grid[ny][nx]);
+      }
+      return list;
+    }
+
+    function countMines() {
+      let c = 0;
+      for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (grid[y][x].isMine) c++;
+      return c;
+    }
+
+    // FIXED revealCell: remove flags if present and update counter
+    function revealCell(cell) {
+      if (cell.revealed) return;
+
+      // If flagged, remove flag and update counters
+      if (cell.flagged) {
+        cell.flagged = false;
+        flagsPlaced = Math.max(0, flagsPlaced - 1);
+        updateCounters();
+      }
+
+      cell.revealed = true;
+      cellsRevealed++;
+      updateCellClasses(cell);
+
+      if (!cell.isMine && cell.neighborMines > 0) cell.element.textContent = cell.neighborMines;
+    }
+
+    function floodReveal(start) {
+      const stack = [start];
+      const seen = new Set();
+      const key = c => `${c.x},${c.y}`;
+      while (stack.length) {
+        const cell = stack.pop();
+        const k = key(cell);
+        if (seen.has(k)) continue;
+        seen.add(k);
+        revealCell(cell);
+        if (cell.neighborMines !== 0) continue;
+        const neighbors = getNeighbors(cell);
+        for (const n of neighbors) if (!n.revealed && !n.isMine) stack.push(n);
+      }
+    }
+
+    function revealAllMines(triggerCell) {
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const c = grid[y][x];
+          if (c.isMine) {
+            c.revealed = true;
+            c.flagged = false;
+            updateCellClasses(c);
+          }
+        }
+      }
+      if (triggerCell && triggerCell.element) triggerCell.element.style.outline = '2px solid red';
+    }
+
+    function checkWin() {
+      const totalCells = rows * cols;
+      const nonMines = totalCells - totalMines;
+      if (!gameOver && cellsRevealed >= nonMines) {
+        gameOver = true;
+        setStatus('Cleared! You win.');
+        setTimeout(() => showEndScreen(true), 400);
+      }
+    }
+
+    function updateCellClasses(cell) {
+      const el = cell.element;
+      if (!el) return;
+      const classes = ['cell'];
+      if (cell.revealed) {
+        classes.push('revealed');
+        if (cell.isMine) classes.push('mine');
+        else if (cell.neighborMines === 0) classes.push('empty');
+        else classes.push(`num-${cell.neighborMines}`);
+      }
+      if (cell.flagged && !cell.revealed) classes.push('flagged');
+      el.className = classes.join(' ');
+      if (!cell.revealed || cell.isMine || cell.neighborMines === 0) el.textContent = '';
+    }
+
+    function updateCounters() {
+      document.getElementById('mineCount').textContent = String(totalMines);
+      document.getElementById('flagCount').textContent = String(flagsPlaced).padStart(1, '0');
+    }
+
+    function setStatus(text) {
+      document.getElementById('status').textContent = text;
+    }
+
+    // CHORDING: reveal neighbors when flagged count equals number
+    function chordReveal(cell) {
+      if (!cell || !cell.revealed || cell.neighborMines === 0 || gameOver) return;
+
+      const neighbors = getNeighbors(cell);
+      let flaggedCount = 0;
+      for (const n of neighbors) if (n.flagged) flaggedCount++;
+
+      if (flaggedCount !== cell.neighborMines) return;
+
+      const toReveal = neighbors.filter(n => !n.revealed && !n.flagged);
+
+      // If any is a mine -> explode
+      for (const n of toReveal) {
+        if (n.isMine) {
+          revealAllMines(n);
+          gameOver = true;
+          setStatus('Boom! You hit a mine.');
+          if (n.element) n.element.classList.add('mine-hit');
+          setTimeout(() => showEndScreen(false), 600);
+          return;
+        }
+      }
+
+      // Safe to reveal
+      for (const n of toReveal) {
+        revealCell(n);
+        if (!n.isMine && n.neighborMines === 0) floodReveal(n);
+      }
+
+      checkWin();
+    }
+
+    /* Sizing & positioning */
+    function computeAndApplySizes() {
+      const gap = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--gap')) || 2;
+
+      const shellPadding = 6;
+      const containerPadding = 4;
+      const verticalShellExtra = (shellPadding * 2) + (containerPadding * 2);
+      const horizontalShellExtra = (shellPadding * 2) + (containerPadding * 2);
+
+      const topPanel = document.getElementById('topPanel');
+      const topPanelRect = topPanel ? topPanel.getBoundingClientRect() : { bottom: 0, height: 0 };
+      const topPanelBottom = topPanelRect.bottom;
+
+      const availableTop = topPanelBottom + 8;
+      const availableBottom = window.innerHeight - 12;
+      const availableHeightBelow = Math.max(80, availableBottom - availableTop);
+
+      const app = document.getElementById('app');
+      const appRect = app.getBoundingClientRect();
+      const availableWidth = Math.max(200, Math.min(appRect.width, window.innerWidth - 40));
+
+      const innerAvailableHeight = Math.max(40, availableHeightBelow - verticalShellExtra);
+      const innerAvailableWidth = Math.max(40, availableWidth - horizontalShellExtra);
+
+      const reservedVerticalSpace = Math.max(6, Math.floor(innerAvailableHeight * 0.03));
+      const reservedHorizontalSpace = Math.max(6, Math.floor(innerAvailableWidth * 0.03));
+
+      let maxCellByHeight = Math.floor((innerAvailableHeight - reservedVerticalSpace - (rows - 1) * gap) / rows);
+      let maxCellByWidth = Math.floor((innerAvailableWidth - reservedHorizontalSpace - (cols - 1) * gap) / cols);
+
+      let finalCellSize = Math.min(maxCellByHeight, maxCellByWidth);
+      finalCellSize = finalCellSize - 2;
+
+      if (currentDiff === 'hard') {
+        const boosted = Math.floor(finalCellSize * 1.08);
+        const widthLimitBoost = Math.floor((innerAvailableWidth - reservedHorizontalSpace - (cols - 1) * gap) / cols);
+        const heightLimitBoost = Math.floor((innerAvailableHeight - reservedVerticalSpace - (rows - 1) * gap) / rows);
+        if (!isNaN(boosted) && boosted <= widthLimitBoost && boosted <= heightLimitBoost) {
+          finalCellSize = boosted;
+        } else {
+          finalCellSize = Math.floor(finalCellSize * 0.96);
+        }
+      }
+
+      if (isNaN(finalCellSize) || finalCellSize < MIN_CELL) finalCellSize = MIN_CELL;
+      if (finalCellSize > MAX_CELL) finalCellSize = MAX_CELL;
+
+      document.documentElement.style.setProperty('--cell-size', `${finalCellSize}px`);
+
+      const boardWidth = finalCellSize * cols + (cols - 1) * gap;
+      const boardHeight = finalCellSize * rows + (rows - 1) * gap;
+
+      const board = document.getElementById('board');
+      board.style.width = `${boardWidth}px`;
+      board.style.height = `${boardHeight}px`;
+
+      const marginPercent = 0.02;
+      let shellW = Math.round(boardWidth + horizontalShellExtra + Math.max(6, Math.floor(boardWidth * marginPercent)));
+      let shellH = Math.round(boardHeight + verticalShellExtra + Math.max(6, Math.floor(boardHeight * marginPercent)));
+
+      const maxShellW = Math.round(Math.min(appRect.width, window.innerWidth - 40));
+      const maxShellH = Math.round(Math.min(availableHeightBelow + verticalShellExtra, window.innerHeight - 24));
+      if (shellW > maxShellW) shellW = maxShellW;
+      if (shellH > maxShellH) shellH = maxShellH;
+
+      const shrinkFactor = 0.92;
+      shellW = Math.round(shellW * shrinkFactor);
+      shellH = Math.round(shellH * shrinkFactor);
+
+      const minShellW = boardWidth + horizontalShellExtra + 8;
+      const minShellH = boardHeight + verticalShellExtra + 8;
+      if (shellW < minShellW) shellW = minShellW;
+      if (shellH < minShellH) shellH = minShellH;
+
+      document.documentElement.style.setProperty('--board-shell-width', `${shellW}px`);
+      document.documentElement.style.setProperty('--board-shell-height', `${shellH}px`);
+
+      const leftWithinApp = Math.round((appRect.width - shellW) / 2);
+      const centerYInAvailable = availableTop + Math.max(0, (availableHeightBelow - shellH) / 2);
+      const topWithinApp = Math.round(centerYInAvailable - appRect.top);
+
+      const boardShell = document.getElementById('boardShell');
+      const clampedLeft = Math.max(0, Math.min(leftWithinApp, Math.max(0, appRect.width - shellW)));
+      const clampedTop = Math.max(0, Math.min(topWithinApp, Math.max(0, appRect.height - shellH)));
+
+      boardShell.style.left = `${clampedLeft}px`;
+      boardShell.style.top = `${clampedTop}px`;
+      boardShell.style.transform = `translate(0,0)`;
+      boardShell.style.overflow = 'hidden';
+    }
+
+    function showEndScreen(win) {
+      const screen = document.getElementById('endScreen');
+      const emoji = document.getElementById('endEmoji');
+      const msg = document.getElementById('endMessage');
+      if (win) { emoji.textContent = '🎉'; msg.textContent = '!כל הכבוד, ניצחת'; }
+      else { emoji.textContent = '💥'; msg.textContent = '!התפוצצת'; }
+      saveResults(win);
+      screen.classList.add('visible');
+      screen.setAttribute('aria-hidden', 'false');
+    }
+    function hideEndScreen() {
+      const screen = document.getElementById('endScreen');
+      screen.classList.remove('visible');
+      screen.setAttribute('aria-hidden', 'true');
+    }
+
+    function saveResults(win) {
+      user_details["minesweeper_games"]++;
+      if (user_details["minesweeper_games"] % 25 == 0)
+        saveActivityOnSP(`שיחק בשולה המוקשים כבר ${user_details["minesweeper_games"].toLocaleString()} משחקים!`, "counter");
+
+      if (win) {
+        if (currentDiff === "hard") {
+          user_details["minesweeper_score"] += 25;
+          addTransactionOnSP(30, "שולה המוקשים אלוף");
+        }
+        if (currentDiff === "medium") {
+          user_details["minesweeper_score"] += 5;
+          addTransactionOnSP(15, "שולה המוקשים רב סרן");
+
+        }
+        if (currentDiff === "easy") {
+          user_details["minesweeper_score"] += 1;
+          addTransactionOnSP(5, "שולה המוקשים טוראי");
+
+        }
+      }
+      updateSPValueInList2("Users", "minesweeper_games", "minesweeper_score", user_details["Id"], user_details["minesweeper_games"], user_details["minesweeper_score"]);
+      document.getElementById('scoreCount').textContent = String(user_details["minesweeper_score"]).padStart(1, '0');
+
+    }
+    const scheduleCompute = (() => {
+      let t = null;
+      return () => {
+        if (t) clearTimeout(t);
+        t = setTimeout(() => { computeAndApplySizes(); t = null; }, 40);
+      };
+    })();
+
+    const originalStart = startGame;
+    startGame = function (diff) {
+      originalStart(diff);
+      scheduleCompute();
+      setTimeout(scheduleCompute, 120);
+    };
+  </script>
+</body>
+
+</html>

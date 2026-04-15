@@ -516,7 +516,7 @@
 
     <script>
         function play(game, height = 800, isOnline=false) {
-            document.getElementById('game_zone').innerHTML = `<iframe src="" height="${height}"></iframe>`
+            document.getElementById('game_zone').innerHTML = `<iframe src="games/${game}.html" height="${height}"></iframe>`
             clean();
             document.documentElement.scrollTop = 0;
             document.getElementById('game_zone').style.display = 'block';

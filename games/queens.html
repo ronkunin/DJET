@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Queens Game Creator (p5.js)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+  <script src="http://spellcaster.sites.airnet/SiteAssets/p5.min.js" defer></script>
+  <link rel="stylesheet" href="general/new_loader.css">
+  <script src="general/loader.js" defer></script>
+    <script type="module" defer src="general/firebaseRtdb.js"></script>
+  <style>
+    :root {
+      --primary-color: #8a2be2;
+      --secondary-color: #00d4ff;
+      --accent-color: #ff0080;
+      --streak-color: #ffd700;
+      --streak-frozen: #ff6b6b;
+      --chat-color: #00b894;
+      --activity-color: #fd79a8;
+      --sidebar-bg: rgba(10, 10, 20, 0.9);
+      --sidebar-width: 350px;
+      --dark-color: #0a0a0f;
+      --darker-color: #050508;
+      --light-color: #f0f0ff;
+      --glass-bg: rgba(20, 20, 30, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+
+    }
+
+    :root {
+      --bg: #0f1220;
+      --panel: #151a2f;
+      --accent: #7aa2ff;
+      --muted: #8b93aa;
+      --danger: #ff6b6b;
+      --ok: #28d17c;
+      --line: #27305a;
+
+      #board-area {
+        margin-top: 40px;
+        /* pushes the board down from the top */
+        margin-bottom: 5px;
+        /* optional: space between board and Undo button */
+      }
+    }
+
+    body {
+      margin: 0;
+      /* use the image instead of solid color */
+      /* background: linear-gradient(135deg, var(--darker-color) 0%, #111125 50%, var(--dark-color) 100%);*/
+
+      color: #e8ecff;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      display: grid;
+      overflow: hidden;
+      grid-template-columns: 400px 1fr;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      /*background: 
+                radial-gradient(circle at 80% 30%, rgba(138, 43, 226, 0.15) 0%, transparent 40%), /* Updated for RTL 
+                radial-gradient(circle at 20% 70%, rgba(0, 212, 255, 0.1) 0%, transparent 40%); /* Updated for RTL */
+      z-index: -1;
+    }
+
+    #ui {
+      padding: 25px;
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      overflow-y: auto;
+      height: 100%;
+      direction: rtl;
+      display: none;
+    }
+
+    h1 {
+      font-size: 18px;
+      margin: 0 0 8px;
+      font-weight: 600;
+    }
+
+    h2 {
+      font-size: 14px;
+      margin: 18px 0 8px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin: 8px 0;
+      flex-wrap: wrap;
+    }
+
+    input[type="number"] {
+      background: #0e1228;
+      border: 1px solid var(--line);
+      color: #e8ecff;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      width: 80px;
+    }
+
+    textarea {
+      background: #0e1228;
+      border: 1px solid var(--line);
+      color: #e8ecff;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      box-sizing: border-box;
+      /* ✅ ensures padding/border are included */
+      width: 100%;
+      /* ✅ fits exactly inside the sidebar */
+      height: 80px;
+      resize: vertical;
+    }
+
+    button {
+      background: #1c2550;
+      border: 1px solid #33407a;
+      color: #e8ecff;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      cursor: pointer;
+      width: 80px;
+      direction: rtl;
+
+    }
+
+    button:hover {
+      border-color: var(--accent);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0f1220;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: #0f1220;
+    }
+
+    .btn-ok {
+      background: var(--ok);
+      border-color: var(--ok);
+      color: #0f1220;
+    }
+
+    #canvas-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .palette {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+    }
+
+    .swatch {
+      height: 28px;
+      border-radius: 8px;
+      border: 2px solid transparent;
+      cursor: pointer;
+    }
+
+    .swatch.active {
+      border-color: #ffffff;
+    }
+
+    .list {
+      margin-top: 8px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow-y: auto;
+      /* ✅ vertical scroll inside the list */
+      box-sizing: border-box;
+      width: 100%;
+      max-height: 288px;
+      /* ✅ adjust so ~5 boards fit */
+    }
+
+    .item {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 8px;
+      padding: 8px;
+      padding-right: 20px;
+      border-bottom: 1px solid var(--line);
+      align-items: center;
+    }
+
+    .item:last-child {
+      border-bottom: none;
+    }
+
+    .mode {
+      display: flex;
+      gap: 8px;
+    }
+
+    .mode button.active {
+      border-color: #fff;
+      box-shadow: 0 0 0 1px #fff inset;
+    }
+
+    #undoBtnCanvas {
+      margin-top: 20px;
+      user-select: none;
+      width: 448px;
+      max-width: 448px;
+      font-size: 18px;
+      padding: 16px;
+      border-radius: 12px;
+      background: linear-gradient(90deg#EDE9FF, #B8A9FF);
+
+    }
+
+
+
+    /* Scrollbar track (background) */
+    ::-webkit-scrollbar {
+      width: 12px;
+      /* width of vertical scrollbar */
+      height: 12px;
+      /* height of horizontal scrollbar */
+    }
+
+    /* Track (the area behind the thumb) */
+    ::-webkit-scrollbar-track {
+      background: #0f1220;
+      /* dark navy background */
+      border-radius: 6px;
+    }
+
+    /* Thumb (the draggable handle) */
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #1c2550, #1a2a4f);
+      /* black → dark blue gradient */
+      border-radius: 6px;
+      border: 2px solid #0b1022;
+      /* creates a gap around thumb */
+    }
+
+    /* Thumb hover effect */
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #1a2a4f, #243b6d);
+    }
+
+    /* Corner (where horizontal and vertical scrollbars meet) */
+    ::-webkit-scrollbar-corner {
+      background: #0b1022;
+    }
+  </style>
+</head>
+
+<body>
+
+  <section id="ui">
+
+
+
+    <div id="manageAir">
+
+      <div class="row">
+        <label>Board size (N):</label>
+        <input type="number" id="boardSize" value="8" min="6" max="12" />
+      </div>
+
+      <h2>Mode</h2>
+      <div class="row mode">
+        <button id="modeQueensBtn" class="active">Queens</button>
+        <button id="modePaintBtn">Paint</button>
+      </div>
+
+      <h2>Palette</h2>
+      <div id="palette" class="palette"></div>
+      <div class="row">
+        <button id="clearColorsBtn" class="btn-danger">Clear colors</button>
+        <button id="clearQueensBtn" class="btn-danger">Clear queens</button>
+      </div>
+
+      <h2>JSON</h2>
+      <div class="row">
+        <button id="exportBtn" class="btn-ok">Copy JSON</button>
+      </div>
+
+      <h2>Import / save</h2>
+      <textarea id="importText" placeholder='Paste JSON here'></textarea>
+      <div class="row">
+        <button id="importBtn" class="btn-accent">Import JSON</button>
+        <button id="saveBtn" class="btn-accent">Save current</button>
+      </div>
+    </div>
+    <div id="rules">
+      <img src="http://spellcaster.sites.airnet/DJet/GameImages/gamerules.png" style="width: 100%;">
+    </div>
+    <div id="boardsList" class="list"></div>
+  </section>
+
+  <section id="canvas-container">
+    <!-- Board (canvas) will be injected here -->
+    <div id="board-area"></div>
+
+    <!-- Undo button sits below the board -->
+    <button id="undoBtnCanvas">חזור</button>
+  </section>
+  <script>
+
+    let manage = false;
+
+    if (manage)
+      document.getElementById("rules").style.display = "none";
+
+    if (manage)
+      document.getElementById("manageAir").style.display = "block";
+    else
+      document.getElementById("manageAir").style.display = "none";
+
+    let unlockedLevel = 1; // start with only Level 1 unlocked
+
+    function showScreen() {
+      unlockedLevel = user_details["Queens_Level"];
+      renderBoardList();
+      load_board();
+      document.getElementById("ui").style.display = "block";
+      document.getElementById("canvas-container").style.display = "flex";
+    }
+
+
+
+
+
+    let N = 8;
+    let SIZE;              // dynamic cell size
+    const margin = 24;
+    // Example starter boards
+    let boards = [
+
+      { "N": 8, "regions": [[0, 0, 1, 1, 1, 2, 2, 2], [0, 3, 1, 3, 1, 4, 2, 2], [0, 3, 1, 3, 1, 2, 2, 2], [0, 3, 3, 3, 1, 5, 6, 2], [0, 3, 3, 3, 1, 5, 6, 6], [0, 3, 7, 3, 1, 5, 6, 6], [7, 3, 7, 3, 1, 5, 5, 6], [7, 7, 7, 7, 6, 6, 6, 6]] },
+      { "N": 10, "regions": [[0, 0, 0, 0, 1, 1, 1, 1, 1, 2], [0, 3, 3, 3, 3, 3, 3, 3, 3, 2], [4, 4, 4, 3, 5, 5, 5, 5, 3, 2], [3, 3, 4, 4, 5, 3, 3, 6, 3, 2], [3, 3, 3, 3, 3, 3, 6, 6, 3, 2], [3, 3, 7, 7, 3, 6, 6, 3, 3, 8], [3, 3, 7, 3, 3, 9, 3, 3, 3, 8], [3, 3, 7, 3, 3, 9, 3, 3, 3, 8], [3, 3, 7, 9, 9, 9, 3, 3, 8, 8], [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]] },
+      { "N": 7, "regions": [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 2, 2, 0], [0, 0, 1, 1, 1, 2, 2], [3, 1, 1, 1, 1, 1, 4], [3, 3, 1, 1, 1, 4, 4], [3, 1, 1, 5, 1, 1, 5], [6, 6, 6, 5, 5, 5, 5]] },
+      { "N": 9, "regions": [[0, 1, 1, 1, 1, 1, 1, 1, 1], [0, 1, 2, 2, 2, 1, 3, 3, 1], [0, 2, 2, 4, 2, 3, 3, 5, 1], [0, 2, 4, 4, 3, 3, 6, 5, 5], [0, 2, 4, 7, 7, 6, 6, 6, 5], [0, 2, 4, 4, 7, 7, 6, 8, 5], [0, 2, 2, 4, 2, 7, 8, 8, 5], [0, 0, 2, 2, 2, 0, 0, 8, 8], [0, 0, 0, 0, 0, 0, 0, 0, 0]] },
+      { "N": 9, "regions": [[0, 1, 1, 1, 1, 1, 1, 1, 1], [0, 2, 3, 3, 3, 3, 3, 3, 1], [0, 2, 4, 4, 5, 5, 6, 3, 1], [0, 2, 4, 5, 5, 6, 6, 3, 1], [0, 2, 4, 7, 5, 6, 8, 3, 1], [0, 2, 4, 7, 7, 6, 8, 3, 1], [0, 2, 7, 7, 8, 8, 8, 3, 1], [0, 2, 2, 1, 1, 1, 1, 1, 1], [0, 0, 2, 2, 2, 2, 2, 2, 2]] },
+      { "N": 7, "regions": [[0, 0, 0, 0, 0, 0, 1], [0, 2, 2, 3, 3, 0, 1], [0, 2, 2, 3, 3, 0, 1], [0, 0, 0, 0, 0, 0, 1], [4, 4, 4, 5, 5, 6, 6], [4, 4, 4, 4, 5, 5, 6], [4, 4, 4, 4, 5, 5, 6]] },
+      { "N": 8, "regions": [[0, 1, 1, 1, 1, 1, 1, 1], [0, 2, 2, 1, 1, 1, 1, 1], [3, 2, 4, 4, 4, 1, 1, 1], [3, 3, 4, 5, 5, 5, 1, 1], [3, 3, 3, 5, 6, 6, 6, 6], [3, 3, 3, 5, 6, 7, 7, 7], [3, 3, 7, 7, 6, 7, 7, 7], [3, 7, 7, 7, 7, 7, 7, 7]] },
+      { "N": 7, "regions": [[0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 1, 1, 1, 2], [0, 1, 1, 1, 1, 1, 2], [3, 4, 5, 5, 2, 2, 2], [3, 4, 5, 6, 6, 2, 2], [3, 4, 5, 6, 2, 2, 2], [3, 3, 3, 6, 2, 2, 2]] },
+      { "N": 9, "regions": [[0, 0, 0, 1, 1, 1, 2, 2, 3], [0, 0, 0, 1, 2, 2, 2, 2, 2], [0, 0, 0, 1, 1, 2, 2, 2, 2], [4, 0, 0, 1, 2, 2, 2, 2, 2], [5, 5, 5, 1, 1, 1, 6, 2, 6], [5, 7, 7, 7, 8, 7, 6, 2, 6], [5, 5, 7, 7, 7, 7, 6, 2, 6], [5, 7, 7, 7, 7, 7, 6, 2, 6], [5, 5, 5, 7, 7, 7, 6, 6, 6]] },
+      { "N": 8, "regions": [[0, 0, 0, 1, 1, 1, 2, 2], [0, 0, 0, 0, 1, 3, 3, 2], [0, 0, 0, 0, 1, 3, 3, 2], [4, 0, 0, 0, 0, 3, 5, 5], [4, 4, 0, 0, 0, 0, 0, 5], [6, 4, 7, 0, 0, 0, 0, 0], [6, 6, 7, 7, 0, 0, 0, 0], [6, 6, 6, 7, 7, 0, 0, 0]] },
+      { "N": 8, "regions": [[0, 1, 2, 3, 4, 4, 4, 4], [0, 1, 2, 3, 5, 6, 6, 4], [0, 1, 2, 3, 5, 5, 6, 4], [0, 1, 2, 3, 3, 5, 5, 4], [1, 1, 2, 2, 3, 3, 3, 3], [1, 1, 2, 2, 2, 2, 2, 3], [1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 7, 7, 7, 7, 7]] },
+      { "N": 10, "regions": [[0, 0, 1, 1, 2, 2, 2, 2, 2, 2], [0, 0, 0, 1, 1, 3, 3, 2, 2, 2], [2, 2, 0, 1, 1, 4, 3, 3, 2, 2], [2, 5, 5, 4, 4, 4, 3, 3, 2, 2], [2, 5, 5, 4, 4, 6, 6, 2, 2, 2], [2, 7, 5, 5, 6, 6, 8, 8, 2, 2], [2, 7, 7, 7, 6, 6, 9, 8, 8, 2], [2, 2, 7, 7, 9, 9, 9, 8, 8, 2], [2, 2, 2, 2, 9, 9, 2, 2, 2, 2], [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]] },
+      { "N": 9, "regions": [[0, 0, 1, 1, 1, 2, 2, 2, 2], [0, 0, 1, 3, 4, 2, 2, 2, 2], [0, 0, 3, 3, 4, 5, 5, 2, 2], [0, 0, 3, 4, 4, 4, 5, 5, 2], [0, 4, 4, 4, 4, 4, 4, 4, 6], [0, 7, 7, 4, 4, 4, 8, 6, 6], [0, 6, 7, 7, 4, 8, 8, 6, 6], [6, 6, 6, 6, 4, 8, 6, 6, 6], [6, 6, 6, 6, 6, 6, 6, 6, 6]] },
+      { "N": 7, "regions": [[0, 0, 1, 1, 1, 2, 2], [0, 1, 1, 3, 1, 1, 2], [0, 1, 3, 3, 3, 1, 4], [0, 1, 1, 3, 1, 1, 4], [0, 5, 1, 1, 1, 5, 5], [5, 5, 5, 6, 5, 5, 5], [5, 5, 5, 5, 5, 5, 5]] },
+      { "N": 8, "regions": [[0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 2, 3, 0, 1, 1], [0, 0, 0, 2, 3, 4, 1, 5], [0, 0, 2, 2, 3, 4, 1, 5], [0, 6, 2, 7, 3, 3, 1, 5], [6, 6, 6, 7, 3, 3, 3, 5], [6, 6, 6, 7, 3, 3, 3, 5]] },
+      { "N": 9, "regions": [[0, 0, 0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 2, 2, 2, 1, 1, 1], [0, 0, 2, 2, 3, 2, 2, 1, 1], [0, 2, 2, 3, 3, 3, 2, 2, 1], [0, 2, 3, 3, 3, 4, 4, 2, 1], [5, 2, 2, 3, 4, 4, 2, 2, 1], [5, 6, 2, 2, 4, 2, 2, 7, 8], [5, 6, 5, 2, 2, 2, 7, 7, 8], [5, 5, 5, 5, 5, 5, 5, 8, 8]] },
+      { "N": 8, "regions": [[0, 0, 0, 1, 1, 1, 2, 2], [0, 0, 1, 1, 1, 3, 3, 2], [0, 1, 1, 1, 1, 3, 3, 1], [4, 4, 4, 4, 1, 1, 1, 1], [5, 6, 6, 4, 4, 1, 1, 1], [5, 6, 6, 6, 4, 1, 1, 7], [5, 5, 4, 4, 4, 1, 1, 7], [5, 5, 5, 5, 4, 7, 7, 7]] },
+      { "N": 9, "regions": [[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 1, 1, 0], [0, 0, 2, 2, 2, 2, 2, 1, 0], [0, 0, 2, 2, 3, 3, 2, 4, 0], [0, 0, 2, 5, 5, 3, 2, 4, 0], [0, 6, 6, 6, 5, 2, 2, 4, 0], [7, 8, 8, 6, 2, 2, 2, 4, 0], [7, 7, 8, 6, 0, 0, 0, 0, 0], [7, 7, 7, 0, 0, 0, 0, 0, 0]] },
+      { "N": 9, "regions": [[0, 0, 0, 0, 0, 0, 1, 1, 1], [2, 3, 3, 3, 4, 0, 0, 0, 1], [2, 2, 2, 3, 4, 0, 5, 5, 1], [6, 3, 3, 3, 4, 7, 5, 7, 1], [6, 3, 8, 8, 8, 7, 5, 7, 1], [6, 3, 3, 3, 8, 7, 7, 7, 1], [6, 6, 6, 6, 8, 1, 1, 7, 1], [6, 6, 6, 6, 6, 1, 1, 7, 1], [6, 6, 6, 1, 1, 1, 1, 1, 1]] },
+      { "N": 10, "regions": [[0, 0, 0, 0, 0, 1, 1, 1, 1, 1], [0, 0, 0, 2, 1, 1, 2, 1, 1, 1], [0, 0, 2, 2, 1, 1, 2, 2, 1, 1], [3, 0, 2, 2, 2, 2, 2, 2, 4, 1], [3, 0, 0, 2, 2, 2, 2, 4, 4, 1], [3, 3, 0, 0, 2, 2, 5, 6, 6, 1], [3, 7, 7, 8, 2, 2, 5, 5, 6, 1], [7, 7, 8, 8, 2, 2, 5, 5, 9, 1], [7, 7, 2, 2, 2, 2, 2, 2, 9, 1], [7, 9, 9, 9, 9, 9, 9, 9, 9, 9]] },
+      { "N": 8, "regions": [[0, 1, 1, 2, 3, 3, 3, 4], [0, 0, 1, 2, 2, 3, 3, 4], [5, 0, 0, 0, 0, 3, 3, 4], [5, 5, 0, 0, 0, 0, 3, 4], [6, 6, 0, 0, 0, 0, 3, 0], [7, 6, 0, 0, 0, 0, 0, 0], [7, 7, 7, 0, 0, 0, 0, 0], [7, 7, 7, 7, 7, 0, 0, 0]] },
+      { "N": 10, "regions": [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1, 0], [0, 2, 2, 0, 0, 0, 3, 1, 1, 0], [0, 2, 2, 0, 0, 3, 3, 3, 0, 0], [0, 0, 0, 4, 4, 4, 3, 0, 0, 0], [0, 0, 0, 4, 4, 4, 5, 5, 5, 0], [0, 0, 6, 4, 4, 4, 5, 5, 5, 0], [0, 6, 6, 6, 7, 7, 5, 5, 5, 0], [8, 8, 6, 0, 7, 7, 9, 9, 0, 0], [8, 8, 0, 0, 0, 0, 0, 0, 0, 0]] },
+      { "N": 9, "regions": [[0, 0, 1, 1, 2, 2, 3, 3, 3], [4, 0, 0, 1, 1, 2, 2, 3, 3], [4, 4, 0, 0, 1, 1, 2, 2, 3], [5, 4, 4, 0, 0, 1, 1, 2, 2], [5, 5, 4, 4, 0, 0, 1, 1, 2], [6, 5, 5, 4, 4, 0, 0, 1, 1], [6, 6, 5, 5, 4, 4, 0, 0, 1], [7, 6, 6, 5, 5, 4, 8, 0, 0], [7, 7, 6, 6, 5, 5, 8, 8, 0]] },
+      { "N": 9, "regions": [[0, 0, 0, 0, 1, 2, 2, 2, 2], [0, 3, 0, 1, 1, 1, 2, 2, 2], [3, 3, 3, 4, 1, 4, 2, 2, 2], [5, 3, 4, 4, 4, 4, 4, 6, 2], [5, 5, 5, 4, 7, 4, 6, 6, 6], [5, 5, 4, 4, 4, 4, 4, 6, 8], [5, 5, 5, 4, 5, 4, 8, 8, 8], [5, 5, 5, 5, 5, 5, 5, 8, 8], [5, 5, 5, 5, 5, 5, 5, 5, 5]] },
+      { "N": 11, "regions": [[0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3], [0, 0, 1, 1, 4, 4, 4, 2, 3, 5, 3], [0, 0, 6, 1, 4, 7, 4, 2, 3, 5, 3], [0, 6, 6, 1, 4, 7, 4, 2, 3, 5, 3], [0, 0, 6, 1, 4, 7, 4, 2, 3, 3, 3], [0, 0, 6, 1, 4, 4, 4, 8, 8, 8, 8], [0, 0, 6, 1, 1, 8, 8, 8, 0, 0, 0], [0, 0, 8, 8, 8, 8, 0, 0, 0, 0, 9], [0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 9], [0, 0, 0, 0, 0, 9, 9, 9, 9, 10, 10], [0, 0, 9, 9, 9, 9, 10, 10, 10, 10, 10]] },
+      { "N": 9, "regions": [[0, 0, 1, 1, 2, 3, 4, 3, 3], [0, 0, 1, 1, 2, 3, 3, 3, 3], [0, 0, 0, 2, 2, 2, 2, 3, 3], [2, 2, 2, 2, 3, 3, 3, 3, 3], [5, 5, 5, 2, 6, 7, 7, 7, 7], [5, 5, 5, 5, 7, 7, 4, 4, 4], [8, 8, 1, 1, 7, 4, 4, 4, 4], [8, 8, 1, 1, 7, 1, 1, 1, 4], [8, 8, 8, 7, 7, 1, 1, 4, 4]] },
+
+      { "N": 8, "regions": [[0, 1, 1, 2, 2, 3, 3, 3], [0, 1, 1, 2, 2, 3, 3, 3], [0, 1, 2, 2, 4, 4, 4, 3], [0, 0, 2, 5, 4, 6, 4, 7], [2, 2, 2, 5, 4, 6, 4, 7], [5, 5, 5, 5, 4, 6, 4, 7], [5, 5, 5, 5, 4, 4, 4, 7], [5, 5, 5, 5, 7, 7, 7, 7]] },
+
+      { "N": 10, "regions": [[0, 0, 0, 1, 1, 1, 1, 1, 1, 1], [0, 2, 2, 2, 1, 1, 3, 3, 3, 3], [0, 0, 0, 1, 1, 1, 3, 3, 4, 4], [4, 4, 4, 1, 1, 1, 4, 4, 4, 4], [4, 4, 4, 4, 4, 4, 4, 4, 4, 5], [6, 7, 4, 4, 4, 4, 4, 4, 5, 5], [6, 7, 7, 7, 7, 7, 5, 5, 5, 5], [6, 7, 7, 8, 8, 7, 9, 5, 5, 5], [9, 9, 9, 9, 9, 9, 9, 9, 9, 5], [9, 9, 9, 9, 9, 9, 5, 5, 5, 5]] },
+
+      { "N": 7, "regions": [[0, 0, 0, 1, 1, 1, 1], [0, 2, 2, 1, 1, 1, 1], [2, 1, 1, 1, 3, 1, 4], [2, 2, 1, 3, 3, 3, 4], [5, 1, 3, 3, 4, 4, 4], [5, 1, 1, 3, 4, 4, 6], [5, 5, 5, 5, 6, 6, 6]] },
+
+      { "N": 8, "regions": [[0, 0, 1, 1, 1, 1, 1, 1], [0, 2, 2, 3, 4, 4, 2, 1], [2, 2, 2, 3, 5, 4, 2, 6], [2, 2, 2, 3, 5, 4, 2, 6], [2, 2, 2, 3, 4, 4, 2, 6], [2, 2, 2, 3, 4, 2, 2, 6], [2, 2, 2, 2, 2, 2, 2, 6], [2, 2, 7, 7, 7, 7, 6, 6]] },
+
+      { "N": 9, "regions": [[0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 2, 2, 2, 3, 4, 4, 4, 0], [1, 1, 1, 2, 3, 3, 4, 4, 0], [5, 1, 2, 2, 3, 4, 4, 0, 0], [5, 5, 2, 2, 6, 4, 4, 4, 0], [7, 5, 2, 2, 4, 4, 8, 8, 0], [7, 5, 2, 2, 4, 4, 8, 4, 0], [7, 5, 2, 2, 4, 4, 8, 4, 0], [7, 7, 7, 7, 7, 4, 4, 4, 4]] },
+
+      { "N": 10, "regions": [[0, 1, 1, 0, 2, 2, 3, 4, 4, 3], [0, 0, 1, 0, 2, 2, 3, 3, 4, 3], [0, 0, 0, 0, 2, 2, 3, 3, 3, 3], [0, 5, 0, 0, 2, 5, 3, 6, 3, 3], [0, 5, 5, 0, 5, 5, 3, 6, 6, 3], [7, 7, 5, 5, 5, 8, 8, 6, 6, 6], [7, 5, 5, 6, 5, 5, 6, 6, 6, 6], [6, 5, 6, 6, 6, 5, 6, 6, 6, 6], [6, 6, 6, 6, 6, 6, 6, 6, 6, 6], [6, 6, 9, 6, 6, 6, 6, 6, 6, 6]] },
+
+      { "N": 10, "regions": [[0, 0, 1, 1, 1, 2, 3, 3, 2, 2], [4, 0, 5, 5, 1, 2, 2, 2, 2, 2], [4, 0, 5, 5, 5, 6, 6, 6, 6, 2], [4, 4, 5, 7, 5, 6, 6, 2, 6, 2], [4, 7, 7, 7, 5, 6, 6, 2, 2, 2], [4, 4, 7, 7, 5, 6, 6, 6, 2, 6], [4, 4, 7, 7, 5, 6, 6, 6, 2, 6], [4, 4, 7, 7, 5, 5, 6, 6, 6, 6], [8, 4, 8, 7, 8, 8, 6, 6, 6, 6], [8, 8, 8, 8, 8, 8, 8, 9, 6, 6]] },
+
+      { "N": 9, "regions": [[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 1, 1, 1, 1, 0, 0], [2, 2, 1, 3, 3, 3, 3, 3, 3], [4, 2, 1, 3, 3, 3, 3, 3, 3], [4, 4, 1, 1, 1, 1, 1, 3, 3], [2, 4, 5, 5, 5, 5, 1, 6, 6], [2, 7, 7, 7, 5, 5, 1, 8, 6], [2, 7, 1, 1, 1, 1, 1, 8, 6], [2, 7, 7, 7, 7, 7, 7, 8, 6]] },
+
+      { "N": 7, "regions": [[0, 0, 1, 1, 1, 1, 1], [0, 0, 0, 1, 1, 1, 1], [2, 3, 4, 5, 5, 4, 6], [2, 3, 4, 4, 4, 4, 6], [2, 2, 6, 4, 6, 6, 6], [2, 6, 6, 6, 6, 6, 6], [2, 2, 6, 6, 6, 6, 6]] },
+
+      { "N": 11, "regions": [[0, 0, 1, 1, 1, 2, 2, 3, 3, 3, 3], [4, 0, 0, 1, 1, 2, 2, 2, 2, 3, 3], [4, 4, 0, 0, 1, 2, 2, 2, 2, 5, 5], [4, 4, 4, 0, 1, 1, 2, 6, 6, 6, 5], [0, 0, 4, 0, 7, 7, 7, 6, 6, 6, 5], [0, 0, 0, 0, 8, 7, 7, 6, 6, 6, 5], [0, 0, 0, 0, 8, 7, 7, 9, 9, 6, 5], [0, 0, 0, 8, 8, 8, 8, 8, 9, 6, 5], [10, 10, 8, 8, 8, 9, 9, 9, 9, 6, 5], [10, 10, 10, 10, 9, 9, 9, 9, 9, 6, 5], [10, 10, 10, 10, 10, 9, 9, 9, 9, 6, 5]] },
+
+      { "N": 7, "regions": [[0, 0, 1, 2, 0, 0, 0], [0, 0, 1, 2, 3, 3, 3], [4, 4, 1, 1, 3, 5, 4], [4, 4, 2, 1, 3, 5, 4], [0, 4, 2, 1, 6, 6, 6], [0, 0, 4, 4, 6, 0, 0], [0, 0, 4, 4, 4, 0, 0]] },
+
+      { "N": 11, "regions": [[0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 0, 3, 0, 0, 0, 0], [0, 0, 4, 0, 0, 0, 3, 0, 0, 0, 0], [0, 0, 4, 0, 0, 0, 0, 0, 5, 0, 0], [6, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0], [6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7], [0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 7], [0, 0, 0, 8, 0, 0, 0, 9, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0], [0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0]] },
+
+      { "N": 6, "regions": [[0, 0, 0, 1, 2, 2], [3, 0, 0, 1, 2, 2], [3, 3, 0, 1, 1, 2], [4, 3, 3, 3, 1, 2], [4, 4, 4, 4, 1, 4], [5, 5, 5, 4, 4, 4]] },
+
+      { "N": 7, "regions": [[0, 0, 1, 1, 1, 2, 2], [0, 3, 1, 1, 4, 4, 2], [3, 3, 4, 4, 4, 4, 2], [3, 3, 4, 4, 4, 4, 2], [4, 4, 4, 4, 4, 4, 5], [6, 4, 4, 4, 4, 5, 5], [6, 6, 6, 5, 5, 5, 5]] },
+
+      { "N": 9, "regions": [[0, 0, 0, 0, 1, 1, 1, 1, 2], [3, 3, 0, 0, 1, 1, 2, 2, 2], [3, 3, 3, 1, 1, 1, 1, 2, 2], [3, 3, 3, 3, 3, 4, 1, 2, 2], [5, 5, 5, 5, 4, 4, 4, 2, 2], [6, 6, 6, 5, 4, 4, 4, 4, 4], [6, 5, 5, 5, 4, 4, 7, 4, 4], [6, 5, 8, 8, 7, 7, 7, 7, 4], [6, 6, 8, 8, 8, 8, 7, 7, 4]] },
+
+      { "N": 11, "regions": [[0, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2], [3, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2], [4, 0, 5, 5, 5, 5, 2, 2, 1, 2, 2], [4, 0, 5, 5, 5, 5, 2, 2, 2, 2, 2], [4, 0, 5, 5, 5, 5, 5, 6, 6, 7, 7], [4, 4, 5, 5, 5, 5, 5, 7, 7, 7, 7], [4, 4, 4, 4, 4, 4, 8, 7, 8, 8, 9], [4, 4, 4, 8, 8, 8, 8, 7, 8, 9, 9], [4, 4, 4, 8, 8, 9, 8, 7, 8, 9, 9], [4, 4, 4, 8, 8, 9, 8, 8, 8, 8, 9], [10, 10, 10, 9, 9, 9, 9, 9, 9, 9, 9]] },
+
+      { "N": 11, "regions": [[0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1], [2, 0, 0, 3, 3, 3, 3, 3, 4, 1, 1], [2, 2, 0, 0, 3, 3, 3, 3, 4, 4, 4], [5, 2, 2, 0, 0, 0, 6, 6, 6, 6, 6], [5, 5, 2, 2, 0, 0, 0, 0, 6, 7, 7], [5, 5, 8, 2, 2, 2, 0, 0, 0, 7, 7], [5, 5, 8, 8, 8, 2, 2, 2, 0, 7, 7], [5, 5, 8, 8, 8, 8, 8, 2, 2, 7, 7], [5, 5, 8, 8, 8, 8, 8, 9, 9, 9, 9], [5, 5, 9, 9, 9, 9, 9, 9, 9, 9, 9], [5, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]] },
+
+      { "N": 8, "regions": [[0, 0, 1, 1, 1, 1, 1, 2], [3, 0, 0, 0, 1, 2, 1, 2], [3, 0, 3, 0, 2, 2, 2, 2], [3, 3, 3, 0, 0, 0, 0, 2], [4, 4, 3, 3, 5, 5, 5, 2], [4, 6, 5, 5, 5, 7, 2, 2], [4, 6, 6, 6, 6, 7, 7, 7], [4, 4, 4, 4, 6, 6, 6, 6]] },
+
+      { "N": 7, "regions": [[0, 0, 0, 1, 2, 2, 2], [0, 0, 0, 1, 2, 2, 2], [0, 0, 0, 1, 2, 2, 2], [3, 3, 0, 1, 1, 4, 4], [3, 5, 5, 1, 1, 1, 4], [3, 5, 6, 6, 6, 6, 4], [3, 5, 5, 5, 5, 6, 6]] },
+
+      { "N": 9, "regions": [[0, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 2, 2, 2, 2, 2, 2, 1], [3, 0, 0, 4, 4, 4, 4, 2, 1], [3, 5, 0, 0, 6, 6, 4, 2, 1], [3, 5, 7, 0, 0, 6, 4, 2, 1], [3, 5, 7, 8, 0, 0, 4, 2, 1], [3, 5, 7, 8, 8, 0, 0, 2, 1], [3, 5, 5, 5, 5, 5, 0, 0, 1], [3, 3, 3, 3, 3, 3, 3, 0, 0]] },
+
+      { "N": 7, "regions": [[0, 0, 0, 0, 0, 0, 1], [0, 1, 1, 1, 1, 1, 1], [0, 2, 2, 2, 2, 2, 2], [0, 3, 3, 3, 3, 3, 4], [0, 5, 5, 5, 5, 5, 4], [0, 5, 5, 6, 6, 6, 4], [0, 6, 6, 6, 6, 6, 4]] },
+
+      { "N": 7, "regions": [[0, 0, 0, 0, 0, 1, 1], [0, 0, 2, 0, 1, 1, 1], [0, 0, 2, 2, 1, 3, 3], [4, 4, 4, 2, 1, 3, 3], [4, 5, 4, 2, 3, 3, 3], [6, 5, 2, 2, 3, 3, 3], [6, 5, 5, 5, 3, 3, 3]] },
+
+      { "N": 11, "regions": [[0, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3], [0, 1, 1, 0, 0, 4, 4, 4, 4, 5, 5], [0, 0, 1, 1, 6, 6, 6, 7, 4, 4, 4], [7, 7, 7, 1, 1, 1, 6, 7, 7, 8, 8], [6, 6, 6, 6, 6, 6, 6, 9, 10, 5, 3], [6, 6, 6, 6, 6, 6, 6, 9, 10, 5, 3], [7, 7, 7, 8, 4, 4, 9, 9, 10, 5, 3], [3, 5, 8, 8, 4, 9, 4, 4, 4, 10, 10], [3, 5, 8, 8, 4, 4, 4, 4, 7, 7, 7], [5, 5, 5, 5, 5, 5, 5, 5, 5, 8, 10], [3, 3, 3, 3, 3, 3, 3, 3, 5, 10, 10]] },
+
+      { "N": 7, "regions": [[0, 0, 1, 1, 0, 0, 2], [0, 3, 3, 1, 0, 2, 2], [0, 3, 1, 1, 0, 0, 2], [4, 0, 1, 0, 0, 0, 0], [4, 0, 1, 5, 5, 6, 6], [4, 0, 0, 0, 5, 0, 6], [4, 4, 4, 0, 0, 0, 0]] },
+
+      { "N": 7, "regions": [[0, 1, 1, 1, 2, 2, 3], [0, 0, 0, 1, 1, 2, 3], [0, 0, 4, 4, 4, 2, 2], [5, 0, 0, 0, 4, 6, 2], [5, 5, 0, 0, 4, 6, 2], [5, 0, 0, 6, 6, 6, 6], [5, 0, 6, 6, 6, 6, 6]] },
+
+      { "N": 7, "regions": [[0, 0, 0, 1, 1, 1, 1], [2, 2, 0, 0, 3, 3, 1], [2, 2, 2, 0, 0, 3, 1], [4, 4, 2, 2, 0, 3, 1], [4, 4, 1, 1, 0, 3, 1], [5, 5, 5, 1, 1, 1, 1], [5, 5, 6, 6, 6, 6, 6]] },
+
+      { "N": 7, "regions": [[0, 0, 1, 1, 2, 2, 2], [0, 3, 3, 1, 4, 4, 2], [0, 3, 5, 5, 4, 6, 6], [0, 3, 5, 5, 4, 6, 6], [3, 3, 5, 4, 4, 4, 6], [3, 3, 5, 4, 4, 4, 6], [3, 3, 5, 4, 4, 6, 6]] },
+
+      { "N": 7, "regions": [[0, 0, 0, 0, 0, 0, 0], [0, 1, 1, 0, 1, 1, 0], [2, 1, 3, 3, 3, 1, 2], [2, 2, 1, 3, 1, 2, 2], [4, 2, 2, 1, 2, 2, 4], [4, 4, 5, 5, 5, 4, 4], [6, 6, 6, 5, 6, 6, 6]] },
+
+      { "N": 11, "regions": [[0, 0, 1, 1, 2, 3, 3, 3, 3, 4, 4], [0, 1, 1, 1, 2, 2, 3, 3, 3, 4, 4], [0, 1, 1, 1, 2, 3, 3, 3, 4, 4, 3], [1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3], [1, 1, 1, 1, 1, 5, 5, 5, 5, 3, 3], [6, 6, 7, 7, 8, 5, 5, 9, 5, 10, 10], [6, 7, 7, 8, 8, 5, 9, 9, 5, 5, 10], [6, 6, 7, 8, 8, 7, 9, 9, 5, 10, 10], [7, 6, 7, 7, 8, 7, 9, 9, 5, 10, 10], [7, 7, 7, 7, 7, 7, 5, 5, 5, 5, 5], [7, 7, 7, 7, 7, 7, 5, 5, 5, 5, 5]] },
+
+      { "N": 11, "regions": [[0, 0, 1, 1, 2, 3, 3, 3, 3, 4, 4], [0, 1, 1, 1, 2, 2, 3, 3, 3, 4, 4], [0, 1, 1, 1, 2, 3, 3, 3, 4, 4, 3], [1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3], [1, 1, 1, 1, 1, 5, 5, 5, 5, 3, 3], [6, 6, 7, 7, 8, 5, 5, 9, 5, 10, 10], [6, 7, 7, 8, 8, 5, 9, 9, 5, 5, 10], [6, 6, 7, 8, 8, 7, 9, 9, 5, 10, 10], [7, 6, 7, 7, 8, 7, 9, 9, 5, 10, 10], [7, 7, 7, 7, 7, 7, 5, 5, 5, 5, 5], [7, 7, 7, 7, 7, 7, 5, 5, 5, 5, 5]] },
+
+      { "N": 10, "regions": [[0, 0, 1, 1, 1, 2, 2, 3, 4, 4], [0, 0, 1, 1, 1, 2, 2, 3, 4, 4], [0, 1, 1, 2, 2, 2, 2, 3, 4, 4], [0, 1, 1, 2, 2, 2, 2, 3, 4, 5], [0, 1, 1, 2, 2, 3, 3, 3, 5, 5], [0, 1, 1, 2, 6, 6, 6, 7, 5, 5], [0, 1, 1, 8, 8, 8, 6, 7, 5, 5], [9, 8, 8, 8, 6, 6, 6, 7, 5, 5], [9, 8, 8, 8, 6, 9, 9, 7, 5, 5], [9, 9, 9, 9, 9, 9, 9, 7, 7, 7]] },
+
+      { "N": 8, "regions": [[0, 0, 0, 0, 0, 0, 0, 0], [1, 2, 3, 3, 3, 4, 4, 0], [1, 2, 2, 3, 3, 3, 4, 0], [1, 1, 3, 3, 0, 0, 0, 0], [1, 1, 3, 0, 0, 0, 0, 0], [1, 5, 3, 3, 3, 6, 0, 0], [7, 5, 5, 3, 3, 6, 6, 0], [7, 7, 7, 7, 7, 7, 7, 0]] },
+
+      { "N": 7, "regions": [[0, 1, 2, 3, 4, 5, 6], [2, 5, 0, 6, 1, 3, 4], [1, 3, 4, 0, 2, 6, 0], [2, 6, 2, 1, 5, 4, 3], [3, 4, 5, 0, 6, 2, 1], [6, 2, 1, 4, 5, 0, 5], [4, 0, 6, 5, 3, 1, 2]] },
+
+      { "N": 9, "regions": [[0, 1, 1, 1, 2, 2, 2, 2, 2], [0, 1, 1, 3, 3, 2, 2, 2, 2], [0, 1, 4, 4, 3, 5, 5, 2, 2], [0, 1, 4, 4, 3, 5, 5, 2, 2], [1, 1, 1, 1, 6, 2, 2, 2, 7], [1, 1, 1, 6, 6, 6, 2, 7, 7], [1, 1, 1, 6, 2, 6, 2, 7, 7], [8, 8, 2, 2, 2, 2, 2, 7, 7], [8, 7, 7, 7, 7, 7, 7, 7, 7]] },
+
+      { "N": 11, "regions": [[0, 1, 1, 0, 2, 2, 3, 3, 4, 1, 1], [1, 0, 1, 4, 0, 2, 5, 6, 4, 4, 1], [1, 1, 0, 4, 4, 0, 7, 8, 6, 4, 4], [0, 4, 4, 0, 9, 10, 0, 7, 8, 6, 3], [2, 0, 4, 9, 0, 9, 10, 0, 7, 5, 3], [2, 2, 0, 10, 9, 0, 9, 10, 0, 2, 2], [3, 5, 7, 0, 10, 9, 0, 9, 4, 0, 2], [3, 6, 8, 7, 0, 10, 9, 0, 4, 4, 0], [4, 4, 6, 8, 7, 0, 4, 4, 0, 1, 1], [1, 4, 4, 6, 5, 2, 0, 4, 1, 0, 1], [1, 1, 4, 3, 3, 2, 2, 0, 1, 1, 0]] },
+
+      { "N": 7, "regions": [[0, 0, 0, 0, 0, 0, 0], [1, 1, 2, 0, 0, 0, 0], [1, 2, 2, 3, 3, 3, 0], [1, 2, 2, 3, 3, 3, 3], [1, 2, 4, 4, 4, 3, 3], [5, 2, 4, 4, 6, 4, 3], [5, 6, 6, 6, 6, 4, 3]] },
+
+      { "N": 9, "regions": [[0, 0, 1, 1, 1, 2, 2, 2, 2], [0, 0, 1, 1, 1, 1, 1, 1, 2], [0, 3, 1, 1, 1, 1, 1, 1, 2], [0, 3, 3, 1, 1, 1, 1, 1, 4], [3, 3, 3, 1, 1, 1, 5, 1, 4], [3, 3, 1, 1, 1, 1, 5, 4, 4], [1, 1, 1, 6, 6, 6, 5, 5, 4], [7, 7, 7, 7, 7, 6, 6, 5, 4], [8, 7, 7, 7, 7, 4, 4, 4, 4]] },
+
+      { "N": 11, "regions": [[0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 2, 3, 3, 0, 0, 1], [0, 4, 4, 0, 0, 2, 2, 3, 3, 0, 0], [0, 4, 0, 0, 5, 5, 2, 2, 3, 0, 0], [4, 4, 0, 0, 5, 5, 6, 6, 0, 0, 0], [4, 7, 7, 5, 5, 6, 6, 0, 0, 0, 0], [4, 4, 7, 7, 0, 6, 0, 0, 8, 8, 0], [4, 4, 9, 7, 0, 0, 0, 8, 8, 8, 0], [4, 4, 9, 9, 10, 10, 0, 8, 0, 0, 0], [4, 4, 9, 9, 9, 10, 10, 0, 0, 0, 0], [4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0]] },
+
+      { "N": 11, "regions": [[0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1], [0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 1], [3, 2, 3, 2, 2, 2, 2, 0, 1, 1, 1], [3, 3, 3, 2, 4, 2, 0, 0, 5, 1, 1], [3, 3, 4, 2, 4, 4, 0, 5, 5, 5, 5], [3, 4, 4, 6, 6, 6, 0, 5, 7, 7, 5], [3, 4, 4, 6, 8, 6, 0, 5, 5, 5, 5], [4, 4, 4, 6, 8, 6, 0, 5, 5, 9, 9], [10, 10, 10, 6, 6, 0, 0, 5, 5, 5, 5], [10, 10, 10, 10, 10, 10, 0, 0, 0, 0, 0], [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 0]] },
+
+      { "N": 10, "regions": [[0, 0, 0, 0, 0, 1, 1, 1, 2, 2], [3, 3, 0, 4, 4, 1, 5, 5, 5, 2], [3, 6, 0, 0, 4, 1, 5, 7, 2, 8], [3, 6, 6, 6, 4, 1, 5, 7, 8, 8], [3, 6, 6, 6, 4, 7, 7, 7, 8, 8], [3, 6, 6, 6, 4, 4, 4, 4, 8, 8], [3, 6, 6, 8, 4, 4, 1, 1, 1, 8], [6, 6, 6, 6, 4, 4, 9, 9, 8, 8], [6, 6, 6, 6, 4, 4, 9, 9, 9, 8], [6, 6, 6, 6, 9, 9, 9, 9, 9, 8]] },
+
+      { "N": 9, "regions": [[0, 0, 1, 1, 1, 1, 2, 2, 2], [0, 0, 1, 3, 1, 1, 2, 2, 2], [3, 3, 3, 3, 1, 1, 2, 2, 2], [3, 3, 3, 3, 1, 1, 4, 4, 4], [3, 3, 3, 1, 3, 3, 3, 3, 3], [3, 3, 3, 3, 3, 3, 3, 5, 3], [6, 6, 3, 3, 3, 3, 5, 5, 5], [6, 6, 7, 8, 5, 5, 8, 5, 5], [6, 6, 7, 8, 8, 5, 8, 8, 8]] },
+
+      { "N": 7, "regions": [[0, 1, 1, 2, 2, 2, 2], [3, 3, 1, 1, 2, 4, 2], [3, 3, 3, 1, 1, 4, 2], [5, 3, 3, 3, 1, 4, 2], [5, 5, 3, 3, 4, 4, 2], [5, 4, 4, 4, 4, 6, 6], [5, 5, 5, 5, 5, 6, 6]] },
+
+      { "N": 6, "regions": [[0, 1, 2, 1, 2, 3], [1, 1, 2, 4, 2, 4], [2, 2, 2, 4, 3, 4], [1, 4, 4, 4, 3, 5], [2, 2, 3, 3, 3, 5], [0, 4, 4, 5, 5, 5]] },
+
+      { "N": 9, "regions": [[0, 1, 1, 2, 2, 3, 3, 3, 3], [0, 0, 1, 1, 2, 2, 3, 3, 3], [4, 0, 0, 1, 1, 2, 2, 3, 3], [4, 4, 0, 0, 1, 1, 2, 2, 3], [5, 4, 4, 0, 0, 1, 1, 2, 2], [5, 5, 4, 4, 0, 0, 1, 1, 2], [6, 5, 5, 4, 7, 0, 0, 1, 1], [6, 6, 6, 6, 7, 8, 0, 1, 1], [7, 7, 7, 7, 7, 8, 8, 8, 1]] },
+
+      { "N": 7, "regions": [[0, 0, 0, 0, 0, 0, 1], [2, 2, 0, 3, 1, 1, 1], [1, 4, 4, 3, 3, 1, 1], [1, 1, 1, 3, 3, 1, 1], [5, 5, 1, 6, 6, 1, 1], [5, 5, 6, 6, 6, 1, 1], [1, 1, 1, 1, 1, 1, 1]] },
+
+      { "N": 8, "regions": [[0, 0, 1, 1, 1, 1, 1, 1], [0, 2, 2, 2, 3, 4, 4, 1], [0, 0, 3, 3, 3, 4, 1, 1], [0, 3, 3, 5, 3, 4, 1, 1], [0, 5, 5, 5, 3, 4, 1, 1], [0, 0, 0, 6, 6, 7, 7, 1], [0, 6, 0, 6, 7, 7, 7, 1], [6, 6, 6, 6, 7, 7, 7, 1]] },
+
+      { "N": 8, "regions": [[0, 0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 2, 1, 1, 1], [0, 0, 0, 2, 2, 1, 1, 3], [0, 4, 0, 0, 2, 3, 3, 3], [4, 4, 4, 0, 0, 0, 3, 0], [5, 5, 6, 0, 0, 0, 0, 0], [5, 5, 6, 0, 0, 0, 0, 7], [5, 5, 6, 0, 0, 0, 7, 7]] },
+
+      { "N": 9, "regions": [[0, 0, 1, 1, 1, 1, 1, 1, 1], [2, 0, 0, 0, 0, 3, 3, 3, 1], [2, 4, 4, 4, 0, 0, 0, 3, 1], [2, 4, 5, 5, 5, 5, 5, 5, 1], [2, 4, 4, 6, 6, 6, 5, 7, 1], [2, 2, 4, 4, 4, 5, 5, 7, 1], [2, 8, 7, 7, 7, 7, 7, 7, 1], [2, 8, 7, 7, 1, 1, 1, 1, 1], [2, 2, 2, 7, 7, 7, 7, 7, 7]] },
+
+      { "N": 7, "regions": [[0, 0, 1, 1, 1, 1, 2], [0, 3, 3, 3, 3, 1, 2], [3, 3, 3, 3, 3, 4, 2], [3, 3, 3, 3, 3, 4, 2], [5, 3, 3, 3, 3, 4, 2], [5, 6, 6, 4, 4, 4, 2], [6, 6, 6, 6, 6, 4, 2]] },
+
+
+      /*{"N":9,"regions":[[0,1,1,1,2,3,3,3,0],[1,1,4,4,2,4,4,4,5],[1,3,6,4,2,4,4,4,5],[1,6,6,4,2,1,4,4,5],[5,5,5,5,2,4,4,4,5],[1,7,7,4,2,4,4,4,5],[1,4,7,4,2,4,4,4,5],[1,7,7,4,2,4,4,4,0],[8,2,2,2,2,2,2,2,8]]},
+      
+      {"N":7,"regions":[[0,1,1,1,1,1,1],[0,0,2,2,3,3,3],[0,0,0,2,3,3,3],[0,0,0,2,4,3,3],[0,0,0,2,5,5,5],[0,0,2,2,5,6,5],[0,6,6,6,6,6,6]]},*/
+
+
+    ];
+
+    // Always keep board size equal to a 10×10 board
+    function updateCellSize() {
+      const targetBoardSize = 10 * 64;   // fixed overall board size
+      SIZE = Math.floor(targetBoardSize / N);
+    }
+
+    let dragStarted = false;
+    let pressedCell = null;
+
+    let itemID;
+    let name;
+    let unit;
+
+    let now_board = 0;
+    let regions = [];
+    let queens = [];
+    let forbids = [];
+    let history = [];
+
+    const palette = [
+      { name: 'Red', hex: '#ff4d4d' },   // vivid cherry red
+      { name: 'Orange', hex: '#ff914d' },   // bright tangerine orange
+      { name: 'Yellow', hex: '#ffe74d' },   // sunny, bold yellow
+      { name: 'Dark Green', hex: '#2ecc71' },   // lively emerald green
+      { name: 'Dark Blue', hex: '#2735F5' },   // dark blue
+      { name: 'Blue', hex: '#3498db' },   // strong sky blue
+      { name: 'Purple', hex: '#9b59b6' },   // vibrant violet
+      { name: 'Pink', hex: '#ff6fae' },   // hot pink
+      { name: 'Lime', hex: '#7bed9f' },   // punchy lime green
+      { name: 'White', hex: '#ffffff' },   // pure white
+      { name: 'Gray', hex: '#95a5a6' },   // modern neutral gray
+      { name: 'Brown', hex: '#a0522d' }    // warm earthy brown
+    ];
+
+
+
+    let activePaletteId = 0;
+    let mode = 'queens';
+    let gameOver = false;
+    let crownImg;
+    let winImg;
+
+    function preload() {
+      crownImg = loadImage('http://spellcaster.sites.airnet/DJet/GameImages/crown.png');
+
+      winImg = loadImage('http://spellcaster.sites.airnet/DJet/GameImages/WINNER.png');
+    }
+
+
+    function setup() {
+      updateCellSize();
+      const container = document.getElementById('board-area');
+      const cnv = createCanvas(margin * 2 + 10 * 64, margin * 2 + 10 * 64); // fixed board size
+      cnv.parent(container);
+      textFont('system-ui'); pixelDensity(2);
+      initRegions(); buildPaletteUI(); renderBoardList();
+
+
+      load_board(0);
+    }
+
+    function draw() {
+      background('#0b1022');
+      drawGrid(); drawPaint(); drawForbids(); drawQueens(); drawLabels();
+      if (checkWin()) {
+
+        drawWinBanner();
+        if (!gameOver) {
+          gameOver = true;
+          document.getElementById("undoBtnCanvas").textContent = "שלב הבא"
+          // unlock next level
+          if (unlockedLevel < boards.length && now_board == unlockedLevel - 1) {
+            unlockedLevel++;
+            addTransactionOnSP(15, "פתירת לוח משחק המלכות");
+
+
+            if (unlockedLevel % 5 == 0) {
+              saveActivityOnSP(` התקדם במשחק המלכות ועלה לשלב ${unlockedLevel}`, "crown");
+            }
+            updateSPValueInList1("Users", "Queens_Level", user_details["Id"], unlockedLevel);
+            renderBoardList();
+          }
+        }
+      }
+    }
+    function load_board(i = unlockedLevel - 1) {
+      now_board = i;
+      N = Math.max(6, Math.min(12, boards[i].N));
+      updateCellSize();
+      regions = boards[i].regions;
+      queens = []; forbids = []; history = [];
+      resizeCanvas(margin * 2 + 10 * 64, margin * 2 + 10 * 64);
+      gameOver = false;
+      document.getElementById("undoBtnCanvas").textContent = "חזור";
+    }
+    function initRegions() {
+      regions = Array.from({ length: N }, () => Array(N).fill(-1));
+      queens = []; forbids = []; history = []; gameOver = false;
+    }
+    function pushHistory() {
+      history.push({
+        regions: JSON.parse(JSON.stringify(regions)),
+        queens: [...queens],
+        forbids: [...forbids]
+      });
+    }
+
+    function undo() {
+      if (history.length > 0 && gameOver == false) {
+        const prev = history.pop();
+        regions = prev.regions; queens = prev.queens; forbids = prev.forbids;
+      }
+      if (gameOver == true) {
+        load_board();
+
+      }
+    }
+
+    function drawGrid() {
+      push();
+      translate(margin, margin);
+      stroke('#1f2b57');
+      strokeWeight(3);
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          noFill();
+          rect(c * SIZE, r * SIZE, SIZE, SIZE);
+        }
+      }
+      pop();
+    }
+
+    function drawPaint() {
+      push(); translate(margin, margin); noStroke();
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const pid = regions[r][c];
+          if (pid >= 0) {
+            fill(palette[pid].hex + 'cc');
+            rect(c * SIZE, r * SIZE, SIZE, SIZE);
+          }
+        }
+      }
+      pop();
+    }
+
+    function drawForbids() {
+      push(); translate(margin, margin); textAlign(CENTER, CENTER); textSize(SIZE * 0.5); fill('#ff6b6b');
+      for (const f of forbids) {
+        const x = f.c * SIZE + SIZE / 2, y = f.r * SIZE + SIZE / 2;
+        text('X', x, y);
+      }
+      pop();
+    }
+
+    function drawQueens() {
+      push();
+      translate(margin, margin);
+      imageMode(CENTER);
+      for (const q of queens) {
+        const x = q.c * SIZE + SIZE / 2;
+        const y = q.r * SIZE + SIZE / 2;
+        const ok = isQueenValid(q, queens.filter(p => p !== q));
+        const col = ok ? '#ffd166' : '#ff6b6b';
+
+        // background circle
+        noStroke();
+        fill(col);
+        ellipse(x, y, SIZE * 0.55, SIZE * 0.55);
+
+        // crown image
+        if (crownImg) {
+          image(crownImg, x, y, SIZE * 0.5, SIZE * 0.5);
+        }
+      }
+      pop();
+    }
+
+
+    function drawLabels() {
+      fill('#cbd5e1'); noStroke(); textSize(12); textAlign(CENTER, CENTER);
+      for (let c = 0; c < N; c++) {
+        const ch = String.fromCharCode(65 + c);
+        text(ch, margin + c * SIZE + SIZE / 2, margin * 0.55);
+        text(ch, margin + c * SIZE + SIZE / 2, height - margin * 0.55);
+      }
+      for (let r = 0; r < N; r++) {
+        const num = (r + 1).toString();
+        text(num, margin * 0.55, margin + r * SIZE + SIZE / 2);
+        text(num, width - margin * 0.55, margin + r * SIZE + SIZE / 2);
+      }
+    }
+    function mousePressed() {
+      if (gameOver) return;
+      const cell = xyToRC(mouseX, mouseY);
+      if (!cell) return;
+      pressedCell = cell;
+      dragStarted = false;
+      pushHistory();
+
+      if (mode === 'paint') {
+        regions[cell.r][cell.c] = activePaletteId;
+      }
+    }
+
+    function mouseDragged() {
+      if (gameOver) return;
+      const cell = xyToRC(mouseX, mouseY);
+      if (!cell) return;
+      dragStarted = true;
+
+      if (mode === 'paint') {
+        regions[cell.r][cell.c] = activePaletteId;
+      } else if (mode === 'queens') {
+        const qIdx = queens.findIndex(q => q.r === cell.r && q.c === cell.c);
+        if (qIdx >= 0) return;
+        const fIdx = forbids.findIndex(f => f.r === cell.r && f.c === cell.c);
+        if (fIdx < 0) { forbids.push({ r: cell.r, c: cell.c }); }
+      }
+    }
+
+    function mouseReleased() {
+      if (gameOver) return;
+      if (mode === 'queens' && pressedCell && !dragStarted) {
+        const { r, c } = pressedCell;
+        const qIdx = queens.findIndex(q => q.r === r && q.c === c);
+        const fIdx = forbids.findIndex(f => f.r === r && f.c === c);
+        if (qIdx >= 0) {
+          queens.splice(qIdx, 1);
+        } else if (fIdx >= 0) {
+          forbids.splice(fIdx, 1);
+          queens.push({ r, c });
+        } else {
+          forbids.push({ r, c });
+        }
+      }
+      pressedCell = null;
+    }
+
+    function xyToRC(x, y) {
+      const r = Math.floor((y - margin) / SIZE);
+      const c = Math.floor((x - margin) / SIZE);
+      if (r < 0 || c < 0 || r >= N || c >= N) return null;
+      return { r, c };
+    }
+
+    function isQueenValid(q, others) {
+      for (const o of others) {
+        // Rule 1: same row
+        if (o.r === q.r) return false;
+
+        // Rule 2: same column
+        if (o.c === q.c) return false;
+
+        // Rule 3: touching (like kings)
+        if (Math.abs(o.r - q.r) <= 1 && Math.abs(o.c - q.c) <= 1) return false;
+
+        // Rule 4: same color region
+        if (regions[o.r][o.c] === regions[q.r][q.c] && regions[q.r][q.c] !== -1) return false;
+      }
+      return true;
+    }
+
+    function checkWin() {
+      // Must have at least one queen
+      if (queens.length === 0) return false;
+
+      // Rule: all queens must be valid
+      for (const q of queens) {
+        if (!isQueenValid(q, queens.filter(p => p !== q))) return false;
+      }
+
+      // Count distinct colors used in regions
+      const usedColors = new Set();
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          if (regions[r][c] >= 0) {
+            usedColors.add(regions[r][c]);
+          }
+        }
+      }
+
+      // Win if queens count equals distinct colors count
+      return queens.length === usedColors.size;
+    }
+
+    function drawWinBanner() {
+      push();
+      imageMode(CENTER);
+      // draw the image centered on the board
+      image(winImg, width / 2, height / 2, 300, 200); // adjust size as needed
+
+      // optional overlay text
+      fill('#ffffff');
+      textAlign(CENTER, CENTER);
+      textSize(24);
+      pop();
+    }
+
+    function buildPaletteUI() {
+      const palDiv = document.getElementById('palette');
+      palDiv.innerHTML = '';
+      palette.forEach((p, i) => {
+        const sw = document.createElement('div');
+        sw.className = 'swatch' + (i === activePaletteId ? ' active' : '');
+        sw.style.background = p.hex;
+        sw.title = p.name;
+        sw.onclick = () => { activePaletteId = i; buildPaletteUI(); };
+        palDiv.appendChild(sw);
+      });
+    }
+
+    // Mode buttons
+    document.getElementById('modePaintBtn').onclick = () => {
+      mode = 'paint'; document.getElementById('modePaintBtn').classList.add('active');
+      document.getElementById('modeQueensBtn').classList.remove('active');
+    };
+    document.getElementById('modeQueensBtn').onclick = () => {
+      mode = 'queens'; document.getElementById('modeQueensBtn').classList.add('active');
+      document.getElementById('modePaintBtn').classList.remove('active');
+    };
+
+    // Clear buttons
+    document.getElementById('clearColorsBtn').onclick = () => { pushHistory(); initRegions(); };
+    document.getElementById('clearQueensBtn').onclick = () => { pushHistory(); queens = []; forbids = []; };
+
+    // Undo
+    document.getElementById('undoBtnCanvas').onclick = () => { undo(); };
+
+    // Board size change
+    document.getElementById('boardSize').addEventListener('change', e => {
+      N = Math.max(6, Math.min(12, parseInt(e.target.value, 10) || 8));
+      updateCellSize();   // recalc SIZE
+      initRegions();
+      resizeCanvas(margin * 2 + 10 * 64, margin * 2 + 10 * 64); // keep canvas fixed
+    });
+
+    // Export JSON
+    document.getElementById('exportBtn').onclick = () => {
+      const data = { N, regions };
+      navigator.clipboard.writeText(JSON.stringify(data));
+      alert('Copied JSON to clipboard');
+    };
+
+    // Import JSON
+    document.getElementById('importBtn').onclick = () => {
+      try {
+        const obj = JSON.parse(document.getElementById('importText').value);
+        if (obj.N && obj.regions) {
+          N = Math.max(6, Math.min(12, obj.N));
+          updateCellSize();
+          regions = obj.regions;
+          queens = []; forbids = []; history = [];
+          resizeCanvas(margin * 2 + 10 * 64, margin * 2 + 10 * 64);
+        }
+      } catch (e) { alert('Invalid JSON'); }
+    };
+
+    // Save current board
+    document.getElementById('saveBtn').onclick = () => {
+      const boards = JSON.parse(localStorage.getItem('boards') || '[]');
+      boards.push({ N, regions });
+      localStorage.setItem('boards', JSON.stringify(boards));
+      renderBoardList();
+    };
+
+
+    // Render saved boards list
+    function renderBoardList() {
+      const list = document.getElementById('boardsList');
+      list.innerHTML = '';
+      list.style.direction = 'rtl'; // make list RTL
+
+      boards.forEach((b, i) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+
+        const span = document.createElement('span');
+        span.textContent = `שלב ${i + 1}`;
+
+        const load = document.createElement('button');
+
+        if (i + 1 < unlockedLevel) {
+          // past levels already solved
+          load.textContent = '✅';
+          load.disabled = false;
+          load.onclick = () => {
+            now_board = i;
+            N = Math.max(6, Math.min(12, b.N));
+            updateCellSize();
+            regions = b.regions;
+            queens = []; forbids = []; history = [];
+            resizeCanvas(margin * 2 + 10 * 64, margin * 2 + 10 * 64);
+            gameOver = false;
+          };
+        } else if (i + 1 === unlockedLevel) {
+          // current level
+          load.textContent = '▶️';
+          load.disabled = false;
+          load.onclick = () => {
+            now_board = i;
+            N = Math.max(6, Math.min(12, b.N));
+            updateCellSize();
+            regions = b.regions;
+            queens = []; forbids = []; history = [];
+            resizeCanvas(margin * 2 + 10 * 64, margin * 2 + 10 * 64);
+            gameOver = false;
+          };
+
+
+        } else {
+          // locked future levels
+          load.textContent = '🔒';
+          load.disabled = true;
+        }
+
+        div.appendChild(span);
+        div.appendChild(load);
+        list.appendChild(div);
+      });
+    }
+
+
+  </script>
+</body>
+
+</html>

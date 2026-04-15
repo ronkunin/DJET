@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>דמקה</title>
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="general/new_loader.css">
+  <script src="general/loader.js" defer></script>
+  <script type="module" defer src="general/firebaseRtdb.js"></script>
+  <script src="general/game_services.js" defer></script>
+  <style>
+    :root {
+      --bg: #0d0e18;
+      --panel: #13141f;
+      --board-dark: #111320;
+      --board-light: #1b1d32;
+      --rim: #252845;
+      --red: #ff3d57;
+      --red-glow: rgba(255, 61, 87, .55);
+      --silver: #8baad4;
+      --silver-glow: rgba(139, 170, 212, .5);
+      --text: #c8cae8;
+      --muted: #3a3c5a;
+      --accent: #4a6cf7;
+      --valid-bg: rgba(74, 108, 247, .22);
+      --valid-ring: rgba(74, 108, 247, .8);
+      --capture-bg: rgba(255, 61, 87, .15);
+      --capture-ring: rgba(255, 61, 87, .75);
+      --sel-ring: rgba(255, 217, 61, .9);
+      --victim-bg: rgba(255, 61, 87, .32);
+      --victim-ring: rgba(255, 200, 0, .9);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 80px;
+      overflow-x: hidden;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    }
+
+    .game-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.8rem;
+      letter-spacing: 4px;
+      text-align: center;
+      margin-bottom: 2px;
+    }
+
+    .game-title span.r {
+      color: var(--red);
+    }
+
+    .game-title span.s {
+      color: var(--silver);
+    }
+
+    .game-sub {
+      font-size: .68rem;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-align: center;
+      margin-bottom: 22px;
+      text-transform: uppercase;
+    }
+
+    .game-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    /* scoreboard */
+    .scoreboard {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      background: var(--panel);
+      border: 1px solid var(--rim);
+      border-radius: 14px;
+      padding: 10px 16px;
+      gap: 8px;
+    }
+
+    .player-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .player-card.right {
+      flex-direction: row-reverse;
+    }
+
+    .piece-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 2px solid transparent;
+      transition: box-shadow .3s;
+      position: relative;
+    }
+
+    .piece-avatar::after {
+      content: '';
+      position: absolute;
+      inset: 5px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .12);
+    }
+
+    .piece-avatar.red {
+      background: radial-gradient(circle at 35% 35%, #ff8fa0, var(--red));
+      border-color: var(--red);
+    }
+
+    .piece-avatar.silver {
+      background: radial-gradient(circle at 35% 35%, #d0e2f7, var(--silver));
+      border-color: var(--silver);
+    }
+
+    .piece-avatar.active-r {
+      box-shadow: 0 0 16px var(--red-glow);
+    }
+
+    .piece-avatar.active-s {
+      box-shadow: 0 0 16px var(--silver-glow);
+    }
+
+    .p-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .p-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.05rem;
+      letter-spacing: 1px;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .p-unit {
+      font-size: .62rem;
+      color: var(--muted);
+      letter-spacing: .5px;
+    }
+
+    .p-count {
+      font-size: .68rem;
+      color: var(--muted);
+      letter-spacing: .5px;
+      margin-top: 2px;
+    }
+
+    .p-count span {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .vs-badge {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 3px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* board */
+    .board-frame {
+      width: 100%;
+      background: var(--rim);
+      border-radius: 16px;
+      border: 2px solid var(--rim);
+      padding: 8px;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(255, 255, 255, .04);
+    }
+
+    .board-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      gap: 2px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .sq {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: default;
+      user-select: none;
+    }
+
+    .sq.light {
+      background: var(--board-light);
+    }
+
+    .sq.dark {
+      background: var(--board-dark);
+    }
+
+    .sq.valid-move {
+      background: rgba(74, 108, 247, .28);
+      cursor: pointer;
+    }
+
+    .sq.capture-move {
+      background: rgba(255, 61, 87, .2);
+      cursor: pointer;
+    }
+
+    .move-dot {
+      position: absolute;
+      inset: 22%;
+      border-radius: 50%;
+      z-index: 1;
+      pointer-events: none;
+      animation: dotPulse 1.1s ease-in-out infinite;
+    }
+
+    .move-dot.simple {
+      background: var(--valid-bg);
+      border: 2px solid var(--valid-ring);
+    }
+
+    .move-dot.capture {
+      background: var(--capture-bg);
+      border: 2px solid var(--capture-ring);
+    }
+
+    .move-dot.victim {
+      background: var(--victim-bg);
+      border: 2px solid var(--victim-ring);
+    }
+
+    @keyframes dotPulse {
+
+      0%,
+      100% {
+        transform: scale(.8);
+        opacity: .6;
+      }
+
+      50% {
+        transform: scale(1.05);
+        opacity: 1;
+      }
+    }
+
+    /* board flip for online perspective */
+    .board-grid.flipped {
+      transform: rotate(180deg);
+    }
+
+    .board-grid.flipped .sq {
+      transform: rotate(180deg);
+    }
+
+    /* piece */
+    .piece {
+      width: 78%;
+      height: 78%;
+      border-radius: 50%;
+      position: relative;
+      z-index: 2;
+      transition: transform .14s, box-shadow .14s;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .piece::before {
+      content: '';
+      position: absolute;
+      inset: 8%;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .14);
+      pointer-events: none;
+    }
+
+    .piece.red {
+      background: radial-gradient(circle at 36% 33%, #ff8fa0, var(--red) 75%);
+      box-shadow: inset 0 -3px 7px rgba(0, 0, 0, .45), 0 0 10px var(--red-glow);
+      border: 2px solid rgba(255, 61, 87, .5);
+    }
+
+    .piece.silver {
+      background: radial-gradient(circle at 36% 33%, #d8eaff, var(--silver) 75%);
+      box-shadow: inset 0 -3px 7px rgba(0, 0, 0, .3), 0 0 10px var(--silver-glow);
+      border: 2px solid rgba(139, 170, 212, .4);
+    }
+
+    .piece.selected {
+      transform: scale(1.13) translateY(-3px);
+      outline: 3px solid var(--sel-ring);
+      outline-offset: 2px;
+    }
+
+    .piece.red.selected {
+      box-shadow: inset 0 -3px 7px rgba(0, 0, 0, .45), 0 0 24px var(--red-glow);
+    }
+
+    .piece.silver.selected {
+      box-shadow: inset 0 -3px 7px rgba(0, 0, 0, .3), 0 0 24px var(--silver-glow);
+    }
+
+    .crown {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .85em;
+      pointer-events: none;
+      z-index: 3;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, .7);
+    }
+
+    .piece.red .crown {
+      color: rgba(255, 235, 235, .95);
+    }
+
+    .piece.silver .crown {
+      color: rgba(225, 240, 255, .95);
+    }
+
+    .piece.win-piece.red {
+      animation: winR .7s ease-in-out infinite alternate;
+    }
+
+    .piece.win-piece.silver {
+      animation: winS .7s ease-in-out infinite alternate;
+    }
+
+    @keyframes winR {
+      from {
+        box-shadow: inset 0 -3px 7px rgba(0, 0, 0, .45), 0 0 10px var(--red-glow);
+      }
+
+      to {
+        box-shadow: inset 0 -3px 7px rgba(0, 0, 0, .45), 0 0 32px var(--red-glow), 0 0 64px rgba(255, 61, 87, .4);
+      }
+    }
+
+    @keyframes winS {
+      from {
+        box-shadow: inset 0 -3px 7px rgba(0, 0, 0, .3), 0 0 10px var(--silver-glow);
+      }
+
+      to {
+        box-shadow: inset 0 -3px 7px rgba(0, 0, 0, .3), 0 0 32px var(--silver-glow), 0 0 64px rgba(139, 170, 212, .4);
+      }
+    }
+
+    .piece.dimmed {
+      opacity: .28;
+      filter: grayscale(.5);
+      cursor: default;
+    }
+
+    /* status */
+    .status-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--panel);
+      border: 1px solid var(--rim);
+      border-radius: 10px;
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--muted);
+      min-height: 38px;
+      transition: color .3s, border-color .3s;
+      letter-spacing: .5px;
+    }
+
+    .status-bar.turn-r {
+      color: var(--red);
+      border-color: rgba(255, 61, 87, .3);
+    }
+
+    .status-bar.turn-s {
+      color: var(--silver);
+      border-color: rgba(139, 170, 212, .3);
+    }
+
+    /* buttons */
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-leave {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 20px;
+      border-radius: 9px;
+      background: rgba(255, 61, 87, .07);
+      color: #ff3d57;
+      border: 1px solid rgba(255, 61, 87, .2);
+      font-size: .75rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .18s;
+    }
+
+    .btn-leave:hover {
+      background: rgba(255, 61, 87, .18);
+    }
+
+    .btn-passplay {
+      display: none !important;
+    }
+
+    .pp-banner {
+      display: none !important;
+    }
+
+    /* overlay */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 9, 18, .88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      backdrop-filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s;
+    }
+
+    .overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .ov-box {
+      background: var(--panel);
+      border-radius: 22px;
+      padding: 44px 52px;
+      text-align: center;
+      max-width: 340px;
+      width: 90%;
+      transform: scale(.88);
+      transition: transform .3s cubic-bezier(.34, 1.56, .64, 1);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--rim);
+    }
+
+    .overlay.show .ov-box {
+      transform: scale(1);
+    }
+
+    .ov-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--ov-stripe, linear-gradient(90deg, var(--red), var(--silver)));
+    }
+
+    .ov-piece {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      margin: 0 auto 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      position: relative;
+    }
+
+    .ov-piece::before {
+      content: '';
+      position: absolute;
+      inset: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .15);
+    }
+
+    .ov-piece.red {
+      background: radial-gradient(circle at 35% 35%, #ff8fa0, var(--red));
+      box-shadow: 0 0 32px var(--red-glow);
+    }
+
+    .ov-piece.silver {
+      background: radial-gradient(circle at 35% 35%, #d8eaff, var(--silver));
+      box-shadow: 0 0 32px var(--silver-glow);
+    }
+
+    .ov-piece.draw {
+      background: var(--rim);
+    }
+
+    .ov-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.2rem;
+      letter-spacing: 3px;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .ov-sub {
+      font-size: .75rem;
+      color: var(--muted);
+      margin-bottom: 28px;
+      letter-spacing: .5px;
+    }
+
+    .btn-new {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 11px 28px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: .8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .18s;
+      letter-spacing: .5px;
+    }
+
+    .btn-new:hover {
+      filter: brightness(1.15);
+      transform: scale(1.03);
+    }
+
+    /* loading */
+    #loadingScreen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 400;
+      gap: 32px;
+      transition: opacity .4s ease;
+    }
+
+    #loadingScreen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3rem;
+      letter-spacing: 6px;
+    }
+
+    .loading-logo span.r {
+      color: var(--red);
+    }
+
+    .loading-logo span.s {
+      color: var(--silver);
+    }
+
+    .loading-card {
+      background: var(--panel);
+      border: 1px solid var(--rim);
+      border-radius: 18px;
+      padding: 32px 40px;
+      text-align: center;
+      max-width: 300px;
+      width: 90%;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, .5);
+    }
+
+    .loading-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 2px;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .loading-msg {
+      font-size: .68rem;
+      color: var(--muted);
+      margin-bottom: 22px;
+      line-height: 1.6;
+      letter-spacing: .5px;
+    }
+
+    .dots-wrap {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      animation: dotBounce 1.2s ease-in-out infinite;
+      opacity: .25;
+    }
+
+    .dot.r {
+      background: var(--red);
+    }
+
+    .dot.s {
+      background: var(--silver);
+    }
+
+    .dot.b {
+      background: var(--accent);
+    }
+
+    .dot:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .dot:nth-child(2) {
+      animation-delay: .2s;
+    }
+
+    .dot:nth-child(3) {
+      animation-delay: .4s;
+    }
+
+    @keyframes dotBounce {
+
+      0%,
+      80%,
+      100% {
+        transform: scale(.6);
+        opacity: .25;
+      }
+
+      40% {
+        transform: scale(1.2);
+        opacity: 1;
+      }
+    }
+
+    .room-badge {
+      display: none;
+      margin-top: 14px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      background: rgba(74, 108, 247, .08);
+      border: 1px solid rgba(74, 108, 247, .25);
+      font-size: .65rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: .5px;
+    }
+
+    .btn-go-pp {
+      display: none !important;
+    }
+
+    .btn-go-pp.visible {
+      display: none !important;
+    }
+
+    .btn-loading-leave {
+      display: none;
+      margin-top: 14px;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 0;
+      border-radius: 10px;
+      background: rgba(255, 61, 87, .1);
+      color: var(--red);
+      border: 1px solid rgba(255, 61, 87, .3);
+      font-size: .8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .18s;
+      letter-spacing: .5px;
+    }
+
+    .btn-loading-leave:hover {
+      background: rgba(255, 61, 87, .22);
+    }
+
+    .btn-loading-leave.visible {
+      display: flex;
+    }
+
+    /* toast */
+    .toast {
+      position: fixed;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--panel);
+      border: 1px solid var(--rim);
+      border-radius: 30px;
+      padding: 8px 22px;
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--text);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, .5);
+      transition: transform .26s cubic-bezier(.34, 1.56, .64, 1);
+      z-index: 600;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    #loadingScreen.hidden-children>* {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="icon-trophy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 9H3a1 1 0 0 1-1-1V5h4M18 9h3a1 1 0 0 0 1-1V5h-4" />
+      <path d="M6 2h12v10a6 6 0 0 1-12 0z" />
+      <path d="M12 18v4M8 22h8" />
+    </symbol>
+    <symbol id="icon-leave" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+      stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="23 4 23 10 17 10" />
+      <polyline points="1 20 1 14 7 14" />
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+    </symbol>
+    <symbol id="icon-wifi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+      stroke-linejoin="round">
+      <line x1="1" y1="1" x2="23" y2="23" />
+      <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
+      <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
+      <path d="M10.71 5.05A16 16 0 0 1 22.56 9" />
+      <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
+      <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+      <line x1="12" y1="20" x2="12.01" y2="20" />
+    </symbol>
+    <symbol id="icon-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </symbol>
+  </svg>
+
+  <div id="loadingScreen" class="hidden-children">
+    <div class="loading-logo"><span class="r">●</span>CHECKERS<span class="s">●</span></div>
+    <div class="loading-card">
+      <div class="loading-title" id="loadTitle">CHECKERS</div>
+      <div class="loading-msg" id="loadMsg">מכין לוח...</div>
+      <div class="dots-wrap">
+        <div class="dot r"></div>
+        <div class="dot s"></div>
+        <div class="dot b"></div>
+      </div>
+      <div class="room-badge" id="roomBadge"></div>
+      <button class="btn-go-pp" id="btnGopp" onclick="switchToPassPlayFromError()">
+        <svg width="13" height="13">
+          <use href="#icon-wifi" />
+        </svg> שחק מקומית
+      </button>
+      <button class="btn-loading-leave" id="btnLoadingLeave" onclick="leaveFromLoading()">
+        <svg width="13" height="13">
+          <use href="#icon-leave" />
+        </svg> עזוב ממתנה
+      </button>
+    </div>
+  </div>
+
+  <div class="game-title"><span class="r">CHECK</span><span class="s">ERS</span></div>
+  <div class="game-sub" id="subtitleEl">אונליין 1 נגד 1</div>
+  <div class="pp-banner" id="ppBanner">⚡ מקומי — שני שחקנים, מסך אחד</div>
+
+  <div class="game-center">
+    <div class="scoreboard">
+      <div class="player-card">
+        <div class="piece-avatar red" id="avatarP"></div>
+        <div class="p-meta">
+          <div class="p-name" id="pName">שחקן 1</div>
+          <div class="p-unit" id="pUnit">אדום</div>
+          <div class="p-count">כלים: <span id="pCount">12</span></div>
+        </div>
+      </div>
+      <div class="vs-badge">נגד</div>
+      <div class="player-card right">
+        <div class="piece-avatar silver" id="avatarE"></div>
+        <div class="p-meta" style="align-items:flex-end">
+          <div class="p-name" id="eName">שחקן 2</div>
+          <div class="p-unit" id="eUnit">כסוף</div>
+          <div class="p-count">כלים: <span id="eCount">12</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="board-frame">
+      <div class="board-grid" id="board"></div>
+    </div>
+
+    <div class="status-bar" id="statusBar">טוען...</div>
+
+    <div class="btn-row">
+      <button class="btn-leave" onclick="leaveGame()">
+        <svg width="14" height="14">
+          <use href="#icon-leave" />
+        </svg> עזוב
+      </button>
+      <button class="btn-passplay active" id="btnPP" onclick="togglePassPlay()">
+        <svg width="14" height="14">
+          <use href="#icon-wifi" />
+        </svg> מקומי
+      </button>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="ov-box" id="ovBox">
+      <div class="ov-piece" id="ovPiece"></div>
+      <div class="ov-title" id="ovTitle">המשחק נגמר!</div>
+      <div class="ov-sub" id="ovSub"></div>
+      <button class="btn-new" onclick="restartGame()">
+        <svg width="14" height="14">
+          <use href="#icon-refresh" />
+        </svg> משחק חדש
+      </button>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /* ═══════════════════════════════════════════════════════════════════
+       SECTION 1 — CONFIG
+       ═══════════════════════════════════════════════════════════════════ */
+    const SP_SITE_URL = 'http://spellcaster.sites.airnet/DJet';
+    const SP_LIST = 'Rooms';
+    const CONFIG = { me: { name: 'שחקן 1', unit: 'אדום', id: 'user-p1' } };
+    const PP_ENEMY = { name: 'שחקן 2', unit: 'כסוף', id: 'user-p2' };
+    const ROOM_MAX_AGE_MS = 15 * 60 * 1000;
+    const POLL_INTERVAL_MS = 1000;
+
+
+    /* ═══════════════════════════════════════════════════════════════════
+       SECTION 2 — SP DATA LAYER  (generic, do not modify)
+       ═══════════════════════════════════════════════════════════════════ */
+    const SP_FIELDS = 'Id,Title,playerName,playerUnit,playerID,enemyName,enemyUnit,enemyID,gameStatus,gameInfo,Created';
+
+    async function _getDigest() {
+      /* Option A (classic SP page): return document.getElementById('__REQUESTDIGEST').value;
+         Option B (standalone):
+           const r = await fetch(`${SP_SITE_URL}/_api/contextinfo`,{method:'POST',headers:{Accept:'application/json;odata=verbose'}});
+           return (await r.json()).d.GetContextWebInformation.FormDigestValue; */
+      throw new Error('_getDigest() not configured');
+    }
+    async function loadItemsFromSPList(listName, fields, filter = '', orderBy = '') {
+      try {
+        let url = `${SP_SITE_URL}/_api/web/lists/getbytitle('${encodeURIComponent(listName)}')/items?$select=${fields}`;
+        if (filter) url += `&$filter=${encodeURIComponent(filter)}`;
+        if (orderBy) url += `&$orderby=${encodeURIComponent(orderBy)}`;
+        const res = await fetch(url, { headers: { Accept: 'application/json;odata=verbose' } });
+        if (!res.ok) { console.error('[SP] load', res.status); return []; }
+        return (await res.json()).d.results || [];
+      } catch (e) { console.error('[SP] load', e); return []; }
+    }
+    async function createItemOnSP(listName, data) {
+      try {
+        let logger = document.getElementById(loggerID);
+        const digest = logger.contentWindow.document.getElementById("__REQUESTDIGEST").value;
+        const type = `SP.Data.${listName.replace(/ /g, '_x0020_')}ListItem`;
+        const res = await fetch(`${SP_SITE_URL}/_api/web/lists/getbytitle('${encodeURIComponent(listName)}')/items`,
+          {
+            method: 'POST', headers: { 'Content-Type': 'application/json;odata=verbose', 'Accept': 'application/json;odata=verbose', 'X-RequestDigest': digest },
+            body: JSON.stringify({ __metadata: { type }, ...data })
+          });
+        if (!res.ok) { console.error('[SP] create', res.status); return null; }
+        const json = await res.json();
+        return { item: json.d, etag: json.d.__metadata.etag };
+      } catch (e) { console.error('[SP] create', e); return null; }
+    }
+    async function updateItemOnSP(listName, id, data, etag) {
+      try {
+        let logger = document.getElementById(loggerID);
+        const digest = logger.contentWindow.document.getElementById("__REQUESTDIGEST").value;
+        const type = `SP.Data.${listName.replace(/ /g, '_x0020_')}ListItem`;
+        const res = await fetch(`${SP_SITE_URL}/_api/web/lists/getbytitle('${encodeURIComponent(listName)}')/items(${id})`,
+          {
+            method: 'POST', headers: { 'Content-Type': 'application/json;odata=verbose', 'Accept': 'application/json;odata=verbose', 'X-RequestDigest': digest, 'X-HTTP-Method': 'MERGE', 'IF-MATCH': etag },
+            body: JSON.stringify({ __metadata: { type }, ...data })
+          });
+        if (res.status === 412) { console.warn('[SP] 412 conflict', id); return null; }
+        if (!res.ok && res.status !== 204) { console.error('[SP] update', res.status); return null; }
+        const rows = await loadItemsFromSPList(listName, SP_FIELDS, `Id eq ${id}`);
+        if (!rows.length) return null;
+        return { item: rows[0], newEtag: rows[0].__metadata.etag };
+      } catch (e) { console.error('[SP] update', e); return null; }
+    }
+    async function deleteItemOnSP(listName, id) {
+      try {
+        let logger = document.getElementById(loggerID);
+        const digest = logger.contentWindow.document.getElementById("__REQUESTDIGEST").value;
+        await fetch(`${SP_SITE_URL}/_api/web/lists/getbytitle('${encodeURIComponent(listName)}')/items(${id})`,
+          { method: 'POST', headers: { 'X-RequestDigest': digest, 'X-HTTP-Method': 'DELETE', 'IF-MATCH': '*' } });
+      } catch (e) { console.warn('[SP] delete', e); }
+    }
+
+
+    /* ═══════════════════════════════════════════════════════════════════
+       IN-MEMORY SIMULATION  (pass-and-play / offline)
+       ═══════════════════════════════════════════════════════════════════ */
+    let _simDb = [], _simSeq = 1, _simEtags = {};
+    const _now = () => new Date().toISOString();
+    const _newEtag = id => { const t = '"' + Math.random().toString(36).slice(2) + '"'; _simEtags[id] = t; return t; };
+
+    async function _simLoad(filter) {
+      let rows = [..._simDb];
+      if (filter) {
+        for (const part of filter.split(' and ').map(s => s.trim())) {
+          /* supports both quoted strings and bare numbers: Id eq 3  OR  gameStatus eq 'waiting' */
+          const m = part.match(/^(\w+)\s+eq\s+'?([^']*)'?$/);
+          if (!m) continue;
+          const [, col, val] = m;
+          rows = rows.filter(r => {
+            if (val === 'null') return r[col] == null;
+            return String(r[col]) === val;
+          });
+        }
+      }
+      return rows.map(r => ({ ...r, __metadata: { etag: _simEtags[r.Id] } }));
+    }
+    async function _simCreate(data) {
+      const id = _simSeq++, etag = _newEtag(id);
+      const item = { Id: id, Title: `Room ${id}`, Created: _now(), ...data, __metadata: { etag } };
+      _simDb.push(item);
+      return { item: { ...item }, etag };
+    }
+    async function _simUpdate(id, data, etag) {
+      if (_simEtags[id] !== etag) { console.warn('[SIM] 412', id); return null; }
+      const item = _simDb.find(r => r.Id === id); if (!item) return null;
+      Object.assign(item, data);
+      const newEtag = _newEtag(id); item.__metadata = { etag: newEtag };
+      return { item: { ...item }, newEtag };
+    }
+    async function _simDelete(id) { _simDb = _simDb.filter(r => r.Id !== id); delete _simEtags[id]; }
+
+
+    /* ═══════════════════════════════════════════════════════════════════
+       ROUTING WRAPPERS + PASS-AND-PLAY TOGGLE
+       ═══════════════════════════════════════════════════════════════════ */
+    let passPlayMode = false;   /* ברירת מחדל: אונליין */
+
+    async function spLoad(f, o = '') { return passPlayMode ? _simLoad(f) : loadItemsFromSPList(SP_LIST, SP_FIELDS, f, o); }
+    async function spCreate(d) { return passPlayMode ? _simCreate(d) : createItemOnSP(SP_LIST, d); }
+    async function spUpdate(i, d, e) { return passPlayMode ? _simUpdate(i, d, e) : updateItemOnSP(SP_LIST, i, d, e); }
+    async function spDelete(i) { passPlayMode ? _simDelete(i) : deleteItemOnSP(SP_LIST, i); }
+    async function spGetOne(id) {
+      const rows = await spLoad(`Id eq ${id}`); if (!rows.length) return null;
+      return { item: rows[0], etag: rows[0].__metadata.etag };
+    }
+
+    function togglePassPlay() {
+      passPlayMode = !passPlayMode;
+      document.getElementById('btnPP').classList.toggle('active', passPlayMode);
+      document.getElementById('ppBanner').style.display = passPlayMode ? 'block' : 'none';
+      document.getElementById('subtitleEl').textContent = passPlayMode ? 'מקומי' : 'אונליין 1 נגד 1';
+      document.getElementById('overlay').classList.remove('show');
+      selectedSq = null; resetSessionState();
+      if (passPlayMode) {
+        _simDb = []; _simSeq = 1; _simEtags = {};
+        hideLoading(); initPassPlay();
+      } else {
+        showLoading('מחפש משחק...', 'מתחבר לשרת...');
+        joinGameFlow();
+      }
+    }
+    function switchToPassPlayFromError() {
+      passPlayMode = true;
+      document.getElementById('btnPP').classList.add('active');
+      document.getElementById('ppBanner').style.display = 'block';
+      document.getElementById('subtitleEl').textContent = 'מקומי';
+      resetSessionState(); _simDb = []; _simSeq = 1; _simEtags = {};
+      hideLoading(); initPassPlay();
+    }
+
+
+    /* ═══════════════════════════════════════════════════════════════════
+       SESSION STATE
+       ═══════════════════════════════════════════════════════════════════ */
+    let ROOM = null, MY_ETAG = null, MY_ROLE = null, FLIP_STATUS = null;
+    let gamePollTimer = null, matchPollTimer = null;
+    let selectedSq = null;
+
+    function resetSessionState() {
+      stopGamePoll(); stopMatchPoll();
+      ROOM = null; MY_ETAG = null; MY_ROLE = null; FLIP_STATUS = null; selectedSq = null;
+      document.getElementById('board').innerHTML = '';
+    }
+
+
+    /* ═══════════════════════════════════════════════════════════════════
+       SECTION 3 — MATCHMAKING ENGINE  (generic, do not modify)
+       ═══════════════════════════════════════════════════════════════════ */
+
+    async function joinGameFlow() {
+      showLoading('בודק משחק פעיל...', 'מחפש חדר פתוח שלך');
+      const existing = await spGetMyActiveRoom();
+      if (existing) {
+        ROOM = existing.item; MY_ETAG = existing.etag; MY_ROLE = existing.role;
+        if (ROOM.gameStatus === 'waiting') { showLoading('ממתין ליריב...', 'החדר שלך פתוח', ROOM.Id, true); updateUI(); startMatchPoll(); return; }
+        if (ROOM.gameStatus === 'joined') { if (MY_ROLE === 'player') { await doFlipAndStart(); } else { showLoading('ממתין...', 'היריב מגריל...', ROOM.Id, true); startGamePoll(); } return; }
+        if (['playingPlayer', 'playingEnemy'].includes(ROOM.gameStatus)) FLIP_STATUS = ROOM.gameStatus;
+        hideLoading(); document.getElementById('subtitleEl').textContent = 'אונליין 1 נגד 1'; updateUI();
+        if (['playingPlayer', 'playingEnemy'].includes(ROOM.gameStatus)) startGamePoll();
+        else { renderBoard(); showEndOverlay(ROOM.gameStatus === 'ended' ? checkWinnerFromInfo(ROOM.gameInfo) : ROOM.gameStatus); }
+        return;
+      }
+      showLoading('מחפש יריב...', 'סורק חדרים פתוחים');
+      const openRooms = await spGetOpenRooms();
+      for (const { item, etag } of openRooms) {
+        if (item.playerID === user_details.Id) continue;
+        const r = await spUpdate(item.Id, { enemyName: user_details.username, enemyUnit: user_details.unit, enemyID: user_details.Id, gameStatus: 'joined' }, etag);
+        if (r) { ROOM = r.item; MY_ETAG = r.newEtag; MY_ROLE = 'enemy'; showLoading('הצטרפת!', 'ממתין להתחלה...', ROOM.Id, true); startGamePoll(); return; }
+      }
+      showLoading('יוצר חדר...', 'לא נמצאו חדרים פתוחים');
+      const created = await spCreate({ Title: 'checkers', playerName: user_details.username, playerUnit: user_details.unit, playerID: user_details.Id, gameStatus: 'waiting', gameInfo: null, enemyName: null, enemyUnit: null, enemyID: null });
+      if (!created) { showLoadingError('לא ניתן ליצור חדר — בדוק חיבור'); return; }
+      saveActivityOnSP(`פתח חדר של דמקה`, "online");
+
+      const recheck = await spGetOpenRooms();
+      const lower = recheck.find(r => r.item.Id < created.item.Id && r.item.playerID !== user_details.Id);
+      if (lower) {
+        await spDelete(created.item.Id);
+        const r = await spUpdate(lower.item.Id, { enemyName: user_details.username, enemyUnit: user_details.unit, enemyID: user_details.Id, gameStatus: 'joined' }, lower.etag);
+        if (r) { ROOM = r.item; MY_ETAG = r.newEtag; MY_ROLE = 'enemy'; showLoading('הצטרפת!', 'ממתין...', ROOM.Id, true); startGamePoll(); return; }
+        await joinGameFlow(); return;
+      }
+      ROOM = created.item; MY_ETAG = created.etag; MY_ROLE = 'player';
+      showLoading('ממתין ליריב...', 'שתף דף זה עם חבר', ROOM.Id, true);
+      updateUI(); startMatchPoll();
+    }
+    async function spGetMyActiveRoom() {
+      const live = ['waiting', 'joined', 'playingPlayer', 'playingEnemy'];
+      if (passPlayMode) {
+        const hits = _simDb
+          .filter(r => _isRoomFresh(r) && live.includes(r.gameStatus) &&
+            (r.playerID === user_details.Id || r.enemyID === user_details.Id))
+          .sort((a, b) => b.Id - a.Id);
+        if (!hits.length) return null;
+        const item = hits[0];
+        return { item: { ...item }, etag: _simEtags[item.Id], role: item.playerID === user_details.Id ? 'player' : 'enemy' };
+      }
+      const sf = `(gameStatus eq 'waiting' or gameStatus eq 'joined' or gameStatus eq 'playingPlayer' or gameStatus eq 'playingEnemy')`;
+      const [asPlayer, asEnemy] = await Promise.all([
+        loadItemsFromSPList(SP_LIST, SP_FIELDS, `playerID eq '${user_details.Id}' and ${sf} and Title eq 'checkers'`),
+        loadItemsFromSPList(SP_LIST, SP_FIELDS, `enemyID  eq '${user_details.Id}' and ${sf} and Title eq 'checkers'`)
+      ]);
+      const all = [
+        ...asPlayer.map(item => ({ item, role: 'player' })),
+        ...asEnemy.map(item => ({ item, role: 'enemy' }))
+      ];
+      const fresh = all.filter(r => _isRoomFresh(r.item)).sort((a, b) => b.item.Id - a.item.Id);
+      if (!fresh.length) return null;
+      const { item, role } = fresh[0];
+      return { item, etag: item.__metadata.etag, role };
+    }
+    async function spGetMyActiveRoom2() {
+      if (passPlayMode) {
+        const live = ['waiting', 'joined', 'playingPlayer', 'playingEnemy'];
+        const hits = _simDb.filter(r => _isRoomFresh(r) && live.includes(r.gameStatus) && (r.playerID === user_details.Id || r.enemyID === user_details.Id)).sort((a, b) => b.Id - a.Id);
+        if (!hits.length) return null;
+        const item = hits[0]; return { item: { ...item }, etag: _simEtags[item.Id], role: item.playerID === user_details.Id ? 'player' : 'enemy' };
+      }
+      const sf = `(gameStatus eq 'waiting' or gameStatus eq 'joined' or gameStatus eq 'playingPlayer' or gameStatus eq 'playingEnemy')`;
+      const [asP, asE] = await Promise.all([loadItemsFromSPList(SP_LIST, SP_FIELDS, `playerID eq ${user_details.Id} and ${sf}  and Title eq 'checkers'`), loadItemsFromSPList(SP_LIST, SP_FIELDS, `enemyID eq ${user_details.Id} and ${sf}`)]);
+      const all = [...asP.map(i => ({ item: i, role: 'player' })), ...asE.map(i => ({ item: i, role: 'enemy' }))];
+      const fresh = all.filter(r => _isRoomFresh(r.item)).sort((a, b) => b.item.Id - a.item.Id);
+      if (!fresh.length) return null;
+      return { item: fresh[0].item, etag: fresh[0].item.__metadata.etag, role: fresh[0].role };
+    }
+    async function spGetOpenRooms() {
+      const rows = await spLoad(`enemyID eq null and gameStatus eq 'waiting' and Title eq 'checkers'`, `Id asc`);
+      return rows.filter(_isRoomFresh).map(item => ({ item, etag: item.__metadata.etag }));
+    }
+    function _isRoomFresh(item) { const ts = item.Created; if (!ts) return true; return Date.now() - new Date(ts).getTime() < ROOM_MAX_AGE_MS; }
+
+    async function doFlipAndStart() {
+      const flip = Math.random() < .5 ? 'playingPlayer' : 'playingEnemy';
+      const myTurn = (MY_ROLE === 'player' && flip === 'playingPlayer') || (MY_ROLE === 'enemy' && flip === 'playingEnemy');
+      showLoading(myTurn ? '🔴 אתה פותח!' : 'היריב פותח!', myTurn ? 'תורך לפתוח' : 'היריב מתחיל');
+      const r = await spUpdate(ROOM.Id, { gameStatus: flip, gameInfo: makeInitialState() }, MY_ETAG);
+      if (r) { ROOM = r.item; MY_ETAG = r.newEtag; }
+      else { const f = await spGetOne(ROOM.Id); if (f) { ROOM = f.item; MY_ETAG = f.etag; } if (!ROOM || !['playingPlayer', 'playingEnemy'].includes(ROOM.gameStatus)) { showLoadingError('שגיאה בהגרלה'); return; } }
+      FLIP_STATUS = ROOM.gameStatus;
+      hideLoading(); document.getElementById('subtitleEl').textContent = 'אונליין 1 נגד 1';
+      updateUI(); startGamePoll();
+    }
+    function startMatchPoll() {
+      stopMatchPoll();
+      matchPollTimer = setInterval(async () => {
+        if (!ROOM) return; const f = await spGetOne(ROOM.Id); if (!f) return;
+        ROOM = f.item; MY_ETAG = f.etag;
+        if (ROOM.gameStatus === 'joined') { stopMatchPoll(); await doFlipAndStart(); }
+      }, POLL_INTERVAL_MS);
+    }
+    function stopMatchPoll() { clearInterval(matchPollTimer); matchPollTimer = null; }
+
+    function startGamePoll() {
+      stopGamePoll();
+      gamePollTimer = setInterval(async () => {
+        if (!ROOM) return; const f = await spGetOne(ROOM.Id); if (!f) return;
+        const changed = f.item.gameInfo !== ROOM.gameInfo || f.item.gameStatus !== ROOM.gameStatus;
+        if (!changed) return;
+        ROOM = f.item; MY_ETAG = f.etag;
+        if (['playingPlayer', 'playingEnemy'].includes(ROOM.gameStatus) && !FLIP_STATUS) {
+          FLIP_STATUS = ROOM.gameStatus; hideLoading();
+          document.getElementById('subtitleEl').textContent = passPlayMode ? 'מקומי' : 'אונליין 1 נגד 1';
+          updateUI(); return;
+        }
+        if (['ended', 'left'].includes(ROOM.gameStatus)) {
+          stopGamePoll(); hideLoading(); renderBoard();
+          showEndOverlay(ROOM.gameStatus === 'ended' ? checkWinnerFromInfo(ROOM.gameInfo) : ROOM.gameStatus);
+        } else { selectedSq = null; updateUI(); }
+      }, POLL_INTERVAL_MS);
+    }
+    function stopGamePoll() { clearInterval(gamePollTimer); gamePollTimer = null; }
+
+    async function leaveGame() {
+      if (!ROOM) return; stopGamePoll(); stopMatchPoll();
+      const r = await spUpdate(ROOM.Id, { gameStatus: 'left' }, MY_ETAG);
+      if (r) { ROOM = r.item; MY_ETAG = r.newEtag; }
+      hideLoading(); showEndOverlay('left');
+    }
+    window.addEventListener('beforeunload', () => {
+      if (!ROOM || passPlayMode) return;
+      if (!['waiting', 'joined', 'playingPlayer', 'playingEnemy'].includes(ROOM.gameStatus)) return;
+      if (navigator.sendBeacon) {
+        const url = `${SP_SITE_URL}/_api/web/lists/getbytitle('${SP_LIST}')/items(${ROOM.Id})`;
+        navigator.sendBeacon(url, new Blob([JSON.stringify({ __metadata: { type: `SP.Data.${SP_LIST.replace(/ /g, '_x0020_')}ListItem` }, gameStatus: 'left' })], { type: 'application/json;odata=verbose' }));
+      }
+    });
+    async function restartGame() {
+      document.getElementById('overlay').classList.remove('show');
+      selectedSq = null; resetSessionState();
+      if (passPlayMode) { _simDb = []; _simSeq = 1; _simEtags = {}; await initPassPlay(); }
+      else { showLoading('מחפש משחק...', 'מתחבר...'); await joinGameFlow(); }
+    }
+    async function initPassPlay() {
+      const c = await spCreate({ Title: 'checkers', playerName: user_details.username, playerUnit: user_details.unit, playerID: user_details.Id, gameStatus: 'waiting', gameInfo: null, enemyName: null, enemyUnit: null, enemyID: null });
+      if (!c) { showToast('Error'); return; }
+      const j = await spUpdate(c.item.Id, { enemyName: PP_ENEMY.name, enemyUnit: PP_ENEMY.unit, enemyID: PP_ENEMY.id, gameStatus: 'joined' }, c.etag);
+      if (!j) { showToast('Error'); return; }
+      ROOM = j.item; MY_ETAG = j.newEtag; MY_ROLE = 'player';
+      const flip = Math.random() < .5 ? 'playingPlayer' : 'playingEnemy';
+      const s = await spUpdate(ROOM.Id, { gameStatus: flip, gameInfo: makeInitialState() }, MY_ETAG);
+      if (!s) { showToast('Error'); return; }
+      ROOM = s.item; MY_ETAG = s.newEtag; FLIP_STATUS = flip;
+      hideLoading(); updateUI(); startGamePoll();
+    }
+    function showLoading(title, msg, roomId, showLeave = false) {
+      document.getElementById('loadTitle').textContent = title;
+      document.getElementById('loadMsg').textContent = msg;
+      const b = document.getElementById('roomBadge');
+      roomId ? (b.textContent = `חדר #${roomId}`, b.style.display = 'inline-block') : (b.style.display = 'none');
+      document.getElementById('btnGopp').classList.remove('visible');
+      const bl = document.getElementById('btnLoadingLeave');
+      showLeave ? bl.classList.add('visible') : bl.classList.remove('visible');
+      document.getElementById('loadingScreen').classList.remove('hidden');
+    }
+    function showLoadingError(msg) {
+      document.getElementById('loadTitle').textContent = 'שגיאת חיבור';
+      document.getElementById('loadMsg').textContent = msg;
+      document.getElementById('roomBadge').style.display = 'none';
+      document.getElementById('btnGopp').classList.add('visible');
+      document.getElementById('btnLoadingLeave').classList.remove('visible');
+      document.getElementById('loadingScreen').classList.remove('hidden');
+    }
+
+    async function leaveFromLoading() {
+      if (ROOM) {
+        stopGamePoll(); stopMatchPoll();
+        await spUpdate(ROOM.Id, { gameStatus: 'left' }, MY_ETAG).catch(() => { });
+      }
+      resetSessionState();
+      showLoading('מחפש משחק...', 'מתחבר לשרת...');
+      await joinGameFlow();
+    }
+    function hideLoading() { document.getElementById('loadingScreen').classList.add('hidden'); }
+
+
+    /* ═══════════════════════════════════════════════════════════════════
+       SECTION 4 — CHECKERS GAME LOGIC
+       ═══════════════════════════════════════════════════════════════════
+       Board: 8×8 = 64 cells, flat array index = row*8+col, row 0 = top.
+       Cell tokens: '0'=empty, 'R'=red piece, 'S'=silver piece,
+                    'RK'=red king, 'SK'=silver king.
+       gameInfo string: "c0,c1,...,c63;TURN"  (TURN = 'R' or 'S')
+    
+       Rules implemented:
+         ✓ Pieces move diagonally forward only (kings move any diagonal)
+         ✓ FORCED CAPTURE — if any capture is available the player must capture
+         ✓ MULTI-JUMP (chain captures) — same piece keeps jumping until no more jumps
+         ✓ PROMOTION — piece reaching opposite back rank becomes a king immediately
+         ✓ PROMOTION STOPS CHAIN — a piece that becomes a king on a capture
+              cannot continue jumping that turn (standard English draughts rule)
+         ✓ Cannot recapture the same piece in one chain
+         ✓ Win: opponent has no pieces OR opponent has no legal move
+       ═══════════════════════════════════════════════════════════════════ */
+
+    function makeInitialState() {
+      const cells = Array(64).fill('0');
+      for (let r = 0; r < 3; r++) for (let c = 0; c < 8; c++) if ((r + c) % 2 === 1) cells[r * 8 + c] = 'S';   /* silver top rows 0-2 */
+      for (let r = 5; r < 8; r++) for (let c = 0; c < 8; c++) if ((r + c) % 2 === 1) cells[r * 8 + c] = 'R';   /* red    bottom rows 5-7 */
+      return cells.join(',') + ';R';   /* Red moves first */
+    }
+
+    /* Parse "c0,...,c63;T" → {cells:string[64], turn:'R'|'S'} */
+    function parseBoard(s) {
+      if (!s || s === 'null' || s === '') return { cells: Array(64).fill('0'), turn: 'R' };
+      const semi = s.lastIndexOf(';');
+      const turn = (semi >= 0 ? s.slice(semi + 1).trim() : 'R') || 'R';
+      const raw = semi >= 0 ? s.slice(0, semi) : s;
+      const cells = raw.split(',').map(v => { const t = v.trim(); return (!t || t === 'null') ? '0' : t; });
+      while (cells.length < 64) cells.push('0');
+      return { cells: cells.slice(0, 64), turn };
+    }
+    function serializeBoard(cells, turn) { return cells.join(',') + ';' + turn; }
+
+    /* Piece helpers */
+    function pc(v) { return (v === 'R' || v === 'RK') ? 'R' : (v === 'S' || v === 'SK') ? 'S' : null; }
+    function isKing(v) { return v === 'RK' || v === 'SK'; }
+
+    function getMyColor() {
+      if (!FLIP_STATUS) return 'R';
+      return MY_ROLE === 'player' ? (FLIP_STATUS === 'playingPlayer' ? 'R' : 'S') : (FLIP_STATUS === 'playingPlayer' ? 'S' : 'R');
+    }
+
+    /* ── Move generation ──────────────────────────────────────────────
+       Returns MoveObj[]: {from:int, to:int, captured:int[], cells:string[64]}
+       FORCED CAPTURE enforced: if any capture exists, returns only captures.
+    */
+    function getMoves(cells, color) {
+      const all = [];
+      for (let i = 0; i < 64; i++) {
+        if (pc(cells[i]) !== color) continue;
+        all.push(...getMovesFrom(cells, i, color));
+      }
+      const caps = all.filter(m => m.captured.length > 0);
+      return caps.length > 0 ? caps : all;
+    }
+
+    function getMovesFrom(cells, idx, color) {
+      const v = cells[idx]; if (pc(v) !== color) return [];
+      const king = isKing(v);
+      const row = (idx / 8) | 0, col = idx % 8;
+      const fwdDirs = color === 'R' ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
+      const dirs = king ? [[-1, -1], [-1, 1], [1, -1], [1, 1]] : fwdDirs;
+
+      const simples = [], captures = [];
+
+      if (king) {
+        /* Flying king: slide any number of squares diagonally, capture over first enemy found */
+        for (const [dr, dc] of dirs) {
+          let r = row + dr, c = col + dc;
+          while (r >= 0 && r < 8 && c >= 0 && c < 8) {
+            const ni = r * 8 + c, nv = cells[ni];
+            if (nv === '0') {
+              simples.push({ from: idx, to: ni, captured: [], cells: applySimple(cells, idx, ni, color) });
+              r += dr; c += dc;
+            } else if (pc(nv) && pc(nv) !== color) {
+              /* Enemy found — look for landing squares beyond */
+              let lr = r + dr, lc = c + dc;
+              while (lr >= 0 && lr < 8 && lc >= 0 && lc < 8) {
+                const li = lr * 8 + lc;
+                if (cells[li] !== '0') break;
+                const afterCap = applyCapture(cells, idx, li, ni, color);
+                const chains = chainCaptures(afterCap, li, color, [ni]);
+                if (chains.length > 0) {
+                  chains.forEach(ch => captures.push({ from: idx, to: ch.to, captured: [ni, ...ch.captured], cells: ch.cells }));
+                } else {
+                  captures.push({ from: idx, to: li, captured: [ni], cells: afterCap });
+                }
+                lr += dr; lc += dc;
+              }
+              break; /* can't jump past two pieces */
+            } else {
+              break; /* own piece blocks */
+            }
+          }
+        }
+      } else {
+        for (const [dr, dc] of dirs) {
+          const nr = row + dr, nc = col + dc;
+          if (nr < 0 || nr > 7 || nc < 0 || nc > 7) continue;
+          const ni = nr * 8 + nc, nv = cells[ni];
+          if (nv === '0') {
+            simples.push({ from: idx, to: ni, captured: [], cells: applySimple(cells, idx, ni, color) });
+          } else if (pc(nv) && pc(nv) !== color) {
+            const jr = nr + dr, jc = nc + dc;
+            if (jr < 0 || jr > 7 || jc < 0 || jc > 7) continue;
+            const ji = jr * 8 + jc;
+            if (cells[ji] !== '0') continue;
+            const afterCap = applyCapture(cells, idx, ji, ni, color);
+            if (!king && isKing(afterCap[ji])) {
+              captures.push({ from: idx, to: ji, captured: [ni], cells: afterCap });
+            } else {
+              const chains = chainCaptures(afterCap, ji, color, [ni]);
+              if (chains.length > 0) {
+                chains.forEach(ch => captures.push({ from: idx, to: ch.to, captured: [ni, ...ch.captured], cells: ch.cells }));
+              } else {
+                captures.push({ from: idx, to: ji, captured: [ni], cells: afterCap });
+              }
+            }
+          }
+        }
+      }
+      return captures.length > 0 ? captures : simples;
+    }
+
+    /* Recursive chain-capture builder */
+    function chainCaptures(cells, idx, color, alreadyCaptured) {
+      const v = cells[idx], king = isKing(v);
+      const row = (idx / 8) | 0, col = idx % 8;
+      const fwdDirs = color === 'R' ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]];
+      const dirs = king ? [[-1, -1], [-1, 1], [1, -1], [1, 1]] : fwdDirs;
+      const chains = [];
+
+      if (king) {
+        for (const [dr, dc] of dirs) {
+          let r = row + dr, c = col + dc;
+          while (r >= 0 && r < 8 && c >= 0 && c < 8) {
+            const ni = r * 8 + c, nv = cells[ni];
+            if (nv === '0') { r += dr; c += dc; continue; }
+            if (alreadyCaptured.includes(ni) || !pc(nv) || pc(nv) === color) break;
+            /* enemy found — land beyond */
+            let lr = r + dr, lc = c + dc;
+            while (lr >= 0 && lr < 8 && lc >= 0 && lc < 8) {
+              const li = lr * 8 + lc;
+              if (cells[li] !== '0') break;
+              const afterCap = applyCapture(cells, idx, li, ni, color);
+              const newCapped = [...alreadyCaptured, ni];
+              const sub = chainCaptures(afterCap, li, color, newCapped);
+              if (sub.length > 0) sub.forEach(s => chains.push({ to: s.to, captured: [ni, ...s.captured], cells: s.cells }));
+              else chains.push({ to: li, captured: [ni], cells: afterCap });
+              lr += dr; lc += dc;
+            }
+            break;
+          }
+        }
+      } else {
+        for (const [dr, dc] of dirs) {
+          const nr = row + dr, nc = col + dc;
+          if (nr < 0 || nr > 7 || nc < 0 || nc > 7) continue;
+          const ni = nr * 8 + nc;
+          if (alreadyCaptured.includes(ni)) continue;
+          const nv = cells[ni];
+          if (!pc(nv) || pc(nv) === color) continue;
+          const jr = nr + dr, jc = nc + dc;
+          if (jr < 0 || jr > 7 || jc < 0 || jc > 7) continue;
+          const ji = jr * 8 + jc;
+          if (cells[ji] !== '0') continue;
+          const afterCap = applyCapture(cells, idx, ji, ni, color);
+          const newCapped = [...alreadyCaptured, ni];
+          if (!king && isKing(afterCap[ji])) {
+            chains.push({ to: ji, captured: [ni], cells: afterCap });
+          } else {
+            const sub = chainCaptures(afterCap, ji, color, newCapped);
+            if (sub.length > 0) sub.forEach(s => chains.push({ to: s.to, captured: [ni, ...s.captured], cells: s.cells }));
+            else chains.push({ to: ji, captured: [ni], cells: afterCap });
+          }
+        }
+      }
+      return chains;
+    }
+
+    function promoteIfNeeded(v, toIdx, color) {
+      const r = (toIdx / 8) | 0;
+      if (color === 'R' && r === 0 && v === 'R') return 'RK';
+      if (color === 'S' && r === 7 && v === 'S') return 'SK';
+      return v;
+    }
+    function applySimple(cells, from, to, color) {
+      const n = [...cells]; n[to] = promoteIfNeeded(n[from], to, color); n[from] = '0'; return n;
+    }
+    function applyCapture(cells, from, to, capIdx, color) {
+      const n = [...cells]; n[capIdx] = '0'; n[to] = promoteIfNeeded(n[from], to, color); n[from] = '0'; return n;
+    }
+
+    function countPieces(cells) { let r = 0, s = 0; cells.forEach(v => { if (pc(v) === 'R') r++; if (pc(v) === 'S') s++; }); return { r, s }; }
+
+    /* Check winner: {cells, turn} → 'R' | 'S' | null */
+    function checkWinner({ cells, turn }) {
+      const { r, s } = countPieces(cells);
+      if (!r) return 'S'; if (!s) return 'R';
+      if (getMoves(cells, turn).length === 0) return turn === 'R' ? 'S' : 'R';
+      return null;
+    }
+    function checkWinnerFromInfo(info) { return checkWinner(parseBoard(info)); }
+
+
+    /* ── Click handler ────────────────────────────────────────────── */
+    async function handleClick(sqIdx) {
+      if (!ROOM) return;
+      const playing = ROOM.gameStatus === 'playingPlayer' || ROOM.gameStatus === 'playingEnemy';
+      if (!playing) return;
+      const { cells, turn } = parseBoard(ROOM.gameInfo);
+      /* Online: only move on your colour's turn. Pass-and-play: always allowed. */
+      const isMyTurn = passPlayMode ? true : (turn === getMyColor());
+      if (!isMyTurn) { showToast('לא התור שלך ⏳'); return; }
+
+      const v = cells[sqIdx], allMoves = getMoves(cells, turn);
+
+      /* Click on own piece → select / reselect */
+      if (pc(v) === turn) {
+        if (!allMoves.some(m => m.from === sqIdx)) { showToast('לכלי זה אין מהלכים'); selectedSq = null; renderBoard(); return; }
+        selectedSq = sqIdx; renderBoard(); return;
+      }
+
+      /* Click on destination while piece selected */
+      if (selectedSq !== null) {
+        const cands = allMoves.filter(m => m.from === selectedSq && m.to === sqIdx);
+        if (cands.length > 0) {
+          const move = cands[0];
+          const nextTurn = turn === 'R' ? 'S' : 'R';
+          const winner = checkWinner({ cells: move.cells, turn: nextTurn });
+          const newStatus = winner ? 'ended' : ROOM.gameStatus;
+          const newInfo = serializeBoard(move.cells, nextTurn);
+          selectedSq = null;
+          const result = await spUpdate(ROOM.Id, { gameInfo: newInfo, gameStatus: newStatus }, MY_ETAG);
+          if (!result) { showToast('התנגשות — נסה שוב'); renderBoard(); return; }
+          ROOM = result.item; MY_ETAG = result.newEtag;
+          if (winner) { stopGamePoll(); renderBoard(); showEndOverlay(winner); return; }
+          updateUI(); return;
+        }
+        /* Tap elsewhere = deselect */
+        selectedSq = null; renderBoard();
+      }
+    }
+
+
+    /* ── Render ────────────────────────────────────────────────────── */
+    function renderBoard() {
+      const gridEl = document.getElementById('board'); gridEl.innerHTML = '';
+      const { cells, turn } = parseBoard(ROOM ? ROOM.gameInfo : null);
+      const playing = ROOM && (ROOM.gameStatus === 'playingPlayer' || ROOM.gameStatus === 'playingEnemy');
+      const ended = ROOM && ['ended', 'left'].includes(ROOM.gameStatus);
+      const isMyTurn = passPlayMode ? true : (turn === getMyColor());
+      const canAct = playing && isMyTurn && !ended;
+
+      /* Board perspective flip: in online mode Silver sees board from Silver's side */
+      const myCol = passPlayMode ? 'R' : getMyColor();
+      const flipBoard = !passPlayMode && myCol === 'S';
+      if (flipBoard) gridEl.classList.add('flipped');
+      else gridEl.classList.remove('flipped');
+
+      const validDests = new Set(), capDests = new Set(), selectable = new Set(), victimSqs = new Set();
+      if (canAct) {
+        const allMoves = getMoves(cells, turn);
+        allMoves.forEach(m => selectable.add(m.from));
+        const hasCaps = allMoves.some(m => m.captured.length > 0);
+        if (selectedSq !== null) {
+          allMoves.filter(m => m.from === selectedSq).forEach(m => {
+            if (m.captured.length > 0) {
+              capDests.add(m.to);
+              /* Highlight the FIRST victim in the capture chain so user understands */
+              if (m.captured.length > 0) victimSqs.add(m.captured[0]);
+            } else {
+              validDests.add(m.to);
+            }
+          });
+        } else if (hasCaps) {
+          /* No piece selected yet — highlight all capturable enemy pieces to signal forced capture */
+          allMoves.filter(m => m.captured.length > 0).forEach(m => victimSqs.add(m.captured[0]));
+        }
+      }
+
+      let winColor = null;
+      if (ended && ROOM.gameStatus === 'ended') winColor = checkWinnerFromInfo(ROOM.gameInfo);
+
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const idx = row * 8 + col, v = cells[idx], dark = (row + col) % 2 === 1;
+          const sq = document.createElement('div');
+          sq.className = 'sq ' + (dark ? 'dark' : 'light');
+
+          if (dark) {
+            if (validDests.has(idx)) {
+              sq.classList.add('valid-move'); sq.onclick = () => handleClick(idx);
+              const dot = document.createElement('div'); dot.className = 'move-dot simple'; sq.appendChild(dot);
+            } else if (capDests.has(idx)) {
+              sq.classList.add('capture-move'); sq.onclick = () => handleClick(idx);
+              const dot = document.createElement('div'); dot.className = 'move-dot capture'; sq.appendChild(dot);
+            }
+          }
+
+          if (v !== '0') {
+            const pEl = document.createElement('div');
+            const color = pc(v);
+            pEl.className = 'piece ' + (color === 'R' ? 'red' : 'silver');
+            if (isKing(v)) { const c = document.createElement('span'); c.className = 'crown'; c.textContent = '♛'; pEl.appendChild(c); }
+            if (idx === selectedSq) pEl.classList.add('selected');
+            if (winColor) {
+              pEl.classList.add(color === winColor ? 'win-piece' : 'dimmed');
+            }
+            /* Victim highlight: enemy piece about to be captured */
+            if (victimSqs.has(idx)) {
+              const dot = document.createElement('div'); dot.className = 'move-dot victim'; sq.appendChild(dot);
+              pEl.style.outline = '3px solid var(--victim-ring)';
+              pEl.style.outlineOffset = '2px';
+              pEl.style.animation = 'dotPulse 1.1s ease-in-out infinite';
+            }
+            if (canAct && selectable.has(idx) && color === turn) {
+              pEl.style.cursor = 'pointer';
+              pEl.addEventListener('click', e => { e.stopPropagation(); handleClick(idx); });
+            }
+            sq.appendChild(pEl);
+          }
+          gridEl.appendChild(sq);
+        }
+      }
+
+      /* Piece counts */
+      const { r, s } = countPieces(cells);
+      document.getElementById('pCount').textContent = myCol === 'R' ? r : s;
+      document.getElementById('eCount').textContent = myCol === 'R' ? s : r;
+
+      updateAvatarGlow(turn, playing);
+    }
+
+    function updateAvatarGlow(turn, playing) {
+      if (!ROOM || !FLIP_STATUS) return;
+      const pIsRed = FLIP_STATUS === 'playingPlayer';
+      const ap = document.getElementById('avatarP'), ae = document.getElementById('avatarE');
+      ap.className = 'piece-avatar ' + (pIsRed ? 'red' : 'silver');
+      ae.className = 'piece-avatar ' + (pIsRed ? 'silver' : 'red');
+      if (playing) {
+        const pt = (pIsRed && turn === 'R') || (!pIsRed && turn === 'S');
+        if (pt) ap.classList.add(turn === 'R' ? 'active-r' : 'active-s');
+        else ae.classList.add(turn === 'R' ? 'active-r' : 'active-s');
+      }
+    }
+
+    function updateUI() {
+      if (!ROOM) return;
+      document.getElementById('pName').textContent = ROOM.playerName || '—';
+      document.getElementById('pUnit').textContent = ROOM.playerUnit || '—';
+      document.getElementById('eName').textContent = ROOM.enemyName || '—';
+      document.getElementById('eUnit').textContent = ROOM.enemyUnit || '—';
+      renderBoard(); updateStatusBar();
+    }
+
+    function updateStatusBar() {
+      if (!ROOM) return;
+      const bar = document.getElementById('statusBar');
+      const { turn } = parseBoard(ROOM.gameInfo);
+      const playing = ROOM.gameStatus === 'playingPlayer' || ROOM.gameStatus === 'playingEnemy';
+      if (ROOM.gameStatus === 'waiting') {
+        bar.innerHTML = `<svg width="14" height="14"><use href="#icon-clock"/></svg>&nbsp;ממתין ליריב...`; bar.className = 'status-bar';
+      } else if (ROOM.gameStatus === 'joined') {
+        bar.innerHTML = `<svg width="14" height="14"><use href="#icon-clock"/></svg>&nbsp;מגריל סדר התחלה...`; bar.className = 'status-bar';
+      } else if (playing) {
+        const pIsRed = FLIP_STATUS === 'playingPlayer';
+        const name = turn === 'R' ? (pIsRed ? ROOM.playerName : ROOM.enemyName) : (pIsRed ? ROOM.enemyName : ROOM.playerName);
+        const col = turn === 'R' ? 'var(--red)' : 'var(--silver)';
+        const glow = turn === 'R' ? 'var(--red-glow)' : 'var(--silver-glow)';
+        const dot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${col};margin-right:4px;vertical-align:middle;box-shadow:0 0 6px ${glow}"></span>`;
+        bar.innerHTML = `${dot}&nbsp;תור ${name || (turn === 'R' ? 'אדום' : 'כסוף')}`;
+        bar.className = 'status-bar ' + (turn === 'R' ? 'turn-r' : 'turn-s');
+      } else if (ROOM.gameStatus === 'ended') {
+        bar.innerHTML = `<svg width="14" height="14"><use href="#icon-trophy"/></svg>&nbsp;המשחק נגמר`; bar.className = 'status-bar';
+      } else if (ROOM.gameStatus === 'left') {
+        bar.innerHTML = `<svg width="14" height="14"><use href="#icon-leave"/></svg>&nbsp;היריב עזב`; bar.className = 'status-bar';
+      }
+    }
+
+    function showEndOverlay(result) {
+      updateStatusBar();
+      const pIsR = FLIP_STATUS === 'playingPlayer';
+      const rName = ROOM ? (pIsR ? ROOM.playerName : ROOM.enemyName) : 'אדום';
+      const sName = ROOM ? (!pIsR ? ROOM.playerName : ROOM.enemyName) : 'כסוף';
+      const piece = document.getElementById('ovPiece'), title = document.getElementById('ovTitle'),
+        sub = document.getElementById('ovSub'), box = document.getElementById('ovBox');
+      if (result === 'R') {
+        piece.className = 'ov-piece red'; piece.textContent = '♛';
+        title.textContent = 'אדום ניצח!'; sub.textContent = rName || 'אדום';
+        box.style.setProperty('--ov-stripe', 'var(--red)');
+      } else if (result === 'S') {
+        piece.className = 'ov-piece silver'; piece.textContent = '♛';
+        title.textContent = 'כסוף ניצח!'; sub.textContent = sName || 'כסוף';
+        box.style.setProperty('--ov-stripe', 'var(--silver)');
+      } else {
+        piece.className = 'ov-piece draw'; piece.textContent = '!';
+        title.textContent = 'המשחק הסתיים';
+        sub.textContent = result === 'left' ? 'שחקן עזב את המשחק' : 'אין תוצאה';
+        box.style.setProperty('--ov-stripe', 'var(--rim)');
+      }
+      setTimeout(() => document.getElementById('overlay').classList.add('show'), 300);
+      if ((result == 'S' || result == 'R') && result != 'left')
+        addTransactionOnSP(5, "משחק דמקה");
+
+
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2400);
+    }
+
+    async function showScreen() {
+      document.getElementById("loadingScreen").classList.remove("hidden-children");
+
+      showLoading('מחפש משחק...', 'מתחבר לשרת...');
+      await joinGameFlow();
+    }
+
+  </script>
+</body>
+
+</html>
