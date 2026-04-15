@@ -55,6 +55,13 @@ async function signInWithGoogle() {
         // Store Google auth data in local storage
         window.storeGoogleAuthData(currentGoogleUser);
         
+        // Restore button state in case it was disabled
+        const btn = document.getElementById('google-signin-btn');
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '🔐 התחבר עם Google';
+        }
+        
         // Hide sign-in prompt and proceed with profile setup
         hideGoogleSignInPrompt();
         resumeLoadingAfterAuth(currentGoogleUser);

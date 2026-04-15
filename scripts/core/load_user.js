@@ -259,12 +259,13 @@ async function createUserOnSP() {
     }
 
     const now = new Date().toISOString();
+    const profile = user_details || {};
     const newUser = {
         Id: isNaN(Number(id)) ? id : Number(id),
         ID: isNaN(Number(id)) ? id : Number(id),
         Title: `${id}`,
-        username: null,
-        unit: null,
+        username: user_details.username || null,
+        unit: user_details.unit || null,
         Created: now,
         Modified: now,
         dcoins: 0,
@@ -302,10 +303,12 @@ async function createUserOnSP() {
     if (!await window.isRealtimeDbOnline?.()) {
         window.localStorage.setItem('djet_user_name', newUser.username || '');
         window.localStorage.setItem('djet_user_unit', newUser.unit || '');
+        window.storeLocalDjetUserProfile(newUser);
         return newUser;
     }
     const userRef = window.firebaseRTDB.ref(window.firebaseRTDB.database, `lists/Users/${normalizeId(id)}`);
     await window.firebaseRTDB.set(userRef, newUser);
+    window.storeLocalDjetUserProfile(newUser);
     return newUser;
 }
 
