@@ -665,3 +665,79 @@ footer {
     transform: rotate(5deg);
     box-shadow: 0 4px 12px rgb(255 71 87 / 30%);
 }
+
+/* Mobile Styles */
+.mobile-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--sidebar-bg);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    z-index: 100;
+}
+
+.mobile-nav-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: var(--transition);
+    padding: 5px;
+}
+
+.mobile-nav-btn.active {
+    color: var(--light-color);
+}
+
+.mobile-nav-btn i {
+    font-size: 1.5rem;
+}
+
+.mobile-nav-btn span {
+    font-size: 0.8rem;
+}
+
+.main-display {
+    display: none;
+}
+
+.display-section {
+    display: none;
+}
+
+.display-section.active {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        display: none;
+    }
+    .main-content {
+        margin-right: 0;
+    }
+    .nav-links {
+        display: none;
+    }
+    .hero, .dshop-section, .games, #game_zone {
+        display: none;
+    }
+    .main-display {
+        display: block;
+    }
+    .mobile-nav {
+        display: flex;
+    }
+}
+}
