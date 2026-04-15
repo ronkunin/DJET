@@ -13,7 +13,14 @@ function isBrowserOnline() {
 }
 
 async function isRealtimeDbOnline() {
-    return window.isRealtimeDbOnline ? await window.isRealtimeDbOnline() : false;
+    if (!isBrowserOnline()) return false;
+    if (!window.firebaseReadyPromise) return false;
+    try {
+        await window.firebaseReadyPromise;
+        return Boolean(window.firebaseRTDB);
+    } catch {
+        return false;
+    }
 }
 
 function getStoredUserId() {
