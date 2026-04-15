@@ -21,18 +21,18 @@ let LA_h;
 let longArm_modifier = "NORMAL";
 // longArm_
 function longArm_preload() {
-  longArm_start_img = loadImage('http://spellcaster.sites.airnet/DJet/GameImages/longArm_startimg.png');
-    longArm_background = loadImage('http://spellcaster.sites.airnet/DJet/GameImages/longArm_background.png');
+  longArm_start_img = loadImage('../images/longArm_startimg.png');
+    longArm_background = loadImage('../images/longArm_background.png');
     longArm_modes = [
-        {name: "arm", headImg: loadImage('http://spellcaster.sites.airnet/DJet/GameImages/longArm_arm.png'), headR: PI*0.75, bodyImg: loadImage('http://spellcaster.sites.airnet/DJet/GameImages/longArm_body.png'), sizeH: 1.2, sizeW: 1},
-        {name: "plane", headImg: loadImage('http://spellcaster.sites.airnet/DJet/GameImages/longArm_b707.png'), headR: PI, bodyImg: loadImage('http://spellcaster.sites.airnet/DJet/GameImages/longArm_f35.png'), sizeH: 1, sizeW: 0.8},
+        {name: "arm", headImg: loadImage('../images/longArm_arm.png'), headR: PI*0.75, bodyImg: loadImage('../images/longArm_body.png'), sizeH: 1.2, sizeW: 1},
+        {name: "plane", headImg: loadImage('../images/longArm_b707.png'), headR: PI, bodyImg: loadImage('../images/longArm_f35.png'), sizeH: 1, sizeW: 0.8},
     ];
     longArm_food_types_imgs = [
-        loadImage('http://spellcaster.sites.airnet/DJet/GameImages/longArm_food_m16.png'),
-        loadImage('http://spellcaster.sites.airnet/DJet/GameImages/longArm_food_missle.png'),
-        loadImage('http://spellcaster.sites.airnet/DJet/GameImages/longArm_food_uav.png'),
+        loadImage('../images/longArm_food_m16.png'),
+        loadImage('../images/longArm_food_missle.png'),
+        loadImage('../images/longArm_food_uav.png'),
     ];
-    longArm_end_imgs = [loadImage('http://spellcaster.sites.airnet/DJet/GameImages/longArm_endimg1.png'),loadImage('http://spellcaster.sites.airnet/DJet/GameImages/longArm_endimg2.png'),loadImage('http://spellcaster.sites.airnet/DJet/GameImages/longArm_endimg3.png')];
+    longArm_end_imgs = [loadImage('../images/longArm_endimg1.png'),loadImage('../images/longArm_endimg2.png'),loadImage('../images/longArm_endimg3.png')];
 
 }
 

@@ -17,12 +17,12 @@ let skyDome_start_img;
 let skyDome_end_img;
 // skyDome_
 function skyDome_preload() {
-  skyDome_missle = loadImage("http://spellcaster.sites.airnet/DJet/GameImages/skyDome_missle.png");
-  skyDome_uav = loadImage("http://spellcaster.sites.airnet/DJet/GameImages/skyDome_enemy.png");
-  skyDome_background = loadImage("http://spellcaster.sites.airnet/DJet/GameImages/skyDome_background.png");
-  skyDome_irondome = loadImage("http://spellcaster.sites.airnet/DJet/GameImages/skyDome_iron.png");
-  skyDome_start_img = loadImage("http://spellcaster.sites.airnet/DJet/GameImages/skyDome_startImg.png");
-  skyDome_end_img = loadImage("http://spellcaster.sites.airnet/DJet/GameImages/skyDome_endImg.png");
+  skyDome_missle = loadImage("../images/skyDome_missle.png");
+  skyDome_uav = loadImage("../images/skyDome_enemy.png");
+  skyDome_background = loadImage("../images/skyDome_background.png");
+  skyDome_irondome = loadImage("../images/skyDome_iron.png");
+  skyDome_start_img = loadImage("../images/skyDome_startImg.png");
+  skyDome_end_img = loadImage("../images/skyDome_endImg.png");
 }
 function skyDome_setup() {
 

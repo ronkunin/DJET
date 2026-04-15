@@ -8,12 +8,12 @@ let flappyJet_building_img;
 let flappyJet_background_img;
 let flappyJet_end_img;
 
-function flappyJet_preload() {
-  flappyJet_start_img = loadImage('http://spellcaster.sites.airnet/DJet/GameImages/flappyJet_startImg.png');
-  flappyJet_building_img = loadImage('http://spellcaster.sites.airnet/DJet/GameImages/flappyJet_building.png'); // Image  building
-  flappyJet_background_img = loadImage('http://spellcaster.sites.airnet/DJet/GameImages/flappyJet_background.jpg'); // Background image
-  flappyJet_flappy_img = loadImage('http://spellcaster.sites.airnet/DJet/GameImages/flappyJet_uav.png');
-  flappyJet_end_img = loadImage('http://spellcaster.sites.airnet/DJet/GameImages/flappyJet_endImg.png');
+function flappyJet_preload() {//old_djet/images/flappyJet_background.jpg
+  flappyJet_start_img = loadImage('../images/flappyJet_start.png'); // Start screen image
+  flappyJet_building_img = loadImage('../images/flappyJet_building.png'); // Image  building
+  flappyJet_background_img = loadImage('../images/flappyJet_background.jpg'); // Background image
+  flappyJet_flappy_img = loadImage('../images/flappyJet_uav.png');
+  flappyJet_end_img = loadImage('../images/flappyJet_endImg.png');
 
 }
 //flappyJet_
