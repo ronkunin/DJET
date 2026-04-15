@@ -136,7 +136,7 @@ async function load_user_details() {
     // }))[0];
 
 
-    if (user_details === undefined) {
+    if (!user_details) {
         user_details = {
             Id: null,
             username: "",
