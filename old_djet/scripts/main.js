@@ -106,6 +106,9 @@ async function onLoad() {
     if (!user_details.longArm_max) user_details.longArm_max = 0;
     if (!user_details.streams) user_details.streams = 0;
 
+    // Store user profile data for sharing with new version
+    window.storeLocalDjetUserProfile(user_details);
+
     exit_loader();
     
     // Skip playlist/music loading
@@ -162,9 +165,14 @@ async function showSignInPrompt() {
     document.getElementById('google-signin-btn').onclick = async () => {
         try {
             const provider = new window.firebaseRTDB.GoogleAuthProvider();
-            await window.firebaseRTDB.signInWithPopup(window.firebaseRTDB.auth, provider);
+            const result = await window.firebaseRTDB.signInWithPopup(window.firebaseRTDB.auth, provider);
+            const user = result.user;
+            
+            // Store Google auth data for sharing with new version
+            window.storeGoogleAuthData(user);
+            
             modal.style.display = 'none';
-            // Reload or continue
+            // Reload to continue with authenticated user
             location.reload();
         } catch (error) {
             console.error('Sign-in error:', error);
