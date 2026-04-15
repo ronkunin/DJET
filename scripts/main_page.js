@@ -43,17 +43,16 @@ function updateUnreadIndicator() {
 // ==============================================
 function homepage() {
     // Hide game zone if visible
-    const gameZone = document.getElementById('game_zone');
+    const gameZone = document.getElementById('game_zone') || document.getElementById('game_zone_mobile');
     if (gameZone) {
         gameZone.style.display = 'none';
         gameZone.innerHTML = '';
     }
     
     // Show games grid
-    const gamesGrid = document.getElementById('games-grid');
+    const gamesGrid = document.getElementById('games-grid') || document.getElementById('games-grid-mobile');
     if (gamesGrid) {
         gamesGrid.style.display = 'grid';
-        loadGames();
     }
 }
 
@@ -82,8 +81,12 @@ function loadGames() {
         const gameCard = document.createElement('div');
         gameCard.className = 'game-card';
         gameCard.innerHTML = `
-            <i class="fas ${game.icon}"></i>
-            <h3>${game.name}</h3>
+            <div class="game-card-img">
+                <i class="fas ${game.icon}"></i>
+            </div>
+            <div class="game-card-content">
+                <h3>${game.name}</h3>
+            </div>
         `;
         gameCard.onclick = () => openGame(game.file);
         gamesGrid.appendChild(gameCard);
@@ -97,8 +100,10 @@ function openGame(gameFile) {
     if (gamesGrid) gamesGrid.style.display = 'none';
     if (gameZone) {
         gameZone.style.display = 'block';
+        gameZone.style.width = '100%';
+        gameZone.style.height = '80vh';
         gameZone.innerHTML = `
-            <iframe src="games/${gameFile}" frameborder="0" style="width: 100%; height: 100%;"></iframe>
+            <iframe src="games/${gameFile}" frameborder="0" style="width: 100%; height: 100%; border-radius: 10px;"></iframe>
         `;
     }
 }
