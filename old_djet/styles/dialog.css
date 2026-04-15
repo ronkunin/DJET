@@ -1,0 +1,238 @@
+
+/*general dialog*/
+.general_dialog_carpet {
+    background-color: rgba(0, 0, 0, 0.2);
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top:0;
+    right:0;
+    z-index: 200;
+    display: flex;
+    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+}
+
+.general_dialog_window {
+    background: rgb(255, 255, 255);
+    direction: ltr;
+    border-radius: 10px;
+    border: 1px solid rgb(161, 161, 161);
+    overflow: hidden;
+}
+
+.dialog_button {
+    margin-top: 0;
+    width: 25%;
+    height: 50px;
+    font-size: 18px;
+}
+
+.dialog_button:disabled, .dialog_button[disabled] {
+    color: rgb(129, 129, 129);
+    background: rgb(194, 194, 194);
+}
+
+.dialog_button i {
+    font-size: 15px;
+    margin-right: 5px;
+    margin-left: 5px;
+}
+
+
+.dialog_exit_button {
+    position: absolute;
+    margin: 15px;
+    font-size: 27px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: 0.1s;
+}
+.dialog_exit_button {color: rgb(185, 0, 0);margin-right: 0;}
+.dialog_back_button {color: rgb(119, 119, 119);margin-left: 0;}
+
+.dialog_exit_button:hover, .dialog_back_button:hover {
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.473);
+}
+
+.dialog_exit_button:hover {color: rgb(131, 0, 0);}
+.dialog_back_button:hover {color: rgb(63, 63, 63);}
+
+.dialog_exit_button:focus, .dialog_back_button:focus {
+    outline-width: 0px;
+}
+
+
+#dialog_carpet {
+    background-color: rgba(0, 0, 0, 0.2);
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top:0;
+    right:0;
+    z-index: 100;
+    display: flex;
+    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+}
+:root {
+    --background-color-bottom: rgb(9,17,29);
+    --background-color-top: rgb(14, 22, 39);
+    --accent-color: rgb(94,187,244);
+}
+#dialog_window {
+    background: linear-gradient(var(--background-color-top),var(--background-color-bottom));
+    direction: ltr;
+    width: 600px;
+    height: 25%;
+    position: relative;
+    border-radius: 10px;
+    border: 1px solid rgb(161, 161, 161);
+    overflow: hidden;
+}
+
+#dialog_nav_top {
+    width: inherit;
+    display: flex;
+    flex-direction:row;
+    align-items: center;
+    border-radius: 10px 10px 0 0;
+    box-shadow: 0 3px 5px 0 rgba(0, 0, 0, 0.308);
+    z-index: 101;
+    height: 60px;
+}
+#dialog_nav_bottom {
+    width: inherit;
+    display: flex;
+    flex-direction:row;
+    align-items: center;
+    position: absolute;
+    bottom:0;
+    right:0;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 3px 5px 0 rgba(0, 0, 0, 0.308);
+    z-index: 101;
+    transition: all 0.3s ease;
+    height: 40px;
+
+}
+.dialog_title {
+    font-size: 22px;
+    margin-bottom: 5px;
+    text-align: center;
+    margin-top: 15px;
+    width: 100%;
+}
+.dialog_save_button {
+    font-size: 18px;
+    margin-top: 5px;
+    text-align: center;
+    margin: 10px;
+    width: 100%;
+    cursor: pointer;
+}
+#dialog_nav_bottom:hover {
+    background: rgba(255, 255, 255, 0.3)
+
+
+}
+
+#top_navi_dialog_buttons{
+    display: flex;
+}
+
+#dialog_main_buttons {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    color: black;
+}
+
+#dialog_main {
+    overflow-y: auto;
+    height: 50%;
+    display: flex;
+    direction: rtl;
+    margin-right: 33%;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-top: 20px;
+}
+
+
+
+#dialog_main::-webkit-scrollbar-track { /*small stupid adjustment to scroll bar in dialog*/
+    border-radius: 10px;
+}
+
+#content_fields {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.input_lable {
+    text-align: center;
+    font-size: 18px;
+}
+.text_input {
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 14px;
+    margin: 5px 30px;
+    padding: 10px 10px;
+    width: 90%;
+    border-radius: 50px;
+    border: 0.5px solid #bdbdbd;
+    text-align: center;
+    background-color: #ffffff;
+    color: #1d1d1d;
+}
+.checkbox_input {
+    width: 20px;
+    height: 20px;
+    margin: 20px;
+    border: 0.5px solid #bdbdbd;
+    cursor: pointer;
+}
+
+.input_div {
+    margin-right: 10px;
+    margin-left: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+
+.flex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 5px;
+    width: 98%;
+}
+
+.file_input::-webkit-file-upload-button { 
+    cursor: pointer;
+    background-color: rgb(94,187,244);
+    border-width: 0;
+    border-radius: 5px;
+    width: 100px;
+    height: 30px;
+    transition: 0.1s ease-in-out;
+    font-family: inherit;
+}
+.file_input::-webkit-file-upload-button:hover {
+    background-color: rgb(225, 225, 255);
+}
+
+.text_input:focus {
+    outline: -webkit-focus-ring-color auto 1px;
+}

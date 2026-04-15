@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>DJet - Radio</title>
+
+    <link rel="stylesheet" href="styles/style.css">
+    <link rel="stylesheet" href="styles/dialog.css">
+    <link rel="stylesheet" href="styles/reset.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="shortcut icon" href="http://spellcaster.sites.airnet/DJet/Images1/Djet_Logo_Small.png" type="image/x-icon">
+
+    <script src="scripts/open_in_chrome.js"></script>
+    <script src="scripts/loader.js" defer></script>
+    <script src="scripts/playlist.js" defer></script>
+    <script src="scripts/main.js" defer></script>
+    <script src="scripts/eventServices.js" defer></script>
+    <script src="scripts/audio.js" defer></script>
+    <script src="scripts/background.js" defer></script>
+    <script src="scripts/search.js" defer></script>
+    <script src="scripts/dialog.js" defer></script>
+    <script src="scripts/notification.js" defer></script>
+    <script src="http://spellcaster.sites.airnet/SiteAssets/p5.min.js" defer></script>
+
+    <script src="canvases/flappyJet.js"></script>
+    <script src="canvases/longArm.js"></script>
+    <script src="canvases/skyDome.js"></script>
+</head>
+<body>
+    <div class="nav_container">
+        <nav id="top_nav" class="glass">
+            <a href="http://spellcaster.sites.airnet/DJet/DJet/index.html">
+                <img id="logo" src="http://spellcaster.sites.airnet/DJet/Images1/Djet_Logo_Small.png" title="DJet Radio" alt="DJet Logo">
+            </a>
+            <div id="searchbox">
+                <div id="search_controls">
+                    <!-- <i class="fa fa-upload" title="העלה שיר חדש" onclick="create_upload_window();"></i> -->
+                    <label id="search_icon" for="search" title="חיפוש"><i class="fa fa-search"></i></label>
+                </div>
+                <input id="search" name="search" oninput="show_results()" type="text" placeholder="חיפוש שיר או פלייליסט" autocomplete="off">
+            </div>
+        </nav>
+        <div id="results" class="result_box glass"></div>
+
+    </div>
+
+    <main>
+        <div class="album_container">
+
+            <div class="canvas_container" id="song_mode">
+                <div class="canvas_selector_nav" id="canvas_selector_nav">
+                    <a onclick="document.getElementById('defaultCanvas0').style.display = 'none'; document.getElementById('gameloader').style.display = 'none';"><img src="http://spellcaster.sites.airnet/DJet/Images1/Djet_Logo.png"></a>
+                    <a onclick="document.getElementById('defaultCanvas0').style.display = 'block'; document.getElementById('gameloader').style.display = 'flex';loadGame('FlappyJet')"><img src="http://spellcaster.sites.airnet/DJet/GameImages/flappyJet_icon.png"></a>
+                    <a onclick="document.getElementById('defaultCanvas0').style.display = 'block'; document.getElementById('gameloader').style.display = 'flex'; loadGame('SkyDome')"><img src="http://spellcaster.sites.airnet/DJet/GameImages/SkyDome_icon.png"></a>
+                    <a onclick="document.getElementById('defaultCanvas0').style.display = 'block'; document.getElementById('gameloader').style.display = 'flex'; loadGame('LongArm')"><img src="http://spellcaster.sites.airnet/DJet/GameImages/LongArm_icon.png"></a>
+                </div>
+                <div class="canvas_holder glass" id="canvas_container" onclick="mousePressed2();">
+                    <img id="vinyl" src="http://spellcaster.sites.airnet/DJet/Images1/Djet_Logo.png" onclick="togglePlay()">
+                    <script id="canvas" src="canvases/game.js"></script>
+                    <div id="gameloader" class="loader_wrapper" style="z-index: 0;"><div class="loader"></div></div>
+                    <canvas id="defaultCanvas0" class="p5Canvas" style="width: 500px; height: 500px;" width="500" height="500"></canvas>
+                </div>
+            </div>
+
+            <div class="playlist_container">
+                <div class="playlist_container_top_nav">
+                    <h4 id="signout" onclick="playlist_changed(true)"><i class="fa fa-sign-out"></i>   </h4>
+                    <div class="flex">
+                        <h3 id="playlist_title">:רשימת ההאזנה הנוכחית   </h3>
+                    </div>
+                    <div class="length_display" id="playlist_len"></div>
+
+                    <div style="display: flex;">
+                        <h4 class="trash" onclick="resetPlaylist();"><i class="fa fa-trash"></i>   </h4>
+
+                        <div class="playlist_controls" style="justify-content: end;">
+                            <button class="playlist_control" id="radio" onclick="changeMode('radio')" title="מצב רדיו">מצב רדיו<i class="fa fa-dice"></i></button>
+                            <button class="playlist_control" id="shuffle" onclick="changeMode('shuffle')" title="ערבל">ערבל<i class="fa fa-random"></i></button>
+                            <button class="playlist_control" id="loop" onclick="changeMode('loop')" title="לולאה">לולאה<i class="fa fa-repeat"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <ul id="playlist">
+                    <div class="center" ><img style="height:310px; user-select:none;" src="http://spellcaster.sites.airnet/DJet/Images1/innit_tutorial.png"></div>
+                </ul>
+                <div class="playlist_container_bottom_nav">
+                    <div id="playlist_buttons" class="playlist_controls">
+                        <button class="playlist_control" onclick="create_playlist_window();" title="שמור את רשימת ההאזנה">שמור פלייליסט<i class="fa fa-save"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="song_title" class="song_title">_________</div>
+        <div class="main_controls">
+            <div onclick="playPrevius()" class="prev glass disable" id="button_prev"><i class="fa fa-backward-step"></i></div>
+            <div onclick="togglePlay()" class="play glass disable" id="button_play"><i class="fa fa-play"></i></div>
+            <div onclick="playNext()" class="next glass disable" id="button_next"><i class="fa fa-forward-step"></i></div>
+        </div>
+        <audio class="glass" id="timeline" controls></audio>
+    </main>
+
+    <div class="credits glass">
+        <i class="fa fa-copyright"></i>
+        <!--<span>פותח ע"י</span>
+        <a onclick="location.href='mailto:madorNami_DL@iaf.idf.il&subject=מייל בנושא רדיו חיל האוויר - DJet'">
+            מדור נמ"י
+            <img src="http://spellcaster.sites.airnet/DJet/Images1/nami_logo_no_text_small.png">
+        </a>-->
+        <span>מבית היוצר של</span>
+        <a href="http://spellcaster.sites.airnet/" target="_blank">
+            מחולל הכישופים
+            <img src="http://spellcaster.sites.airnet/DJet/Images1/spell_caster_logo.png">
+        </a>
+    </div>
+
+    <div id="particle_container"></div>
+</body>
+</html>

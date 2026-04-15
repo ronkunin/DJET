@@ -282,8 +282,6 @@ function buildSiteForPremission(premission) {
         document.getElementById("sidebar").style.display = 'none';
         document.getElementById("main-content").style.marginRight = "0px";
     }
-    if (premission.includes("Full"))
-        addAdminPage();
 
 
 }

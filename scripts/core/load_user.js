@@ -152,10 +152,19 @@ function addAdminPage() {
 
 function scanUser() {
     // fills defualt columns
+    const oldStreak = user_details["LogInStreak"] || 0;
     let missing_data = fillNullsReturnFilled(user_details, {
         Queens_Level: 1, numbers_games: 0, numbers_max: 0, tetris_games: 0, tetris_max: 0, blockblast_games: 0,
-        blockblast_max: 0, minesweeper_games: 0, minesweeper_score: 0, soduku_level: 1, dcoins: 0, LogInStreak: 0, bubbles_games: 0, bubbles_max: 0,tower_games:0,tower_max:0,wordle_games:0,
+        blockblast_max: 0, minesweeper_games: 0, minesweeper_score: 0, soduku_level: 1, dcoins: 0, LogInStreak: 0, bubbles_games: 0, bubbles_max: 0,tower_games:0,tower_max:0,wordle_games:0,loginDates:[],
     })
+
+    if (!user_details.loginDates) user_details.loginDates = [];
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    if (!user_details.loginDates.includes(todayStr)) {
+        user_details.loginDates.push(todayStr);
+        missing_data.loginDates = user_details.loginDates;
+    }
 
     user_details.Modified = new Date(user_details.Modified);
     user_details.Created = new Date(user_details.Created);
@@ -165,9 +174,13 @@ function scanUser() {
         saveActivityOnSP(`התחבר ל-Djet כבר ${user_details["logs"]} פעמים!`, "counter");
     missing_data["logs"] = user_details["logs"];
 
-    applyColorScheme(user_details.LogInStreak);
     user_details["LogInStreak"] = calculateCurrentStreak();
+    if (user_details["LogInStreak"] > oldStreak && user_details["LogInStreak"] % 5 === 0) {
+        saveActivityOnSP(`התחבר ${user_details["LogInStreak"]} ימים ברציפות`, "streak");
+    }
     missing_data["LogInStreak"] = user_details["LogInStreak"];
+
+    applyColorScheme(user_details.LogInStreak);
 
     if (missing_data && Object.keys(missing_data).length > 0)
         updateSPValuesInList("Users", user_details["Id"], missing_data, true)
@@ -205,22 +218,24 @@ function scanUser() {
 
 function calculateCurrentStreak() {
 
+    const dates = user_details.loginDates || [];
+    if (dates.length === 0) return 0;
+    const dateSet = new Set(dates);
     const today = new Date();
-    const daysSinceLastLog = getDaysBetweenDates(user_details["Modified"], today);
-    if (daysSinceLastLog == 0) {
-        if (user_details["LogInStreak"] == 0) return 1;
-        return user_details["LogInStreak"];
-    } else
-        if (daysSinceLastLog < 50) {
-
-            if ((user_details["LogInStreak"] + 1) % 5 == 0) {
-                saveActivityOnSP(`התחבר ${(user_details["LogInStreak"] + 1)} ימים ברציפות`, "streak");
-            }
-
-            return user_details["LogInStreak"] + 1;
+    const todayStr = today.toISOString().split('T')[0];
+    if (!dateSet.has(todayStr)) return 0; // if not logged in today, streak 0?
+    let streak = 0;
+    let current = new Date(today);
+    while (true) {
+        const dateStr = current.toISOString().split('T')[0];
+        if (dateSet.has(dateStr)) {
+            streak++;
+            current.setDate(current.getDate() - 1);
         } else {
-            return 0;
+            break;
         }
+    }
+    return streak;
 }
 
 
@@ -298,6 +313,7 @@ async function createUserOnSP() {
         longArm_max: 0,
         Email: storedGoogleEmail || null,
         GoogleUid: storedGoogleUid || null,
+        loginDates: [],
     };
 
     if (!await window.isRealtimeDbOnline?.()) {

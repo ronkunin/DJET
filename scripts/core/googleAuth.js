@@ -8,27 +8,33 @@ let currentGoogleUser = null;
  * Check if user is already authenticated via local storage or Firebase session
  */
 async function initializeGoogleAuth() {
-    // Wait for Firebase to be ready
     await window.firebaseReadyPromise;
-    
-    // Check if user was previously authenticated
-    const storedGoogleUid = window.getStoredDjetGoogleUid();
-    
-    if (storedGoogleUid) {
-        // User was previously logged in with Google
-        // Set up listener for real-time Firebase auth state
-        window.firebaseRTDB.onAuthStateChanged(window.firebaseRTDB.auth, (user) => {
-            if (user) {
-                // User is still authenticated
-                currentGoogleUser = user;
-                window.storeGoogleAuthData(user);
-                resumeLoadingAfterAuth(user);
-            } else {
-                // Session expired, require re-authentication
-                showGoogleSignInPrompt();
-            }
-        });
+
+    if (!window.firebaseRTDB || !window.firebaseRTDB.onAuthStateChanged) {
+        return;
     }
+
+    let resolveInit;
+    const authReady = new Promise((resolve) => {
+        resolveInit = resolve;
+    });
+
+    window.firebaseRTDB.onAuthStateChanged(window.firebaseRTDB.auth, async (user) => {
+        if (user) {
+            currentGoogleUser = user;
+            window.storeGoogleAuthData(user);
+            await resumeLoadingAfterAuth(user);
+        } else {
+            window.storeGoogleAuthData(null);
+        }
+
+        if (resolveInit) {
+            resolveInit();
+            resolveInit = null;
+        }
+    });
+
+    return authReady;
 }
 
 /**
