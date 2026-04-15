@@ -194,7 +194,7 @@ function apply_dev_mode () {
     let body = document.querySelector("body");
     let admin_page = document.createElement("a");
     admin_page.innerHTML = `
-        <img src="http://spellcaster.sites.airnet/DJet/icons/%D7%9E%D7%97%D7%95%D7%9C%D7%9C%20%D7%94%D7%AA%D7%9E%D7%95%D7%A0%D7%95%D7%AA%20(arrow-left-long).png" style="width:60px; height:60px; border-radius:50%;">
+        <img src="../old_djet/images/main_left.png" style="width:60px; height:60px; border-radius:50%;">
     `;
     admin_page.setAttribute("href",`http://spellcaster.sites.airnet/DJet/DJet/index.html`);
     admin_page.setAttribute("style",`position:absolute; top:20px; left:20px; cursor:pointer`);
