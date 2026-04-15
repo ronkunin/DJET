@@ -116,33 +116,6 @@ function buildPc() {
             </div>
         </div>
 
-        <div class="sidebar-footer">
-            <div class="user-profile" id="user-profile" onclick="openSettings();">
-                <div class="user-avatar" id="user-avatar">U</div>
-                <div class="user-info">
-                    <span class="username" id="username">GuestUser</span>
-                    <span class="user-group" id="user-group">General</span>
-                </div>
-            </div>
-
-            <div class="dcoins-counter" id="dcoins-counter">
-                <i class="fas fa-coins"></i>
-                <div class="dcoins-info">
-                    <span class="dcoins-amount" id="dcoins-amount">500</span>
-                    <span class="dcoins-label">DCoins</span>
-                </div>
-                <div class="dcoins-details" id="dcoins-details" dir="rtl"></div>
-            </div>
-
-            <div class="streak-counter" id="streak-counter">
-                <i class="fas fa-fire" id="streak-icon"></i>
-                <div class="streak-info">
-                    <span class="streak-days" id="streak-days">0</span>
-                    <span class="streak-label" id="streak-label">רצף יומי</span>
-                </div>
-                <div class="streak-details" id="streak-details" dir="rtl"></div>
-            </div>
-        </div>
     `;
     
     // Create main content
@@ -234,6 +207,43 @@ function getHeaderHTML() {
 
 function getMainContentHTML() {
     return `
+        <header>
+            <div class="nav-container glass">
+                <div class="containerN">
+                    <nav>
+                        <div class="share-counter" onclick="copyShareLink();"><i class="fas fa-share-nodes"></i></div>
+                        <div class="streak-counter" id="streak-counter">
+                            <i class="fas fa-fire" id="streak-icon"></i>
+                            <div class="streak-info">
+                                <span class="streak-days" id="streak-days">0</span>
+                                <span class="streak-label" id="streak-label">רצף יומי</span>
+                            </div>
+                            <div class="streak-details" id="streak-details" dir="rtl"></div>
+                        </div>
+                        <div class="dcoins-counter" id="dcoins-counter">
+                            <i class="fas fa-coins"></i>
+                            <div class="dcoins-info">
+                                <span class="dcoins-amount" id="dcoins-amount">500</span>
+                                <span class="dcoins-label">DCoins</span>
+                            </div>
+                            <div class="dcoins-details" id="dcoins-details" dir="rtl"></div>
+                        </div>
+                        <div class="nav-links">
+                            <a href="old_djet/index.html">D-History</a>
+                            <a onclick="shop();">DShop</a>
+                            <a href="#" id="leaderboards-link">לוח תוצאות</a>
+                        </div>
+                        <div class="user-profile" id="user-profile" onclick="openSettings();">
+                            <div class="user-avatar" id="user-avatar">U</div>
+                            <div class="user-info">
+                                <span class="username" id="username">GuestUser</span>
+                                <span class="user-group" id="user-group">General</span>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </header>
         <section class="hero" id="hero">
             <div class="container">
                 <div class="hero-logo" style="text-align:center; margin-bottom:20px;">
