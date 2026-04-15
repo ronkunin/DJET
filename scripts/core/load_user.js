@@ -56,12 +56,14 @@ async function setupNewUser() {
 // ==============================================
 
 function updateUserDisplay() {
-
-    document.getElementById('username').textContent = user_details["username"];
-    document.getElementById('user-group').textContent = user_details["unit"];
-    document.getElementById('user-avatar').textContent = user_details["username"].charAt(0).toUpperCase();;
-    document.getElementById('dcoins-amount').textContent = user_details["dcoins"];
-
+    const usernameEl = document.getElementById('username');
+    if (usernameEl) usernameEl.textContent = user_details["username"];
+    const userGroupEl = document.getElementById('user-group');
+    if (userGroupEl) userGroupEl.textContent = user_details["unit"];
+    const userAvatarEl = document.getElementById('user-avatar');
+    if (userAvatarEl) userAvatarEl.textContent = user_details["username"] ? user_details["username"].charAt(0).toUpperCase() : '';
+    const dcoinsAmountEl = document.getElementById('dcoins-amount');
+    if (dcoinsAmountEl) dcoinsAmountEl.textContent = user_details["dcoins"];
 }
 
 function normalizeEmail(email) {

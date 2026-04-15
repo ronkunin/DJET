@@ -107,7 +107,9 @@ function performTransfer() {
 
 function animateMoneyChange(amount) {
     const dcoinsCounter = document.getElementById('dcoins-counter');
+    if (!dcoinsCounter) return; // Element not found, skip animation
     const dcoinsAmount = document.getElementById('dcoins-amount');
+    if (!dcoinsAmount) return;
     const isNegative = amount < 0;
     const className = isNegative ? 'negative-pulse' : 'pulse-animation';
     const color = isNegative ? '#ff4757' : '#00ff88';
