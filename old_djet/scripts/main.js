@@ -171,13 +171,15 @@ async function showSignInPrompt() {
         }
     };
 }
-    let current_views = await getSPValue("Songs","Views",id);
-    updateSPValueInLibrary("Songs","Views",id,current_views+amount);
+
+async function logView(id, amount = 1) {
+    let current_views = await getSPValue("Songs", "Views", id);
+    updateSPValueInLibrary("Songs", "Views", id, current_views + amount);
 }
 
-async function logViewList(id, amount=1) {
+async function logViewList(id, amount = 1) {
     let current_views = playlistFromId(id).views;
-    updateSPValueInList("Playlists", "Views", id, (playlistData.views+amount), true);
+    updateSPValueInList("Playlists", "Views", id, (playlistData.views + amount), true);
 }
 
 function apply_dev_mode () {
