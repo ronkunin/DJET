@@ -322,8 +322,9 @@ async function updateSPValuesInList(listName, itemID, data, IF_MATCH = "*") {
 
 addLoadingScreen();
 showLoadingScreen();
+window.addEventListener('load', load_from_api);
 
-// ==============================================
+// =============================================
 // All ranks
 // ==============================================
 
