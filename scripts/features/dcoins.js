@@ -182,24 +182,52 @@ function saveTransactionOnSP(Title, sender_id, sender_name, reciver_id, reciver_
 }
 
 async function load_new_transactions() {
-    let Id = (library_transactions.length > 0) ? library_transactions[0].Id : 0;
-    library_transactions = await loadItemsFromSP("Transactions", { select: "ID,Title,sender_id,sender_name,reciver_id,reciver_name,Created,amount,reason,status", top: 20, orderBy: "Created desc", filter: `reciver_id eq ${user_details['Id']} or sender_id eq ${user_details['Id']}` });
-    if ((library_transactions.length > 0 && Id == 0) || (library_transactions.length > 0 && Id != library_transactions[0].Id)) {
+    if (!Array.isArray(library_transactions)) {
+        library_transactions = [];
+    }
+    if (!user_details || !user_details['Id']) {
+        return;
+    }
+
+    const existingTransaction = library_transactions.find(tx => tx && (tx.Id != null || tx.ID != null));
+    const Id = existingTransaction ? (existingTransaction.Id ?? existingTransaction.ID) : 0;
+
+    const loadedTransactions = await loadItemsFromSP("Transactions", {
+        select: "ID,Title,sender_id,sender_name,reciver_id,reciver_name,Created,amount,reason,status",
+        top: 20,
+        orderBy: "Created desc",
+        filter: `reciver_id eq ${user_details['Id']} or sender_id eq ${user_details['Id']}`
+    });
+
+    library_transactions = Array.isArray(loadedTransactions)
+        ? loadedTransactions.filter(tx => tx && (tx.Id != null || tx.ID != null))
+        : [];
+
+    if (library_transactions.length > 0 && (Id === 0 || Id != (library_transactions[0].Id ?? library_transactions[0].ID))) {
         await scanTransactions();
         updateTransferHistory();
     }
 }
 
 async function scanTransactions() {
+    if (!Array.isArray(library_transactions) || !user_details) {
+        return;
+    }
+
     let old_amount = user_details["dcoins"];
-    library_transactions.forEach(async (transaction, index) => {
-        if (transaction.status == "Waiting" && user_details["Id"] == transaction.reciver_id) {
+    for (const transaction of library_transactions) {
+        if (!transaction || transaction.status !== "Waiting") {
+            continue;
+        }
+
+        if (user_details["Id"] == transaction.reciver_id) {
             user_details["dcoins"] += transaction.amount;
             await updateSPValueInList("Transactions", "status", transaction.Id, "Finished", true);
             animateMoneyChange(transaction.amount);
         }
+    }
 
-    });
-    if (old_amount != user_details["dcoins"])
+    if (old_amount != user_details["dcoins"]) {
         updateSPValueInList("Users", "dcoins", user_details["Id"], user_details["dcoins"], true);
+    }
 }
