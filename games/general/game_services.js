@@ -8,8 +8,15 @@ let userEmail;
 let userId;
 let userTitle;
 
+function browserOnline() {
+    return typeof navigator !== 'undefined' ? navigator.onLine : true;
+}
+
 function isBrowserOnline() {
-    return window.isBrowserOnline ? window.isBrowserOnline() : (typeof navigator !== 'undefined' ? navigator.onLine : true);
+    if (typeof window.isBrowserOnline === 'function' && window.isBrowserOnline !== isBrowserOnline) {
+        return window.isBrowserOnline();
+    }
+    return browserOnline();
 }
 
 async function isRealtimeDbOnline() {
