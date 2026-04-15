@@ -196,7 +196,7 @@ function apply_dev_mode () {
     admin_page.innerHTML = `
         <img src="../old_djet/images/main_left.png" style="width:60px; height:60px; border-radius:50%;">
     `;
-    admin_page.setAttribute("href",`http://spellcaster.sites.airnet/DJet/DJet/index.html`);
+    admin_page.setAttribute("href",`../index.html`);
     admin_page.setAttribute("style",`position:absolute; top:20px; left:20px; cursor:pointer`);
     body.appendChild(admin_page);
 }
