@@ -25,6 +25,9 @@ async function initializeAndLoad() {
     // Build the site layout first
     buildSite();
     
+    // Load games
+    loadGames();
+    
     // Initialize Google authentication first, if available
     if (typeof initializeGoogleAuth === 'function') {
         await initializeGoogleAuth();

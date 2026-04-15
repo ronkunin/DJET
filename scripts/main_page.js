@@ -37,3 +37,68 @@ function updateUnreadIndicator() {
         chatTabElement.classList.remove('has-unread');
     }
 }
+
+// ==============================================
+// HOMEPAGE FUNCTIONS
+// ==============================================
+function homepage() {
+    // Hide game zone if visible
+    const gameZone = document.getElementById('game_zone');
+    if (gameZone) {
+        gameZone.style.display = 'none';
+        gameZone.innerHTML = '';
+    }
+    
+    // Show games grid
+    const gamesGrid = document.getElementById('games-grid');
+    if (gamesGrid) {
+        gamesGrid.style.display = 'grid';
+        loadGames();
+    }
+}
+
+function loadGames() {
+    const gamesGrid = document.getElementById('games-grid') || document.getElementById('games-grid-mobile');
+    if (!gamesGrid) return;
+    
+    const games = [
+        { name: 'Block Blast', file: 'blockBlast.html', icon: 'fa-cubes' },
+        { name: 'Bubbles', file: 'bubbles.html', icon: 'fa-circle' },
+        { name: 'Checkers', file: 'checkers.html', icon: 'fa-chess-board' },
+        { name: 'Connect 4', file: 'connect4.html', icon: 'fa-circle-dot' },
+        { name: 'Minesweeper', file: 'minesweeper.html', icon: 'fa-bomb' },
+        { name: 'Numbers', file: 'numbers.html', icon: 'fa-calculator' },
+        { name: 'Queens', file: 'queens.html', icon: 'fa-crown' },
+        { name: 'Sudoku', file: 'soduku.html', icon: 'fa-grid-3x3' },
+        { name: 'Tetris', file: 'tetris.html', icon: 'fa-shapes' },
+        { name: 'Tic Tac Toe', file: 'ticTacToe.html', icon: 'fa-hashtag' },
+        { name: 'Tower', file: 'tower.html', icon: 'fa-building' },
+        { name: 'Wordle', file: 'wordle.html', icon: 'fa-spell-check' }
+    ];
+    
+    gamesGrid.innerHTML = '';
+    
+    games.forEach(game => {
+        const gameCard = document.createElement('div');
+        gameCard.className = 'game-card';
+        gameCard.innerHTML = `
+            <i class="fas ${game.icon}"></i>
+            <h3>${game.name}</h3>
+        `;
+        gameCard.onclick = () => openGame(game.file);
+        gamesGrid.appendChild(gameCard);
+    });
+}
+
+function openGame(gameFile) {
+    const gameZone = document.getElementById('game_zone') || document.getElementById('game_zone_mobile');
+    const gamesGrid = document.getElementById('games-grid') || document.getElementById('games-grid-mobile');
+    
+    if (gamesGrid) gamesGrid.style.display = 'none';
+    if (gameZone) {
+        gameZone.style.display = 'block';
+        gameZone.innerHTML = `
+            <iframe src="games/${gameFile}" frameborder="0" style="width: 100%; height: 100%;"></iframe>
+        `;
+    }
+}
