@@ -1,7 +1,6 @@
 // Firebase Realtime Database utilities for old_djet
 let library = [];
 let library_playlist = [];
-let userId;
 let user_details;
 let PREMISSIONS = [];       // {userEmail:Premission,....}
 let PREMISSIONS_TYPE = [];  // {Premission:what it can do,....}
