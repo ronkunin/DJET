@@ -17,8 +17,12 @@ initializeSite();
 initializeAndLoad();
 
 async function initializeAndLoad() {
-    // Initialize Google authentication first
-    await initializeGoogleAuth();
+    // Initialize Google authentication first, if available
+    if (typeof initializeGoogleAuth === 'function') {
+        await initializeGoogleAuth();
+    } else {
+        console.warn('initializeGoogleAuth is not available; skipping auth initialization.');
+    }
     
     // Then load data
     load_from_api();
