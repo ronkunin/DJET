@@ -20,7 +20,7 @@ setTimeout(() => {
 }, 100);
 
 async function load_user_id() {
-    const user = window.firebaseRTDB.auth.currentUser;
+    const user = window.firebaseRTDB.currentUser || window.firebaseRTDB.auth.currentUser;
     if (user) {
         userId = user.uid;
         userEmail = user.email ? user.email.toUpperCase() : '';

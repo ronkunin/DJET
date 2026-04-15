@@ -49,8 +49,16 @@ window.firebaseReadyPromise = (async () => {
         signInWithPopup,
         GoogleAuthProvider,
         signOut,
-        onAuthStateChanged
+        onAuthStateChanged,
+        currentUser: null
     };
+
+    await new Promise((resolve) => {
+        window.firebaseRTDB.onAuthStateChanged(auth, (user) => {
+            window.firebaseRTDB.currentUser = user;
+            resolve();
+        });
+    });
 
     window.firebaseReady = true;
 })();
