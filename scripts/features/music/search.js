@@ -1,5 +1,6 @@
 // enter pressed
-document.getElementById("search").addEventListener('keypress', enter_press);
+const searchInput = document.getElementById("search");
+if (searchInput) searchInput.addEventListener('keypress', enter_press);
 
 function enter_press(event) {
     if(event.key === "Enter")

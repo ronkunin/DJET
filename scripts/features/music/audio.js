@@ -202,9 +202,10 @@ function changeMode(new_mode) {
 }
 
 //if changing time using the built-in timeline in the audio element, get it out of focus (so we could detect other events)
-document.getElementById('timeline').addEventListener("timeupdate", (e) => {
-    document.getElementById('timeline').blur();
-})
+const timeline = document.getElementById('timeline');
+if (timeline) timeline.addEventListener("timeupdate", (e) => {
+    timeline.blur();
+});
 
 
 

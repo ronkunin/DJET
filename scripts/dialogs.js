@@ -246,7 +246,7 @@ function closeTransferModal() {
 function initializeTransfer() {
     // User search functionality
     const transferToInput = document.getElementById('transfer-to');
-    transferToInput.addEventListener('input', function () {
+    if (transferToInput) transferToInput.addEventListener('input', function () {
         const query = this.value;
         if (query.length >= 1) {
             const results = searchUsers(query);
@@ -264,14 +264,16 @@ function initializeTransfer() {
     });
 
     // Close when clicking outside
-    document.getElementById('transfer-modal').addEventListener('click', (e) => {
+    const transferModal = document.getElementById('transfer-modal');
+    if (transferModal) transferModal.addEventListener('click', (e) => {
         if (e.target.id === 'transfer-modal') {
             closeTransferModal();
         }
     });
 
     // Amount validation
-    document.getElementById('transfer-amount').addEventListener('input', function () {
+    const transferAmount = document.getElementById('transfer-amount');
+    if (transferAmount) transferAmount.addEventListener('input', function () {
         const amount = parseInt(this.value);
         const available = user_details.dcoins;
 
@@ -285,14 +287,15 @@ function initializeTransfer() {
     });
 
     // Enter key to submit transfer
-    document.getElementById('transfer-amount').addEventListener('keypress', function (e) {
+    if (transferAmount) transferAmount.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             performTransfer();
         }
     });
 
     // Also on reason input
-    document.getElementById('transfer-reason').addEventListener('keypress', function (e) {
+    const transferReason = document.getElementById('transfer-reason');
+    if (transferReason) transferReason.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             performTransfer();
         }
@@ -300,30 +303,37 @@ function initializeTransfer() {
 
     // Close modal on escape key
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && document.getElementById('transfer-modal').classList.contains('active')) {
+        if (e.key === 'Escape' && transferModal && transferModal.classList.contains('active')) {
             closeTransferModal();
         }
     });
 
     // DCoins Transfer Event Listeners
-    document.getElementById('transfer-open-button').addEventListener('click', openTransferModal);
-    document.getElementById('transfer-close').addEventListener('click', closeTransferModal);
-    document.getElementById('confirm-transfer').addEventListener('click', performTransfer);
+    const transferOpenButton = document.getElementById('transfer-open-button');
+    if (transferOpenButton) transferOpenButton.addEventListener('click', openTransferModal);
+    const transferClose = document.getElementById('transfer-close');
+    if (transferClose) transferClose.addEventListener('click', closeTransferModal);
+    const confirmTransfer = document.getElementById('confirm-transfer');
+    if (confirmTransfer) confirmTransfer.addEventListener('click', performTransfer);
 
-    document.getElementById('quick-amount-10').addEventListener('click', () => {
-        document.getElementById('transfer-amount').value = 10;
+    const quickAmount10 = document.getElementById('quick-amount-10');
+    if (quickAmount10) quickAmount10.addEventListener('click', () => {
+        if (transferAmount) transferAmount.value = 10;
     });
 
-    document.getElementById('quick-amount-50').addEventListener('click', () => {
-        document.getElementById('transfer-amount').value = 50;
+    const quickAmount50 = document.getElementById('quick-amount-50');
+    if (quickAmount50) quickAmount50.addEventListener('click', () => {
+        if (transferAmount) transferAmount.value = 50;
     });
 
-    document.getElementById('quick-amount-100').addEventListener('click', () => {
-        document.getElementById('transfer-amount').value = 100;
+    const quickAmount100 = document.getElementById('quick-amount-100');
+    if (quickAmount100) quickAmount100.addEventListener('click', () => {
+        if (transferAmount) transferAmount.value = 100;
     });
 
-    document.getElementById('quick-amount-500').addEventListener('click', () => {
-        document.getElementById('transfer-amount').value = 500;
+    const quickAmount500 = document.getElementById('quick-amount-500');
+    if (quickAmount500) quickAmount500.addEventListener('click', () => {
+        if (transferAmount) transferAmount.value = 500;
     });
 }
 

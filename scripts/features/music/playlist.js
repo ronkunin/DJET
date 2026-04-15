@@ -478,23 +478,30 @@ function saveOnLiked() {
         function setupEventListeners() {
             // Playlist modal
            // document.getElementById('open-playlist-btn').addEventListener('click', openPlaylist);
-            document.getElementById('close-playlist').addEventListener('click', closePlaylist);
-            document.getElementById('save-playlist-btn').addEventListener('click', savePlaylist);
-            document.getElementById('publish-playlist-btn').addEventListener('click', publishPlaylist);
-            document.getElementById('hide-playlist-btn').addEventListener('click', hidePlaylist);
-            document.getElementById('change-name-btn').addEventListener('click', changePlaylistName);
-            document.getElementById('delete-playlist-btn').addEventListener('click', deletePlaylist);
+            const closePlaylistBtn = document.getElementById('close-playlist');
+            if (closePlaylistBtn) closePlaylistBtn.addEventListener('click', closePlaylist);
+            const savePlaylistBtn = document.getElementById('save-playlist-btn');
+            if (savePlaylistBtn) savePlaylistBtn.addEventListener('click', savePlaylist);
+            const publishPlaylistBtn = document.getElementById('publish-playlist-btn');
+            if (publishPlaylistBtn) publishPlaylistBtn.addEventListener('click', publishPlaylist);
+            const hidePlaylistBtn = document.getElementById('hide-playlist-btn');
+            if (hidePlaylistBtn) hidePlaylistBtn.addEventListener('click', hidePlaylist);
+            const changeNameBtn = document.getElementById('change-name-btn');
+            if (changeNameBtn) changeNameBtn.addEventListener('click', changePlaylistName);
+            const deletePlaylistBtn = document.getElementById('delete-playlist-btn');
+            if (deletePlaylistBtn) deletePlaylistBtn.addEventListener('click', deletePlaylist);
             //document.getElementById('play-random-btn').addEventListener('click', playRandomSong);
             
             // Playlist name input
-            document.getElementById('playlist-name').addEventListener('change', function() {
+            const playlistName = document.getElementById('playlist-name');
+            if (playlistName) playlistName.addEventListener('change', function() {
                 playlistData.title = this.value;
                 if(playlistData  && playlistData.author == userId) 
                     updateSPValueInList("Playlists", "Title", playlistData.id, playlistData.title, true);
             
             });
             
-            document.getElementById('playlist-name').addEventListener('keyup', function(e) {
+            if (playlistName) playlistName.addEventListener('keyup', function(e) {
                 if (e.key === 'Enter') {
                     this.blur();
                     playlistData.title = this.value;
@@ -504,7 +511,8 @@ function saveOnLiked() {
             });
 
                 // Close when clicking outside
-        document.getElementById('playlist-modal').addEventListener('click', (e) => {
+        const playlistModal = document.getElementById('playlist-modal');
+        if (playlistModal) playlistModal.addEventListener('click', (e) => {
         if (e.target.id === 'playlist-modal') {
             closePlaylist();
         }
@@ -632,7 +640,8 @@ function saveOnLiked() {
             modal.classList.remove('active');
         }
         
-        document.getElementById('close-playlist').addEventListener('click', closePlaylist);
+        const closePlaylistBtn = document.getElementById('close-playlist');
+        if (closePlaylistBtn) closePlaylistBtn.addEventListener('click', closePlaylist);
 
         function openPlaylist() {
             const modal = document.getElementById('playlist-modal');
