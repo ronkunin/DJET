@@ -204,9 +204,11 @@ async function load_user_details() {
     })();
 
     (async () => {
-        library_transactions = await loadItemsFromSP("Transactions", { select: "ID,Title,sender_id,sender_name,reciver_id,reciver_name,Created,amount,reason,status", top: 20, orderBy: "Created desc", filter: `reciver_id eq ${user_details['Id']} or sender_id eq ${user_details['Id']}` });
-        await scanTransactions();
-        updateTransferHistory();
+        if (user_details && user_details.Id) {
+            library_transactions = await loadItemsFromSP("Transactions", { select: "ID,Title,sender_id,sender_name,reciver_id,reciver_name,Created,amount,reason,status", top: 20, orderBy: "Created desc", filter: `reciver_id eq ${user_details['Id']} or sender_id eq ${user_details['Id']}` });
+            await scanTransactions();
+            updateTransferHistory();
+        }
     })();
 
     (async () => {
@@ -232,9 +234,11 @@ async function load_user_details() {
 
 async function refreshFunctions() {
     while (true) {
-        await load_new_messages();
-        await load_new_activity();
-        await load_new_transactions();
+        if (user_details && user_details.Id) {
+            await load_new_messages();
+            await load_new_activity();
+            await load_new_transactions();
+        }
         await new Promise((resolve) => setTimeout(resolve, 5000))
     }
 }

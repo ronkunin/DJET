@@ -72,6 +72,8 @@ function loadActivities() {
 }
 
 async function load_new_activity() {
+    if (!user_details) return;
+    
     let Id = (library_activity.length > 0) ? library_activity[0].Id : 0;
     library_activity = await loadItemsFromSP("Activity", { select: "ID,name,unit,Created,type,message", top: 30, orderBy: "Created desc" });
     if (library_activity.length > 1 && Id != library_activity[0].Id) {
