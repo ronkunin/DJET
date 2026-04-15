@@ -11,11 +11,24 @@ const DEV_MODE = false; //boolean value, SHOULD BE TURNED ON WHEN PUBLISHING
 let white_list = [];
 let black_list = [];
 
+let userId, userEmail, userTitle;
+
 // Get audio element safely
 let audio = null;
 setTimeout(() => {
     audio = document.getElementById("timeline");
 }, 100);
+
+async function load_user_id() {
+    const user = window.firebaseRTDB.auth.currentUser;
+    if (user) {
+        userId = user.uid;
+        userEmail = user.email ? user.email.toUpperCase() : '';
+        userTitle = user.displayName || '';
+    } else {
+        userId = null;
+    }
+}
 
 async function onLoad() {
     // Wait for Firebase to be ready
