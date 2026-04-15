@@ -197,22 +197,26 @@ let currentFilter = {
 function updateTableHeaders(gameId) {
     const gameConfig = gamesConfig[gameId];
     const tableHeader = document.getElementById('leaderboards-header');
+    const tableHeaderMobile = document.getElementById('leaderboards-header-mobile');
 
     if (!gameConfig || !gameConfig.columns) {
         console.error(`No columns defined for game: ${gameId}`);
         return;
     }
 
-    tableHeader.innerHTML = '';
+    const createHeader = (headerElement) => {
+        headerElement.innerHTML = '';
+        const headerRow = document.createElement('tr');
+        gameConfig.columns.forEach(column => {
+            const th = document.createElement('th');
+            th.textContent = column.name;
+            headerRow.appendChild(th);
+        });
+        headerElement.appendChild(headerRow);
+    };
 
-    const headerRow = document.createElement('tr');
-    gameConfig.columns.forEach(column => {
-        const th = document.createElement('th');
-        th.textContent = column.name;
-        headerRow.appendChild(th);
-    });
-
-    tableHeader.appendChild(headerRow);
+    if (tableHeader) createHeader(tableHeader);
+    if (tableHeaderMobile) createHeader(tableHeaderMobile);
 }
 
 // ==============================================
@@ -306,139 +310,146 @@ function filterPlayers() {
 
 function updateLeaderboardsDisplay(filteredPlayers) {
     const tbody = document.getElementById('leaderboards-body');
+    const tbodyMobile = document.getElementById('leaderboards-body-mobile');
     const noDataMessage = document.getElementById('no-data-message');
     const currentUserStats = document.getElementById('current-user-stats');
     const gameConfig = gamesConfig[currentFilter.game];
 
-    // Clear table
-    tbody.innerHTML = '';
+    // Function to update a tbody
+    const updateTbody = (tbodyElement) => {
+        // Clear table
+        tbodyElement.innerHTML = '';
 
-    if (filteredPlayers.length === 0) {
-        noDataMessage.style.display = 'block';
-        currentUserStats.style.display = 'none';
-        return;
-    }
-
-    noDataMessage.style.display = 'none';
-    currentUserStats.style.display = 'block';
-
-    // Find current user's position
-    let currentUserRank = 0;
-    let currentUserScore = 0;
-    let isCurrentUserInTop10 = false;
-
-    // Get top 10 players for display
-    const topPlayers = filteredPlayers.slice(0, 10);
-
-    // Populate table with top 10 players
-    topPlayers.forEach((player, index) => {
-        const rank = index + 1;
-
-        // Check if this is the current user
-        if (!player.isUnit && player.username === user_details["username"]) {
-            currentUserRank = rank;
-            currentUserScore = player.currentScore || 0;
-            isCurrentUserInTop10 = true;
+        if (filteredPlayers.length === 0) {
+            if (noDataMessage) noDataMessage.style.display = 'block';
+            if (currentUserStats) currentUserStats.style.display = 'none';
+            return;
         }
 
-        const row = document.createElement('tr');
-        if (!player.isUnit && player.username === user_details["username"]) {
-            row.classList.add('current-user');
-        }
-        if (rank <= 3) {
-            row.classList.add('top-three');
-        }
+        if (noDataMessage) noDataMessage.style.display = 'none';
+        if (currentUserStats) currentUserStats.style.display = 'block';
 
-        const playerScore = player.currentScore || 0;
-        const playerGames = player.currentGames || 0;
-        const lastActivity = formatTimeAgo(player.Modified);
+        // Find current user's position
+        let currentUserRank = 0;
+        let currentUserScore = 0;
+        let isCurrentUserInTop10 = false;
 
-        // Format score based on game configuration
-        let scoreDisplay;
-        if (gameConfig.formatScore) {
-            scoreDisplay = gameConfig.formatScore(playerScore);
-        } else {
-            scoreDisplay = playerScore.toLocaleString();
-        }
+        // Get top 10 players for display
+        const topPlayers = filteredPlayers.slice(0, 10);
 
-        // Build row HTML based on game configuration columns
-        let rowHTML = '';
+        // Populate table with top 10 players
+        topPlayers.forEach((player, index) => {
+            const rank = index + 1;
 
-        if (gameConfig.id === 'queens' || gameConfig.id === 'soduku' || gameConfig.id === 'wordle') {
-            // Special handling for Queens game (no games count)
-            rowHTML = `
-        <td>
-            <div class="rank">${rank}</div>
-        </td>
-        <td>
-            <div class="player-info">
-            <div class="player-avatar">
-                ${player.isUnit ? player.username.substring(0, 2) : player.username.charAt(0)}
-            </div>
-            <div>
-                <div class="player-name">${player.isUnit ? player.username : player.username}</div>
-                ${!player.isUnit ? `<div class="player-unit">${player.unit}</div>` : ''}
-            </div>
-            </div>
-        </td>
-        <td>${player.unit}</td>
-        <td>
-            <span class="score-value">${scoreDisplay}</span>
-        </td>
-        <td>
-            <span class="last-log">${lastActivity}</span>
-        </td>
-        `;
-        } else {
-            // Standard game format
-            rowHTML = `
-        <td>
-            <div class="rank">${rank}</div>
-        </td>
-        <td>
-            <div class="player-info">
-            <div class="player-avatar">
-                ${player.isUnit ? player.username.substring(0, 2) : player.username.charAt(0)}
-            </div>
-            <div>
-                <div class="player-name">${player.isUnit ? player.username : player.username}</div>
-                ${!player.isUnit ? `<div class="player-unit">${player.unit}</div>` : ''}
-            </div>
-            </div>
-        </td>
-        <td>${player.unit}</td>
-        <td>
-            <span class="score-value">${scoreDisplay}</span>
-        </td>
-        <td>
-            <span class="games-count">${playerGames}</span>
-        </td>
-        <td>
-            <span class="last-log">${lastActivity}</span>
-        </td>
-        `;
-        }
+            // Check if this is the current user
+            if (!player.isUnit && player.username === user_details["username"]) {
+                currentUserRank = rank;
+                currentUserScore = player.currentScore || 0;
+                isCurrentUserInTop10 = true;
+            }
 
-        row.innerHTML = rowHTML;
-        tbody.appendChild(row);
-    });
+            const row = document.createElement('tr');
+            if (!player.isUnit && player.username === user_details["username"]) {
+                row.classList.add('current-user');
+            }
+            if (rank <= 3) {
+                row.classList.add('top-three');
+            }
 
-    // If current user is not in top 10, find their actual rank
-    if (!isCurrentUserInTop10) {
-        const currentUserInFullList = filteredPlayers.find(player =>
-            !player.isUnit && player.username === user_details["username"]
-        );
+            const playerScore = player.currentScore || 0;
+            const playerGames = player.currentGames || 0;
+            const lastActivity = formatTimeAgo(player.Modified);
 
-        if (currentUserInFullList) {
-            currentUserRank = filteredPlayers.findIndex(player =>
+            // Format score based on game configuration
+            let scoreDisplay;
+            if (gameConfig.formatScore) {
+                scoreDisplay = gameConfig.formatScore(playerScore);
+            } else {
+                scoreDisplay = playerScore.toLocaleString();
+            }
+
+            // Build row HTML based on game configuration columns
+            let rowHTML = '';
+
+            if (gameConfig.id === 'queens' || gameConfig.id === 'soduku' || gameConfig.id === 'wordle') {
+                // Special handling for Queens game (no games count)
+                rowHTML = `
+            <td>
+                <div class="rank">${rank}</div>
+            </td>
+            <td>
+                <div class="player-info">
+                <div class="player-avatar">
+                    ${player.isUnit ? player.username.substring(0, 2) : player.username.charAt(0)}
+                </div>
+                <div>
+                    <div class="player-name">${player.isUnit ? player.username : player.username}</div>
+                    ${!player.isUnit ? `<div class="player-unit">${player.unit}</div>` : ''}
+                </div>
+                </div>
+            </td>
+            <td>${player.unit}</td>
+            <td>
+                <span class="score-value">${scoreDisplay}</span>
+            </td>
+            <td>
+                <span class="last-log">${lastActivity}</span>
+            </td>
+            `;
+            } else {
+                // Standard game format
+                rowHTML = `
+            <td>
+                <div class="rank">${rank}</div>
+            </td>
+            <td>
+                <div class="player-info">
+                <div class="player-avatar">
+                    ${player.isUnit ? player.username.substring(0, 2) : player.username.charAt(0)}
+                </div>
+                <div>
+                    <div class="player-name">${player.isUnit ? player.username : player.username}</div>
+                    ${!player.isUnit ? `<div class="player-unit">${player.unit}</div>` : ''}
+                </div>
+                </div>
+            </td>
+            <td>${player.unit}</td>
+            <td>
+                <span class="score-value">${scoreDisplay}</span>
+            </td>
+            <td>
+                <span class="games-count">${playerGames}</span>
+            </td>
+            <td>
+                <span class="last-log">${lastActivity}</span>
+            </td>
+            `;
+            }
+
+            row.innerHTML = rowHTML;
+            tbodyElement.appendChild(row);
+        });
+
+        // If current user is not in top 10, find their actual rank
+        if (!isCurrentUserInTop10) {
+            const currentUserInFullList = filteredPlayers.find(player =>
                 !player.isUnit && player.username === user_details["username"]
-            ) + 1;
-            currentUserScore = currentUserInFullList.currentScore || 0;
-        }
-    }
+            );
 
-    // Update current user stats at bottom
-    updateCurrentUserStats(currentUserRank, currentUserScore);
+            if (currentUserInFullList) {
+                currentUserRank = filteredPlayers.findIndex(player =>
+                    !player.isUnit && player.username === user_details["username"]
+                ) + 1;
+                currentUserScore = currentUserInFullList.currentScore || 0;
+            }
+        }
+
+        // Update current user stats at bottom
+        updateCurrentUserStats(currentUserRank, currentUserScore);
+    };
+
+    if (tbody) updateTbody(tbody);
+    if (tbodyMobile) updateTbody(tbodyMobile);
 }
 
 function updateCurrentUserStats(rank, score) {
@@ -480,19 +491,28 @@ function loadLeaderboards() {
 }
 
 function initializeLeaderboards() {
-    // Populate game select dropdown
+    // Populate game select dropdowns
     const gameSelect = document.getElementById('game-select');
-    gameSelect.innerHTML = '';
-
-    Object.keys(gamesConfig).forEach(gameKey => {
-        const game = gamesConfig[gameKey];
-        const option = document.createElement('option');
-        option.value = game.id;
-        option.textContent = game.name;
-        gameSelect.appendChild(option);
-    });
+    const gameSelectMobile = document.getElementById('game-select-mobile');
+    
+    const populateSelect = (selectElement) => {
+        if (!selectElement) return;
+        selectElement.innerHTML = '';
+        Object.keys(gamesConfig).forEach(gameKey => {
+            const game = gamesConfig[gameKey];
+            const option = document.createElement('option');
+            option.value = game.id;
+            option.textContent = game.name;
+            selectElement.appendChild(option);
+        });
+    };
+    
+    populateSelect(gameSelect);
+    populateSelect(gameSelectMobile);
+    
     // Event listeners
-    document.getElementById('game-select').addEventListener('change', loadLeaderboards);
+    if (gameSelect) gameSelect.addEventListener('change', loadLeaderboards);
+    if (gameSelectMobile) gameSelectMobile.addEventListener('change', loadLeaderboards);
     document.getElementById('unit-filter').addEventListener('change', loadLeaderboards);
     document.getElementById('sort-by').addEventListener('change', loadLeaderboards);
 

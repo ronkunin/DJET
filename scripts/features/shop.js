@@ -28,10 +28,18 @@ function updateTimer() {
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-    document.getElementById('timer-hours').textContent = hours.toString().padStart(2, '0');
-    document.getElementById('timer-minutes').textContent = minutes.toString().padStart(2, '0');
-    document.getElementById('timer-seconds').textContent = seconds.toString().padStart(2, '0');
+    const updateElements = (prefix) => {
+        const hoursEl = document.getElementById(`${prefix}timer-hours`);
+        const minutesEl = document.getElementById(`${prefix}timer-minutes`);
+        const secondsEl = document.getElementById(`${prefix}timer-seconds`);
+        
+        if (hoursEl) hoursEl.textContent = hours.toString().padStart(2, '0');
+        if (minutesEl) minutesEl.textContent = minutes.toString().padStart(2, '0');
+        if (secondsEl) secondsEl.textContent = seconds.toString().padStart(2, '0');
+    };
 
+    updateElements('');
+    updateElements('timer-');
 }
 
 function hideDailyTimer() {
@@ -81,59 +89,77 @@ function shuffleBySeed(array, seed) {
 
 function loadAllGIFs() {
     const allGifsContainer = document.getElementById('all-gifs');
-    if (!allGifsContainer) return;
-    const today = new Date();
-    const seed = 3 * (today.getFullYear() + today.getMonth() + today.getDate()) + 4;
-    const dailyGIFs = [library_gifs[seed % library_gifs.length], library_gifs[(seed + 1) % library_gifs.length], library_gifs[(seed + 2) % library_gifs.length]]
+    const allGifsMobile = document.getElementById('all-gifs_mobile');
+    const dshoptitle = document.getElementById('dshoptitle');
+    const dshoptitleMobile = document.getElementById('dshoptitle_mobile');
+    
+    const loadIntoContainer = (container, titleElement) => {
+        if (!container) return;
+        const today = new Date();
+        const seed = 3 * (today.getFullYear() + today.getMonth() + today.getDate()) + 4;
+        const dailyGIFs = [library_gifs[seed % library_gifs.length], library_gifs[(seed + 1) % library_gifs.length], library_gifs[(seed + 2) % library_gifs.length]]
 
+        container.innerHTML = '';
 
-    allGifsContainer.innerHTML = '';
+        let filteredGIFs = library_gifs.filter(gif => {
+            const isOwned = user_details.items && user_details.items.includes(gif.Id);
+            const canAfford = user_details.dcoins >= gif.price;
 
-    let filteredGIFs = library_gifs.filter(gif => {
-        const isOwned = user_details.items && user_details.items.includes(gif.Id);
-        const canAfford = user_details.dcoins >= gif.price;
+            switch (currentFilter2) {
+                case 'owned':
+                    if (titleElement) titleElement.textContent = 'הפריטים שבבעלותך';
+                    return isOwned;
+                case 'affordable':
+                    if (titleElement) titleElement.textContent = 'הפריטים שאתה יכול להרשות לעצמך';
+                    return !isOwned && canAfford;
+                case 'daily':
+                    if (titleElement) titleElement.textContent = 'החנות היומית';
+                    return dailyGIFs.some(dailyGif => dailyGif.Id === gif.Id);
+                default:
+                    if (titleElement) titleElement.textContent = 'האוסף המלא';
+                    return true;
+            }
+        });
+        filteredGIFs = shuffleBySeed(filteredGIFs, 3 * (today.getFullYear() + today.getMonth() + today.getDate())); // Shuffle with a fixed seed for consistency
+        filteredGIFs.forEach(gif => {
+            if(!gif.isPublic) return;
+            const isOwned = user_details.items && user_details.items.includes(gif.Id);
+            const canAfford = user_details.dcoins >= gif.price;
+            const isDaily = dailyGIFs.some(dailyGif => dailyGif.Id === gif.Id);
+            const isWeekend = today.getDay() === 5 || today.getDay() === 6; // Friday (5) or Saturday (6)
+            const hasDiscount = isDaily && isWeekend;
+            const discountedPrice = hasDiscount ? Math.floor(gif.price * 0.8) : gif.price;
 
-        switch (currentFilter2) {
-            case 'owned':
-                document.getElementById('dshoptitle').textContent = 'הפריטים שבבעלותך';
-                return isOwned;
-            case 'affordable':
-                document.getElementById('dshoptitle').textContent = 'הפריטים שאתה יכול להרשות לעצמך';
-                return !isOwned && canAfford;
-            case 'daily':
-                document.getElementById('dshoptitle').textContent = 'החנות היומית';
-                return dailyGIFs.some(dailyGif => dailyGif.Id === gif.Id);
-            default:
-                document.getElementById('dshoptitle').textContent = 'האוסף המלא';
-                return true;
-        }
-    });
-    filteredGIFs = shuffleBySeed(filteredGIFs, 3 * (today.getFullYear() + today.getMonth() + today.getDate())); // Shuffle with a fixed seed for consistency
-    filteredGIFs.forEach(gif => {
-        if(!gif.isPublic) return;
-        const isOwned = user_details.items && user_details.items.includes(gif.Id);
-        const canAfford = user_details.dcoins >= gif.price;
-        const isDaily = dailyGIFs.some(dailyGif => dailyGif.Id === gif.Id);
-        const isWeekend = today.getDay() === 5 || today.getDay() === 6; // Friday (5) or Saturday (6)
-        const hasDiscount = isDaily && isWeekend;
-        const discountedPrice = hasDiscount ? Math.floor(gif.price * 0.8) : gif.price;
+            const gifCard = document.createElement('div');
+            gifCard.className = 'gif-card';
+            gifCard.dataset.gifId = gif.Id;
 
-        const gifCard = document.createElement('div');
-        gifCard.className = 'gif-card';
-        gifCard.dataset.gifId = gif.Id;
-
-        let imgCon = "";
-        if (!isDaily && !isOwned)
-            imgCon = `<div class="gif-image-container"><i class="fas fa-question" style="
-            font-size: 200px;
-            filter: blur(20px);
-        "></i></div>`;
-        else
-            imgCon = `<div class="gif-image-container">
-                            <img src="${gif.FileRef}" oncontextmenu="return false;" draggable="false" class="gif-image" loading="lazy" style="${!isDaily && !isOwned ? 'filter: blur(20px) grayscale(100%);' : ''}">
-                            ${hasDiscount && currentFilter2 != 'owned' ? '<div class="discount-badge">20% הנחה</div>' : ''}
-                        </div>`
-        gifCard.innerHTML = `
+            let imgCon = "";
+            if (!isDaily && !isOwned)
+                imgCon = `<div class="gif-image-container"><i class="fas fa-question" style="
+                font-size: 200px;
+                filter: blur(20px);
+            "></i></div>`;
+            else
+                imgCon = `<div class="gif-image-container">
+                                <img src="${gif.FileRef}" oncontextmenu="return false;" draggable="false" class="gif-image" loading="lazy" style="${!isDaily && !isOwned ? 'filter: blur(20px) grayscale(100%);' : ''}">
+                                ${hasDiscount && currentFilter2 != 'owned' ? '<div class="discount-badge">20% הנחה</div>' : ''}
+                            </div>`
+            gifCard.innerHTML = `
+                        ${imgCon}
+                        <div class="gif-info">
+                            <div class="gif-stats">
+                            ${isDaily && currentFilter2 == 'daily' ? `
+                                <div class="gif-price">
+                                    <i class="fas fa-coins"></i>
+                                    ${hasDiscount ? `<span style="text-decoration: line-through; color: #888;">${gif.price}</span> ${discountedPrice}` : gif.price}
+                                </div>` : ``}
+                                <div class="gif-sales">
+                                    <i class="fas fa-shopping-bag"></i>
+                                    ${gif.buyers_num} רכישות
+                                </div>
+                            </div>
+                            <button class="buy-button ${isOwned ? 'owned' : ''}"
                     ${imgCon}
                     <div class="gif-info">
                         <div class="gif-stats">
@@ -148,36 +174,38 @@ function loadAllGIFs() {
                             </div>
                         </div>
                         <button class="buy-button ${isOwned ? 'owned' : ''}" 
-                                ${isOwned ? 'disabled' : !canAfford || !isDaily ? 'disabled' : ''}>
-                            ${isOwned ? '<i class="fas fa-check"></i> בבעלותך' :
-                !isDaily ? '<i class="fas fa-clock"></i> לא זמין כרגע' :
-                    !canAfford ? '<i class="fas fa-lock"></i> יתרה לא מספקת' :
-                        '<i class="fas fa-shopping-cart"></i> קנה עכשיו'}
-                        </button>
-                    </div>
-                `;
+                                    ${isOwned ? 'disabled' : !canAfford || !isDaily ? 'disabled' : ''}>
+                                ${isOwned ? '<i class="fas fa-check"></i> בבעלותך' :
+                    !isDaily ? '<i class="fas fa-clock"></i> לא זמין כרגע' :
+                        !canAfford ? '<i class="fas fa-lock"></i> יתרה לא מספקת' :
+                            '<i class="fas fa-shopping-cart"></i> קנה עכשיו'}
+                            </button>
+                        </div>
+                    `;
 
-        // Add click event for selection
-        gifCard.addEventListener('click', function (e) {
-            if (!e.target.closest('.buy-button')) {
-                selectGifCard(gifCard, gif);
-            }
-        });
-
-        if (!isOwned && canAfford) {
-            const buyBtn = gifCard.querySelector('.buy-button');
-            buyBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                selectGifCard(gifCard, gif);
-                showPurchaseModal(gif, discountedPrice);
+            // Add click event for selection
+            gifCard.addEventListener('click', function (e) {
+                if (!e.target.closest('.buy-button')) {
+                    selectGifCard(gifCard, gif);
+                }
             });
-        }
 
-        allGifsContainer.appendChild(gifCard);
-        gifCard.style.animation = 'fadeInScale 0.5s ease forwards';
-    });
+            if (!isOwned && canAfford) {
+                const buyBtn = gifCard.querySelector('.buy-button');
+                buyBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectGifCard(gifCard, gif);
+                    showPurchaseModal(gif, discountedPrice);
+                });
+            }
 
-}
+            container.appendChild(gifCard);
+            gifCard.style.animation = 'fadeInScale 0.5s ease forwards';
+        });
+    };
+    
+    loadIntoContainer(allGifsContainer, dshoptitle);
+    loadIntoContainer(allGifsMobile, dshoptitleMobile);
 
 function selectGifCard(cardElement, gif) {
     // Remove active class from all cards

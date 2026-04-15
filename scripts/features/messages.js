@@ -10,44 +10,118 @@ let lastReadTime = new Date();
 // ==============================================
 
 function initializeChat() {
+    // Desktop event listeners
+    const sendButton = document.getElementById('send-button');
+    const messageInput = document.getElementById('message-input');
+    const sendGifButton = document.getElementById('send-gif-button');
+    const closeGifPicker = document.getElementById('close-gif-picker');
 
-    // Chat send button
-    document.getElementById('send-button').addEventListener('click', function () {
-        const input = document.getElementById('message-input');
-        const message = input.value.trim();
+    if (sendButton) {
+        sendButton.addEventListener('click', function () {
+            const input = messageInput;
+            const message = input.value.trim();
 
-        if (message) {
-            addNewMessage(message);
-            input.value = '';
+            if (message) {
+                addNewMessage(message);
+                input.value = '';
 
-            // Switch to chat tab when sending message
-            switchTab('chat');
-        }
-    });
+                // Switch to chat tab when sending message
+                switchTab('chat');
+            }
+        });
+    }
 
-    // GIF picker button
-    document.getElementById('send-gif-button').addEventListener('click', function () {
-        const isPickerOpen = document.getElementById('gif-picker').classList.contains('active');
-        toggleGifPicker(!isPickerOpen);
-    });
+    if (sendGifButton) {
+        sendGifButton.addEventListener('click', function () {
+            const isPickerOpen = document.getElementById('gif-picker').classList.contains('active');
+            toggleGifPicker(!isPickerOpen);
+        });
+    }
 
-    // Close GIF picker button
-    document.getElementById('close-gif-picker').addEventListener('click', function () {
-        toggleGifPicker(false);
-    });
+    if (closeGifPicker) {
+        closeGifPicker.addEventListener('click', function () {
+            toggleGifPicker(false);
+        });
+    }
 
-    // Enter key in chat input
-    document.getElementById('message-input').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            document.getElementById('send-button').click();
-        }
-    });
+    if (messageInput) {
+        messageInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendButton.click();
+            }
+        });
+    }
 
+    // Mobile event listeners
+    const sendButtonMobile = document.getElementById('send-button-mobile');
+    const messageInputMobile = document.getElementById('message-input-mobile');
+    const sendGifButtonMobile = document.getElementById('send-gif-button-mobile');
+    const closeGifPickerMobile = document.getElementById('close-gif-picker-mobile');
+
+    if (sendButtonMobile) {
+        sendButtonMobile.addEventListener('click', function () {
+            const input = messageInputMobile;
+            const message = input.value.trim();
+
+            if (message) {
+                addNewMessage(message);
+                input.value = '';
+
+                // Switch to chat section on mobile
+                switchSection('chat');
+                document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector('.mobile-nav-btn[data-section="chat"]').classList.add('active');
+                // Move indicator
+                const indicator = document.querySelector('.mobile-nav-indicator');
+                if (indicator) {
+                    const buttons = Array.from(document.querySelectorAll('.mobile-nav-btn'));
+                    const activeBtn = document.querySelector('.mobile-nav-btn.active');
+                    const index = buttons.indexOf(activeBtn);
+                    indicator.style.transform = `translateX(${index * (100 / 7)}%)`;
+                }
+            }
+        });
+    }
+
+    if (sendGifButtonMobile) {
+        sendGifButtonMobile.addEventListener('click', function () {
+            const isPickerOpen = document.getElementById('gif-picker-mobile').classList.contains('active');
+            toggleGifPickerMobile(!isPickerOpen);
+        });
+    }
+
+    if (closeGifPickerMobile) {
+        closeGifPickerMobile.addEventListener('click', function () {
+            toggleGifPickerMobile(false);
+        });
+    }
+
+    if (messageInputMobile) {
+        messageInputMobile.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendButtonMobile.click();
+            }
+        });
+    }
 }
 function toggleGifPicker(show = true) {
     const gifPicker = document.getElementById('gif-picker');
     const gifButton = document.getElementById('send-gif-button');
+
+    if (show) {
+        gifPicker.classList.add('active');
+        gifButton.classList.add('active');
+    } else {
+        gifPicker.classList.remove('active');
+        gifButton.classList.remove('active');
+    }
+}
+
+function toggleGifPickerMobile(show = true) {
+    const gifPicker = document.getElementById('gif-picker-mobile');
+    const gifButton = document.getElementById('send-gif-button-mobile');
 
     if (show) {
         gifPicker.classList.add('active');
@@ -74,158 +148,166 @@ function nameToColor(name) {
 }
 function loadChatMessages() {
     const chatMessagesContainer = document.getElementById('chat-messages');
-    chatMessagesContainer.innerHTML = '';
+    const chatMessagesMobile = document.getElementById('chat-messages-mobile');
+    
+    // Function to load into a container
+    const loadIntoContainer = (container) => {
+        container.innerHTML = '';
 
-    if (library_messages.length === 0) {
-        chatMessagesContainer.innerHTML = `
-            <div class="chat-empty">
-                <i class="fas fa-comment-slash"></i>
-                <p>אין הודעות עדיין. תהיה הראשון שיגיד שלום!</p>
-            </div>
-        `;
-        return;
-    }
-
-    let lastDate = null;
-    let lastSender = null;
-    let lastMessageTime = null;
-    let messageGroup = null;
-    let messageGroupContent = null;
-
-    library_messages.forEach((msg, index) => {
-        msg.Created = new Date(msg.Created);
-        // Check if we need a new date separator
-        const currentDate = formatDate(msg.Created);
-        if (currentDate !== lastDate) {
-            const dateSeparator = document.createElement('div');
-            dateSeparator.className = 'date-separator';
-            dateSeparator.innerHTML = `<span class="date-label">${currentDate}</span>`;
-            chatMessagesContainer.appendChild(dateSeparator);
-            lastDate = currentDate;
-
-            // Reset grouping when date changes
-            lastSender = null;
-            lastMessageTime = null;
-            messageGroup = null;
-            messageGroupContent = null;
+        if (library_messages.length === 0) {
+            container.innerHTML = `
+                <div class="chat-empty">
+                    <i class="fas fa-comment-slash"></i>
+                    <p>אין הודעות עדיין. תהיה הראשון שיגיד שלום!</p>
+                </div>
+            `;
+            return;
         }
 
-        // Check if we need a new message group
-        const isSameSender = lastSender === msg.name;
-        const isSameType = lastSender && msg.AuthorId === library_messages[index - 1].AuthorId;
-        const timeDiff = lastMessageTime ? (msg.Created - lastMessageTime) / 1000 / 60 : null; // minutes
+        let lastDate = null;
+        let lastSender = null;
+        let lastMessageTime = null;
+        let messageGroup = null;
+        let messageGroupContent = null;
 
-        // Start a new group if:
-        // 1. Different sender
-        // 2. Different message type (user vs system)
-        // 3. More than 5 minutes passed
-        // 4. Message contains GIF (GIFs always start new group)
-        // 5. First message of the day
-        const containsGif = isGifUrl(msg.text);
+        library_messages.forEach((msg, index) => {
+            msg.Created = new Date(msg.Created);
+            // Check if we need a new date separator
+            const currentDate = formatDate(msg.Created);
+            if (currentDate !== lastDate) {
+                const dateSeparator = document.createElement('div');
+                dateSeparator.className = 'date-separator';
+                dateSeparator.innerHTML = `<span class="date-label">${currentDate}</span>`;
+                container.appendChild(dateSeparator);
+                lastDate = currentDate;
 
-        if (!isSameSender || !isSameType || (timeDiff && timeDiff > 120) || containsGif || !messageGroup) {
-            // Create new message group
-            messageGroup = document.createElement('div');
-            let groupClass = msg.AuthorId == userId ? 'current-user' : 'other-user';
-            if (msg.type === 'system') groupClass += ' system';
-            if (msg.verified != 'n') groupClass += ' verified';
+                // Reset grouping when date changes
+                lastSender = null;
+                lastMessageTime = null;
+                messageGroup = null;
+                messageGroupContent = null;
+            }
 
-            messageGroup.className = `message-group-container ${groupClass}`;
-            messageGroup.style.animationDelay = `${index * 0.05}s`;
+            // Check if we need a new message group
+            const isSameSender = lastSender === msg.name;
+            const isSameType = lastSender && msg.AuthorId === library_messages[index - 1].AuthorId;
+            const timeDiff = lastMessageTime ? (msg.Created - lastMessageTime) / 1000 / 60 : null; // minutes
 
-            // Create avatar (only if not consecutive)
-            const avatar = document.createElement('div');
-            avatar.style.background = nameToColor(msg.unit);
-            avatar.style.borderColor = nameToColor(msg.unit);
-            avatar.className = 'message-avatar';
-            avatar.textContent = msg.name.charAt(0).toUpperCase();;
-            messageGroup.appendChild(avatar);
+            // Start a new group if:
+            // 1. Different sender
+            // 2. Different message type (user vs system)
+            // 3. More than 5 minutes passed
+            // 4. Message contains GIF (GIFs always start new group)
+            // 5. First message of the day
+            const containsGif = isGifUrl(msg.text);
 
-            // Create message container
-            messageGroupContent = document.createElement('div');
-            messageGroupContent.className = 'message-group-content';
+            if (!isSameSender || !isSameType || (timeDiff && timeDiff > 120) || containsGif || !messageGroup) {
+                // Create new message group
+                messageGroup = document.createElement('div');
+                let groupClass = msg.AuthorId == userId ? 'current-user' : 'other-user';
+                if (msg.type === 'system') groupClass += ' system';
+                if (msg.verified != 'n') groupClass += ' verified';
 
-            // Create message header (only for first message in group)
-            const messageHeader = document.createElement('div');
-            messageHeader.className = 'message-header';
+                messageGroup.className = `message-group-container ${groupClass}`;
+                messageGroup.style.animationDelay = `${index * 0.05}s`;
 
-            const senderName = document.createElement('span');
-            senderName.className = 'sender-name';
-            senderName.textContent = msg.name;
+                // Create avatar (only if not consecutive)
+                const avatar = document.createElement('div');
+                avatar.style.background = nameToColor(msg.unit);
+                avatar.style.borderColor = nameToColor(msg.unit);
+                avatar.className = 'message-avatar';
+                avatar.textContent = msg.name.charAt(0).toUpperCase();;
+                messageGroup.appendChild(avatar);
 
-            const senderGroup = document.createElement('span');
-            senderGroup.className = 'sender-group';
+                // Create message container
+                messageGroupContent = document.createElement('div');
+                messageGroupContent.className = 'message-group-content';
 
-            senderGroup.textContent = msg.unit;
+                // Create message header (only for first message in group)
+                const messageHeader = document.createElement('div');
+                messageHeader.className = 'message-header';
 
-            const messageTime = document.createElement('span');
-            messageTime.className = 'message-time';
-            messageTime.textContent = formatTime(msg.Created);
+                const senderName = document.createElement('span');
+                senderName.className = 'sender-name';
+                senderName.textContent = msg.name;
 
-            messageHeader.appendChild(senderName);
+                const senderGroup = document.createElement('span');
+                senderGroup.className = 'sender-group';
 
-            if (msg.verified != 'n') {
-                if (msg.verified != 'p') {
-                    const verifiedBadge = document.createElement('i');
-                    verifiedBadge.className = `fas fa-check-circle verified-badge-${msg.verified}`;
-                    verifiedBadge.title = 'שחקן מאומת';
-                    messageHeader.appendChild(verifiedBadge);
+                senderGroup.textContent = msg.unit;
+
+                const messageTime = document.createElement('span');
+                messageTime.className = 'message-time';
+                messageTime.textContent = formatTime(msg.Created);
+
+                messageHeader.appendChild(senderName);
+
+                if (msg.verified != 'n') {
+                    if (msg.verified != 'p') {
+                        const verifiedBadge = document.createElement('i');
+                        verifiedBadge.className = `fas fa-check-circle verified-badge-${msg.verified}`;
+                        verifiedBadge.title = 'שחקן מאומת';
+                        messageHeader.appendChild(verifiedBadge);
+                    }
+                    else {
+                        const verifiedBadge = document.createElement('i');
+                        verifiedBadge.className = `fas fa-hand-fist verified-badge-l`;
+                        verifiedBadge.style.opacity = 0.6;
+                        verifiedBadge.title = 'שחקן פז"מ';
+                        messageHeader.appendChild(verifiedBadge);
+                        if (!msg.isCurrentUser && msg.unit && msg.type !== 'system') {
+                            messageHeader.appendChild(senderGroup);
+                        }
+                    }
                 }
-                else {
-                    const verifiedBadge = document.createElement('i');
-                    verifiedBadge.className = `fas fa-hand-fist verified-badge-l`;
-                    verifiedBadge.style.opacity = 0.6;
-                    verifiedBadge.title = 'שחקן פז"מ';
-                    messageHeader.appendChild(verifiedBadge);
+                else
                     if (!msg.isCurrentUser && msg.unit && msg.type !== 'system') {
                         messageHeader.appendChild(senderGroup);
                     }
-                }
+                if(!timeDiff || timeDiff > 2 || index == library_messages.length - 1)
+                    messageHeader.appendChild(messageTime);
+
+                messageGroupContent.appendChild(messageHeader);
+                messageGroup.appendChild(messageGroupContent);
+                container.appendChild(messageGroup);
+
+            } else {
+                // Consecutive message from same sender
+                messageGroup.classList.add('consecutive');
             }
-            else
-                if (!msg.isCurrentUser && msg.unit && msg.type !== 'system') {
-                    messageHeader.appendChild(senderGroup);
-                }
-            if(!timeDiff || timeDiff > 2 || index == library_messages.length - 1)
-                messageHeader.appendChild(messageTime);
 
-            messageGroupContent.appendChild(messageHeader);
-            messageGroup.appendChild(messageGroupContent);
-            chatMessagesContainer.appendChild(messageGroup);
+            // Create message bubble
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'message-bubble';
 
-        } else {
-            // Consecutive message from same sender
-            messageGroup.classList.add('consecutive');
-        }
+            // Check if message contains GIF URL
+            if (containsGif) {
+                const gifUrl = msg.text;
+                const gifHTML = `
+                    <div class="chat-gif-container">
+                        <img src="${gifUrl}" class="chat-gif" alt="GIF111" oncontextmenu="return false;" draggable="false">
+                    </div>
+                `;
+                messageBubble.innerHTML = gifHTML;
+            } else {
+                // Regular text message
+                messageBubble.textContent = msg.text;
+            }
 
-        // Create message bubble
-        const messageBubble = document.createElement('div');
-        messageBubble.className = 'message-bubble';
+            messageGroupContent.appendChild(messageBubble);
 
-        // Check if message contains GIF URL
-        if (containsGif) {
-            const gifUrl = msg.text;
-            const gifHTML = `
-                <div class="chat-gif-container">
-                    <img src="${gifUrl}" class="chat-gif" alt="GIF111" oncontextmenu="return false;" draggable="false">
-                </div>
-            `;
-            messageBubble.innerHTML = gifHTML;
-        } else {
-            // Regular text message
-            messageBubble.textContent = msg.text;
-        }
+            // Update tracking variables
+            lastSender = msg.name;
+            lastMessageTime = msg.Created;
+        });
 
-        messageGroupContent.appendChild(messageBubble);
+        setTimeout(() => {
+            container.scrollTop = container.scrollHeight;
+        }, 100);
+    };
 
-        // Update tracking variables
-        lastSender = msg.name;
-        lastMessageTime = msg.Created;
-    });
-
-    setTimeout(() => {
-        chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
-    }, 100);
+    if (chatMessagesContainer) loadIntoContainer(chatMessagesContainer);
+    if (chatMessagesMobile) loadIntoContainer(chatMessagesMobile);
 }
 
 

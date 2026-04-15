@@ -118,80 +118,92 @@ function show_results() {
          }
 
     }
-    /*
-    for(let i = 0; i < Math.min(max_results,results_playlist.length); i++) {
-        let indicator_hue = (Math.sin((i-1) * indicator_hue_speed)+1)*75 + 140;
-        code += `
-        <div class='option'>
-            <i class="indicator fa fa-list-alt" style="color: hsl(${indicator_hue}deg ,75%, 60%);"></i>
-            <p class="title" onclick='loadPlaylist(playlistFromId(${results_playlist[i].id})); logViewList(${results_playlist[i].id})'>${results_playlist[i].title}</p>
-        </div>
-        `;
-    }*/
     if (results.length == 0 && results_playlist.length == 0) {
         code = `<div class="center" style="margin-top: 5px;font-size: 20px;">אזל במלאי, נסה לחפש שיר אחר</div>`;
     }
-    document.getElementById("results").innerHTML = code;
-    document.getElementById("results").classList.add('shown');
-
+    
+    const resultsElement = document.getElementById("results");
+    const resultsMobileElement = document.getElementById("results_mobile");
+    
+    if (resultsElement) {
+        resultsElement.innerHTML = code;
+        resultsElement.classList.add('shown');
+    }
+    if (resultsMobileElement) {
+        resultsMobileElement.innerHTML = code;
+        resultsMobileElement.classList.add('shown');
+    }
 }
 
 
 function show_myplaylists() {
     const highlight_element = document.getElementById("myplaylists");
-    highlight_element.style.overflowY = 'scroll';
-
-    highlight_element.innerHTML = "";
-    if (library_highlights.length == 0) {
-        highlight_element.innerHTML += `<div style="justify-content: center; align-items: center; display: flex; width: 100%; height: 100%; position: relative;"><div class="loader"></div></div>`;
-        return;
-    }
-    const indicator_hue_speed = 0.5;
-    if(user_details["liked"] != null)
-        highlight_element.innerHTML += `
-        <li><div class='option' style='padding-bottom: ${pad}px;padding-top: ${pad}px;' >
-        <i class="indicator fa fa-heart" style="color: hsl(${(Math.cos((0) * indicator_hue_speed))*75 + 10}deg ,75%, 60%);"></i>
-        <p class="title" style='flex: initial' onclick="loadLikedPlaylist();">שירים שסימנתי בלייק</p>
-        </div></li>
-        `;
-    my_library_playlist.forEach((item,index) => {
-        if(item.title != 'Deleted')
-        {
-            let indicator_hue = (Math.cos((index-1) * indicator_hue_speed))*75 + 10;
-            let li_element = document.createElement("li");
-            
-            li_element.innerHTML += my_playlist(item, indicator_hue);
-            
-            highlight_element.appendChild(li_element);
+    const highlight_element_mobile = document.getElementById("myplaylists_mobile");
+    
+    // Function to show playlists in an element
+    const showInElement = (element) => {
+        element.style.overflowY = 'scroll';
+        element.innerHTML = "";
+        if (library_highlights.length == 0) {
+            element.innerHTML += `<div style="justify-content: center; align-items: center; display: flex; width: 100%; height: 100%; position: relative;"><div class="loader"></div></div>`;
+            return;
         }
+        const indicator_hue_speed = 0.5;
+        if(user_details["liked"] != null)
+            element.innerHTML += `
+            <li><div class='option' style='padding-bottom: ${pad}px;padding-top: ${pad}px;' >
+            <i class="indicator fa fa-heart" style="color: hsl(${(Math.cos((0) * indicator_hue_speed))*75 + 10}deg ,75%, 60%);"></i>
+            <p class="title" style='flex: initial' onclick="loadLikedPlaylist();">שירים שסימנתי בלייק</p>
+            </div></li>
+            `;
+        my_library_playlist.forEach((item,index) => {
+            if(item.title != 'Deleted')
+            {
+                let indicator_hue = (Math.cos((index-1) * indicator_hue_speed))*75 + 10;
+                let li_element = document.createElement("li");
+                
+                li_element.innerHTML += my_playlist(item, indicator_hue);
+                
+                element.appendChild(li_element);
+            }
+        });
+    };
 
-    });
+    if (highlight_element) showInElement(highlight_element);
+    if (highlight_element_mobile) showInElement(highlight_element_mobile);
 }
 
 
 function show_highlights() {
     const highlight_element = document.getElementById("highlight");
-    highlight_element.style.overflowY = 'scroll';
-    highlight_element.innerHTML = "";
-    if (library_highlights.length == 0) {
-        highlight_element.innerHTML += `<div style="justify-content: center; align-items: center; display: flex; width: 100%; height: 100%; position: relative;"><div class="loader"></div></div>`;
-        return;
-    }
-    const indicator_hue_speed = 0.5;
-    library_highlights.forEach((item,index) => {
-        if(index >= 6 && !item.must)
+    const highlight_element_mobile = document.getElementById("highlight_mobile");
+    
+    // Function to show highlights in an element
+    const showInElement = (element) => {
+        element.style.overflowY = 'scroll';
+        element.innerHTML = "";
+        if (library_highlights.length == 0) {
+            element.innerHTML += `<div style="justify-content: center; align-items: center; display: flex; width: 100%; height: 100%; position: relative;"><div class="loader"></div></div>`;
             return;
-        let indicator_hue = (Math.sin((index-1) * indicator_hue_speed))*75 + 10;
-        let li_element = document.createElement("li");
+        }
+        const indicator_hue_speed = 0.5;
+        library_highlights.forEach((item,index) => {
+            if(index >= 6 && !item.must)
+                return;
+            let indicator_hue = (Math.sin((index-1) * indicator_hue_speed))*75 + 10;
+            let li_element = document.createElement("li");
 
-        if (item.type.toLowerCase() == 'playlist')
-            li_element.innerHTML += high_playlist(item, indicator_hue);
-        if (item.type.toLowerCase() == 'song')
-            li_element.innerHTML += high_song(item, indicator_hue);
+            if (item.type.toLowerCase() == 'playlist')
+                li_element.innerHTML += high_playlist(item, indicator_hue);
+            if (item.type.toLowerCase() == 'song')
+                li_element.innerHTML += high_song(item, indicator_hue);
 
-        highlight_element.appendChild(li_element);
+            element.appendChild(li_element);
+        });
+    };
 
-    });
+    if (highlight_element) showInElement(highlight_element);
+    if (highlight_element_mobile) showInElement(highlight_element_mobile);
 }
 let pad = 11.7;
 function my_playlist(playlist, indicator_hue){
