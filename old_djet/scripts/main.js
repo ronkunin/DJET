@@ -1,95 +1,108 @@
 let site_url = `http://spellcaster.sites.airnet/DJet`;
-let api = `${site_url}/_api`;
-let userId;
-
-let library = [];
-let library_playlist = [];
-
 let playlist = [];
 let playlistData = null;
-
 let results = [];
 let results_playlist = [];
-
 let song_index_playlist = 0;
-let audio = document.getElementById("timeline");
 let max_results = 15;
 let mode = "none"; //shuffle, loop, radio, none
 const DEV_MODE = false; //boolean value, SHOULD BE TURNED ON WHEN PUBLISHING
 
-
 let white_list = [];
 let black_list = [];
+
+// Get audio element safely
+let audio = null;
+setTimeout(() => {
+    audio = document.getElementById("timeline");
+}, 100);
+
 async function onLoad() {
-    await load_user_id();
-     // get premissions
-     let data = await loadItemsFromSP("Settings", { select: "Title,value,permission,details", top: 100 });
-     data.forEach((value, index) => {
-         if (value.Title === 'SOS' || value.value === 'SOS' || value.permission === 'SOS' || value.details === 'SOS')
-             window.location.href = 'http://spellcaster.sites.airnet/DJet/DJet/main.html';
-         if (value.Title === "רישוי")
-             PREMISSIONS[value.value.toUpperCase() + "@IAF.IDF.IL"] = value.permission;
-         if (value.Title === "סוג רישוי")
-             PREMISSIONS_TYPE[value.permission] = value.value;
-     });
-
-     exit_loader();
-
-    let keys = Object.keys(PREMISSIONS);
-    if (keys.includes(userEmail)) {
-        if (PREMISSIONS[userEmail] === "מנהל DJET") {
-            notify("info", "מחובר כמנהל");
-        }
-        else if (PREMISSIONS[userEmail] === "נאמן DJET") {
-            notify("info", "מחובר כנאמן");
-        }
-        else  if (PREMISSIONS[userEmail] === `חפ"ש DJET`) {
-            notify("info", `מחובר כחפ"ש`)
-        }
-    }
-    else
-        PREMISSIONS[userEmail] = "משתמש DJET";
-
-    if(PREMISSIONS_TYPE[PREMISSIONS[userEmail]].includes("Out"))
-        window.location.href = 'http://spellcaster.sites.airnet/DJet/DJet/main.html';
-    if(PREMISSIONS_TYPE[PREMISSIONS[userEmail]].includes("Loader"))
-        return;
-
-
-    user_details = (await loadItemsFromSP("Users", {
-        select: `ID,username,unit,streams,liked,logs,fluppyjet_games,fluppyjet_max,skyDome_games,skyDome_maxS,skyDome_maxT,longArm_games,longArm_max`, top: 1, filter: `AuthorId eq ${userId}`
-    }))[0];
-
-    if (user_details === undefined) {
-        window.location.href = 'http://spellcaster.sites.airnet/DJet/DJet/index.html';
-    }
-
-
-    // create first random playlist
-    if (DEV_MODE) {
-        for(let i = 0; i < 4; i++) {
-            let song = library[Math.floor((Math.random()*library.length))];
-            playlist.push(song);
-        }
-        audio.src = playlist[song_index_playlist].link;
-        document.getElementById("song_title").textContent = playlist[song_index_playlist].title;
-        changeMode("none");
-        visualise();
-    }
-
+    // Wait for Firebase to be ready
+    await window.firebaseReadyPromise;
     
-
-
-    // event listeners
-    audio.addEventListener("ended", playNext);
-    window.addEventListener('keydown', key_click);
-    // the playlist appearance .................................................................
-    document.getElementById("results").addEventListener('scroll', function() {
-    if(document.getElementById("results").scrollHeight - document.getElementById("results").scrollTop === document.getElementById("results").clientHeight) {
-        max_results += 5;
-        show_results();
+    // Load user ID from Firebase auth
+    await load_user_id();
+    
+    if (!userId) {
+        console.error('Failed to get user ID');
+        exit_loader();
+        window.location.href = 'http://spellcaster.sites.airnet/DJet/DJet/index.html';
+        return;
     }
-});
+
+    // Load user details using same method as START.js
+    user_details = await loadUserById(userId);
+    
+    if (!user_details || !user_details.Id) {
+        // Try to find user by Google UID
+        const storedGoogleUid = window.getStoredDjetGoogleUid?.();
+        if (storedGoogleUid) {
+            const existingByUid = await findUserByGoogleUid(storedGoogleUid);
+            if (existingByUid) {
+                user_details = existingByUid;
+                userId = existingByUid.Id || existingByUid.ID || userId;
+                if (typeof window.setStoredDjetUserId === 'function') {
+                    window.setStoredDjetUserId(userId);
+                }
+            }
+        }
+    }
+
+    if (!user_details || !user_details.Id) {
+        // Try to find user by email
+        const storedGoogleEmail = window.getStoredDjetGoogleEmail?.();
+        if (storedGoogleEmail) {
+            const existingByEmail = await findUserByEmail(normalizeEmail(storedGoogleEmail));
+            if (existingByEmail) {
+                user_details = existingByEmail;
+                userId = existingByEmail.Id || existingByEmail.ID || userId;
+                if (typeof window.setStoredDjetUserId === 'function') {
+                    window.setStoredDjetUserId(userId);
+                }
+            }
+        }
+    }
+
+    // If still no user, redirect
+    if (!user_details || !user_details.Id) {
+        console.warn('No user details found');
+        exit_loader();
+        window.location.href = 'http://spellcaster.sites.airnet/DJet/DJet/index.html';
+        return;
+    }
+
+    // Initialize user data with defaults if missing
+    if (!user_details.fluppyjet_games) user_details.fluppyjet_games = 0;
+    if (!user_details.fluppyjet_max) user_details.fluppyjet_max = 0;
+    if (!user_details.skyDome_games) user_details.skyDome_games = 0;
+    if (!user_details.skyDome_maxS) user_details.skyDome_maxS = 0;
+    if (!user_details.skyDome_maxT) user_details.skyDome_maxT = 0;
+    if (!user_details.longArm_games) user_details.longArm_games = 0;
+    if (!user_details.longArm_max) user_details.longArm_max = 0;
+    if (!user_details.streams) user_details.streams = 0;
+
+    exit_loader();
+    
+    // Skip playlist/music loading
+    // Music library, playlists, and search results remain empty
+    
+    // event listeners
+    if (audio) {
+        audio.addEventListener("ended", playNext);
+    }
+    window.addEventListener('keydown', key_click);
+    
+    // Setup results scroll listener if needed
+    const resultsEl = document.getElementById("results");
+    if (resultsEl) {
+        resultsEl.addEventListener('scroll', function() {
+            if(resultsEl.scrollHeight - resultsEl.scrollTop === resultsEl.clientHeight) {
+                max_results += 5;
+                show_results();
+            }
+        });
+    }
 }
 
 function key_click(event) {
