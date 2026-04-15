@@ -177,7 +177,11 @@ function getHeaderHTML() {
                             <span class="streak-days" id="streak-days">0</span>
                             <span class="streak-label" id="streak-label">רצף יומי</span>
                         </div>
-                        <div class="streak-details" id="streak-details" dir="rtl"></div>
+                        <div class="streak-details" id="streak-details" dir="rtl">
+                            <div id="streak-title"></div>
+                            <div id="streak-status"></div>
+                            <div id="streak-warning"></div>
+                        </div>
                     </div>
                     <div class="dcoins-counter" id="dcoins-counter">
                         <i class="fas fa-coins"></i>
@@ -219,7 +223,11 @@ function getMainContentHTML() {
                                 <span class="streak-days" id="streak-days">0</span>
                                 <span class="streak-label" id="streak-label">רצף יומי</span>
                             </div>
-                            <div class="streak-details" id="streak-details" dir="rtl"></div>
+                            <div class="streak-details" id="streak-details" dir="rtl">
+                                <div id="streak-title"></div>
+                                <div id="streak-status"></div>
+                                <div id="streak-warning"></div>
+                            </div>
                         </div>
                         <div class="dcoins-counter" id="dcoins-counter">
                             <i class="fas fa-coins"></i>
