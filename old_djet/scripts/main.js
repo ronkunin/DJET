@@ -26,7 +26,10 @@ async function load_user_id() {
         userEmail = user.email ? user.email.toUpperCase() : '';
         userTitle = user.displayName || '';
     } else {
-        userId = null;
+        // Guest user
+        userId = `guest_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
+        userEmail = '';
+        userTitle = 'Guest';
     }
 }
 
@@ -37,13 +40,6 @@ async function onLoad() {
     // Load user ID from Firebase auth
     await load_user_id();
     
-    if (!userId) {
-        console.error('Failed to get user ID');
-        exit_loader();
-        window.location.href = 'http://spellcaster.sites.airnet/DJet/DJet/index.html';
-        return;
-    }
-
     // Load user details using same method as START.js
     user_details = await loadUserById(userId);
     
@@ -77,12 +73,24 @@ async function onLoad() {
         }
     }
 
-    // If still no user, redirect
+    // If still no user, create guest user
     if (!user_details || !user_details.Id) {
-        console.warn('No user details found');
-        exit_loader();
-        window.location.href = 'http://spellcaster.sites.airnet/DJet/DJet/index.html';
-        return;
+        console.warn('No user details found, using guest');
+        user_details = {
+            Id: userId || `guest_${Date.now()}`,
+            username: 'Guest',
+            unit: 'Guest',
+            Modified: new Date(),
+            Created: new Date(),
+            fluppyjet_games: 0,
+            fluppyjet_max: 0,
+            skyDome_games: 0,
+            skyDome_maxS: 0,
+            skyDome_maxT: 0,
+            longArm_games: 0,
+            longArm_max: 0,
+            streams: 0
+        };
     }
 
     // Initialize user data with defaults if missing
