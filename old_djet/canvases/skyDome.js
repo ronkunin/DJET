@@ -17,12 +17,12 @@ let skyDome_start_img;
 let skyDome_end_img;
 // skyDome_
 function skyDome_preload() {
-  skyDome_missle = loadImage("../images/skyDome_missle.png");
-  skyDome_uav = loadImage("../images/skyDome_enemy.png");
-  skyDome_background = loadImage("../images/skyDome_background.png");
-  skyDome_irondome = loadImage("../images/skyDome_iron.png");
-  skyDome_start_img = loadImage("../images/skyDome_startImg.png");
-  skyDome_end_img = loadImage("../images/skyDome_endImg.png");
+  skyDome_missle = loadImage("../old_djet/images/skyDome_missle.png");
+  skyDome_uav = loadImage("../old_djet/images/skyDome_enemy.png");
+  skyDome_background = loadImage("../old_djet/images/skyDome_background.png");
+  skyDome_irondome = loadImage("../old_djet/images/skyDome_iron.png");
+  skyDome_start_img = loadImage("../old_djet/images/skyDome_startImg.png");
+  skyDome_end_img = loadImage("../old_djet/images/skyDome_endImg.png");
 }
 function skyDome_setup() {
 
