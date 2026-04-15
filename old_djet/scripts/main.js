@@ -153,3 +153,5 @@ function apply_dev_mode () {
     body.appendChild(admin_page);
 }
 apply_dev_mode();
+
+onLoad();
