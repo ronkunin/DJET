@@ -256,14 +256,15 @@ function updateStreakDisplay() {
 
     const streakDaysEl = document.getElementById('streak-days');
     if (streakDaysEl) streakDaysEl.textContent = currentStreak;
-    const currentStreakEl = document.getElementById('current-streak');
-    if (currentStreakEl) currentStreakEl.textContent = `${currentStreak} ${currentStreak === 1 ? 'יום' : 'ימים'}`;
-    const firstLogDateEl = document.getElementById('first-log-date');
-    if (firstLogDateEl) firstLogDateEl.textContent = user_details["Created"].toLocaleDateString('he-IL', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    // Removed lines for non-existent elements
+    // const currentStreakEl = document.getElementById('current-streak');
+    // if (currentStreakEl) currentStreakEl.textContent = `${currentStreak} ${currentStreak === 1 ? 'יום' : 'ימים'}`;
+    // const firstLogDateEl = document.getElementById('first-log-date');
+    // if (firstLogDateEl) firstLogDateEl.textContent = user_details["Created"].toLocaleDateString('he-IL', {
+    //     year: 'numeric',
+    //     month: 'long',
+    //     day: 'numeric'
+    // });
 
     const streakCounter = document.getElementById('streak-counter');
     const streakTitle = document.getElementById('streak-title');

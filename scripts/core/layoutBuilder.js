@@ -116,30 +116,32 @@ function buildPc() {
             </div>
         </div>
 
-        <div class="user-profile" id="user-profile" onclick="openSettings();">
-            <div class="user-avatar" id="user-avatar">U</div>
-            <div class="user-info">
-                <span class="username" id="username">GuestUser</span>
-                <span class="user-group" id="user-group">General</span>
+        <div class="sidebar-footer">
+            <div class="user-profile" id="user-profile" onclick="openSettings();">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <div class="user-info">
+                    <span class="username" id="username">GuestUser</span>
+                    <span class="user-group" id="user-group">General</span>
+                </div>
             </div>
-        </div>
 
-        <div class="dcoins-counter" id="dcoins-counter">
-            <i class="fas fa-coins"></i>
-            <div class="dcoins-info">
-                <span class="dcoins-amount" id="dcoins-amount">500</span>
-                <span class="dcoins-label">DCoins</span>
+            <div class="dcoins-counter" id="dcoins-counter">
+                <i class="fas fa-coins"></i>
+                <div class="dcoins-info">
+                    <span class="dcoins-amount" id="dcoins-amount">500</span>
+                    <span class="dcoins-label">DCoins</span>
+                </div>
+                <div class="dcoins-details" id="dcoins-details" dir="rtl"></div>
             </div>
-            <div class="dcoins-details" id="dcoins-details" dir="rtl"></div>
-        </div>
 
-        <div class="streak-counter" id="streak-counter">
-            <i class="fas fa-fire" id="streak-icon"></i>
-            <div class="streak-info">
-                <span class="streak-days" id="streak-days">0</span>
-                <span class="streak-label" id="streak-label">רצף יומי</span>
+            <div class="streak-counter" id="streak-counter">
+                <i class="fas fa-fire" id="streak-icon"></i>
+                <div class="streak-info">
+                    <span class="streak-days" id="streak-days">0</span>
+                    <span class="streak-label" id="streak-label">רצף יומי</span>
+                </div>
+                <div class="streak-details" id="streak-details" dir="rtl"></div>
             </div>
-            <div class="streak-details" id="streak-details" dir="rtl"></div>
         </div>
     `;
     
