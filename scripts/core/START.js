@@ -267,24 +267,35 @@ function initializeSite() {
 }
 function buildSiteForPremission(premission) {
     if (premission.includes('Music') || premission.includes('Full') || premission.includes('Normal')) {
-        document.getElementById("music-sec").style.display = 'flex';
-        document.getElementById("music-but").style.display = 'block';
+        const musicSec = document.getElementById("music-sec");
+        if (musicSec) musicSec.style.display = 'flex';
+        const musicBut = document.getElementById("music-but");
+        if (musicBut) musicBut.style.display = 'block';
     }
     else
         switchTab("activity");
 
     if (premission.includes('Community') || premission.includes('Full') || premission.includes('Normal')) {
-        document.getElementById("chat-sec").style.display = 'flex';
-        document.getElementById("activity-sec").style.display = 'flex';
-        document.getElementById("transfer-open-button").style.display = 'flex';
-        document.getElementById("chat-but").style.display = 'block';
-        document.getElementById("activity-but").style.display = 'block';
-        document.getElementById("user-profile").style.display = 'flex';
-        document.getElementById("leaderboards-link").style.display = 'block';
+        const chatSec = document.getElementById("chat-sec");
+        if (chatSec) chatSec.style.display = 'flex';
+        const activitySec = document.getElementById("activity-sec");
+        if (activitySec) activitySec.style.display = 'flex';
+        const transferButton = document.getElementById("transfer-open-button");
+        if (transferButton) transferButton.style.display = 'flex';
+        const chatBut = document.getElementById("chat-but");
+        if (chatBut) chatBut.style.display = 'block';
+        const activityBut = document.getElementById("activity-but");
+        if (activityBut) activityBut.style.display = 'block';
+        const userProfile = document.getElementById("user-profile");
+        if (userProfile) userProfile.style.display = 'flex';
+        const leaderboardsLink = document.getElementById("leaderboards-link");
+        if (leaderboardsLink) leaderboardsLink.style.display = 'block';
     }
     if (!(premission.includes('Music') || premission.includes('Community') || premission.includes('Full') || premission.includes('Normal'))) {
-        document.getElementById("sidebar").style.display = 'none';
-        document.getElementById("main-content").style.marginRight = "0px";
+        const sidebar = document.getElementById("sidebar");
+        if (sidebar) sidebar.style.display = 'none';
+        const mainContent = document.getElementById("main-content");
+        if (mainContent) mainContent.style.marginRight = "0px";
     }
 
 

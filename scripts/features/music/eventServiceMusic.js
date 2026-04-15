@@ -17,24 +17,27 @@ let results = [];
 let results_playlist = [];
 
 let song_index_playlist = 0;
-let audio = document.getElementById("timeline");
+let audio = document.getElementById("timeline") || document.getElementById("timeline_mobile");
 let max_results = 15;
 let mode = "none"; //shuffle, loop, radio, none
 let visual_mode = "song";
 let loaded = -1;
 
 async function loadAPI_songs() {
+    if (!audio) return; // If audio element not found, skip
     audio.addEventListener("ended", playNext);
     audio.addEventListener("play", updatePlayButtonState);
     audio.addEventListener("pause", updatePlayButtonState);
-    // event listeners
     // the playlist appearance .................................................................
-    document.getElementById("results").addEventListener('scroll', function() {
-    if(document.getElementById("results").scrollHeight - document.getElementById("results").scrollTop === document.getElementById("results").clientHeight) {
-        max_results += 5;
-        show_results();
+    const resultsElement = document.getElementById("results") || document.getElementById("results_mobile");
+    if (resultsElement) {
+        resultsElement.addEventListener('scroll', function() {
+            if(resultsElement.scrollHeight - resultsElement.scrollTop === resultsElement.clientHeight) {
+                max_results += 5;
+                show_results();
+            }
+        });
     }
-    });
 
     load_all_highlights_from_API ();
 
@@ -69,7 +72,7 @@ async function loadAPI_songs() {
 }
 
 function updatePlayButtonState() {
-    const btn = document.getElementById('button_play');
+    const btn = document.getElementById('button_play') || document.getElementById('button_play_mobile');
     if (!btn) return;
     if (playlist.length == 0) {
         btn.classList.add('disable');
