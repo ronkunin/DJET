@@ -329,7 +329,7 @@ function getMobileDisplaysHTML() {
                     </div>
                 </div>
             </section>
-            <section class="games" id="games-mobile">
+            <section id="games-mobile">
                 <div class="container">
                     <div class="games-grid" id="games-grid-mobile"></div>
                 </div>

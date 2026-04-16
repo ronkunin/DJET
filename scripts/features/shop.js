@@ -170,22 +170,7 @@ function loadAllGIFs() {
                                     ${gif.buyers_num} רכישות
                                 </div>
                             </div>
-                            <button class="buy-button ${isOwned ? 'owned' : ''}"
-                    ${imgCon}
-                    <div class="gif-info">
-                        <div class="gif-stats">
-                        ${isDaily && currentFilter2 == 'daily' ? `
-                            <div class="gif-price">
-                                <i class="fas fa-coins"></i>
-                                ${hasDiscount ? `<span style="text-decoration: line-through; color: #888;">${gif.price}</span> ${discountedPrice}` : gif.price}
-                            </div>` : ``}
-                            <div class="gif-sales">
-                                <i class="fas fa-shopping-bag"></i>
-                                ${gif.buyers_num} רכישות
-                            </div>
-                        </div>
-                        <button class="buy-button ${isOwned ? 'owned' : ''}" 
-                                    ${isOwned ? 'disabled' : !canAfford || !isDaily ? 'disabled' : ''}>
+                            <button class="buy-button ${isOwned ? 'owned' : ''}" ${isOwned ? 'disabled' : !canAfford || !isDaily ? 'disabled' : ''}>
                                 ${isOwned ? '<i class="fas fa-check"></i> בבעלותך' :
                     !isDaily ? '<i class="fas fa-clock"></i> לא זמין כרגע' :
                         !canAfford ? '<i class="fas fa-lock"></i> יתרה לא מספקת' :
