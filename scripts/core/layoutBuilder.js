@@ -498,7 +498,7 @@ function switchMobileDisplay(displayId) {
         const buttons = Array.from(document.querySelectorAll('.mobile-nav-btn'));
         const index = buttons.indexOf(activeBtn);
         if (index >= 0) {
-            indicator.style.transform = `translateX(${index * (100 / 7)}%)`;
+            indicator.style.transform = `translateX(${index * 100}%)`;
         }
     }
     
