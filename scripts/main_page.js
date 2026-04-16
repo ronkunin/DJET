@@ -31,6 +31,9 @@ function switchTab(tabId) {
 
 function updateUnreadIndicator() {
     const chatTabElement = document.querySelector('[data-tab="chat"]');
+    if (!chatTabElement) {
+        return;
+    }
     if (unreadMessages > 0) {
         chatTabElement.classList.add('has-unread');
     } else {

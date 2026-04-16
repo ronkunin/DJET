@@ -185,6 +185,11 @@ function triggerStreakAnimation() {
     const streaker = document.getElementById('streak-counter');
     const streakDays = document.getElementById('streak-days');
     const streakIcon = document.getElementById('streak-icon');
+    const currentStreak = document.getElementById('current-streak');
+
+    if (!streaker || !streakDays || !streakIcon) {
+        return;
+    }
 
     // Remove any existing animations
     streaker.classList.remove('streak-pop', 'streak-bounce', 'streak-glow',
@@ -226,7 +231,9 @@ function triggerStreakAnimation() {
     // Update display after a short delay
     setTimeout(() => {
         //document.getElementById('streak-days').textContent = user_details.LogInStreak;
-        document.getElementById('current-streak').textContent = `${user_details.LogInStreak} ימים`;
+        if (currentStreak) {
+            currentStreak.textContent = `${user_details.LogInStreak} ימים`;
+        }
         applyColorScheme(user_details.LogInStreak);
 
 
