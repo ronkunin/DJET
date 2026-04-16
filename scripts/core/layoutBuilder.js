@@ -139,9 +139,11 @@ function buildPhone() {
     container.style.flexDirection = 'column';
     container.style.width = '100%';
     container.style.height = '100vh';
+    container.style.overflow = 'hidden';
     
     // Header
     const header = document.createElement('header');
+    header.style.flexShrink = '0';
     header.innerHTML = getHeaderHTML();
     
     // Main display area
@@ -150,12 +152,14 @@ function buildPhone() {
     mainDisplay.id = 'main-display-mobile';
     mainDisplay.style.flex = '1';
     mainDisplay.style.overflowY = 'auto';
+    mainDisplay.style.overflowX = 'hidden';
     mainDisplay.innerHTML = getMobileDisplaysHTML();
     
     // Bottom navigation
     const bottomNav = document.createElement('nav');
     bottomNav.className = 'mobile-nav';
     bottomNav.id = 'mobile-nav';
+    bottomNav.style.flexShrink = '0';
     bottomNav.innerHTML = getBottomNavHTML();
     
     container.appendChild(header);
@@ -435,31 +439,31 @@ function getMobileDisplaysHTML() {
 function getBottomNavHTML() {
     return `
         <div class="mobile-nav-indicator"></div>
-        <button class="mobile-nav-btn active" data-display="mobile-home-display">
+        <button class="mobile-nav-btn active" data-display="mobile-home-display" onclick="switchMobileDisplay('mobile-home-display')">
             <i class="fas fa-home"></i>
             <span>בית</span>
         </button>
-        <button class="mobile-nav-btn" data-display="mobile-shop-display">
+        <button class="mobile-nav-btn" data-display="mobile-shop-display" onclick="switchMobileDisplay('mobile-shop-display')">
             <i class="fas fa-store"></i>
             <span>חנות</span>
         </button>
-        <button class="mobile-nav-btn" data-display="mobile-game-display">
+        <button class="mobile-nav-btn" data-display="mobile-game-display" onclick="switchMobileDisplay('mobile-game-display')">
             <i class="fas fa-gamepad"></i>
             <span>משחק</span>
         </button>
-        <button class="mobile-nav-btn" data-display="mobile-activity-display">
+        <button class="mobile-nav-btn" data-display="mobile-activity-display" onclick="switchMobileDisplay('mobile-activity-display')">
             <i class="fas fa-bolt"></i>
             <span>פעילות</span>
         </button>
-        <button class="mobile-nav-btn" data-display="mobile-chat-display">
+        <button class="mobile-nav-btn" data-display="mobile-chat-display" onclick="switchMobileDisplay('mobile-chat-display')">
             <i class="fas fa-comments"></i>
             <span>צ'אט</span>
         </button>
-        <button class="mobile-nav-btn" data-display="mobile-music-display">
+        <button class="mobile-nav-btn" data-display="mobile-music-display" onclick="switchMobileDisplay('mobile-music-display')">
             <i class="fas fa-music"></i>
             <span>מוזיקה</span>
         </button>
-        <button class="mobile-nav-btn" data-display="mobile-leaderboard-display">
+        <button class="mobile-nav-btn" data-display="mobile-leaderboard-display" onclick="switchMobileDisplay('mobile-leaderboard-display')">
             <i class="fas fa-trophy"></i>
             <span>לוח תוצאות</span>
         </button>
@@ -468,16 +472,33 @@ function getBottomNavHTML() {
 
 // Mobile display switching
 function switchMobileDisplay(displayId) {
+    // Hide all displays
     document.querySelectorAll('.mobile-display').forEach(d => d.classList.remove('active'));
-    document.getElementById(displayId).classList.add('active');
+    // Show selected display
+    const selectedDisplay = document.getElementById(displayId);
+    if (!selectedDisplay) return;
+    selectedDisplay.classList.add('active');
     
+    // Update button active state
     document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
-    document.querySelector(`[data-display="${displayId}"]`).classList.add('active');
+    const activeBtn = document.querySelector(`[data-display="${displayId}"]`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
     
-    // Move indicator
+    // Move indicator bar
     const indicator = document.querySelector('.mobile-nav-indicator');
-    const buttons = Array.from(document.querySelectorAll('.mobile-nav-btn'));
-    const activeBtn = document.querySelector('.mobile-nav-btn.active');
-    const index = buttons.indexOf(activeBtn);
-    indicator.style.transform = `translateX(${index * (100 / 7)}%)`;
+    if (indicator) {
+        const buttons = Array.from(document.querySelectorAll('.mobile-nav-btn'));
+        const index = buttons.indexOf(activeBtn);
+        if (index >= 0) {
+            indicator.style.transform = `translateX(${index * (100 / 7)}%)`;
+        }
+    }
+    
+    // Scroll display to top
+    const mainDisplay = document.getElementById('main-display-mobile');
+    if (mainDisplay) {
+        mainDisplay.scrollTop = 0;
+    }
 }

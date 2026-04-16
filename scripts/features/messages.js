@@ -68,17 +68,9 @@ function initializeChat() {
                 addNewMessage(message);
                 input.value = '';
 
-                // Switch to chat section on mobile
-                switchSection('chat');
-                document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
-                document.querySelector('.mobile-nav-btn[data-section="chat"]').classList.add('active');
-                // Move indicator
-                const indicator = document.querySelector('.mobile-nav-indicator');
-                if (indicator) {
-                    const buttons = Array.from(document.querySelectorAll('.mobile-nav-btn'));
-                    const activeBtn = document.querySelector('.mobile-nav-btn.active');
-                    const index = buttons.indexOf(activeBtn);
-                    indicator.style.transform = `translateX(${index * (100 / 7)}%)`;
+                // Switch to chat display on mobile
+                if (typeof switchMobileDisplay === 'function') {
+                    switchMobileDisplay('mobile-chat-display');
                 }
             }
         });
