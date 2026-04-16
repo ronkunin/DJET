@@ -6,8 +6,8 @@
   "scope": ".",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#1f2a5b",
-  "theme_color": "#1f2a5b",
+  "background_color": "#2a0a3d",
+  "theme_color": "#9b2ef5",
   "icons": [
     {
       "src": "images/מחולל התמונות (gamepad).png",

@@ -492,6 +492,12 @@ function setLeaderboardsGame(gameName) {
 }
 
 function loadLeaderboards() {
+    // Check if library_users is loaded
+    if (!library_users || library_users.length === 0) {
+        setTimeout(loadLeaderboards, 500);
+        return;
+    }
+
     // Update current filter from UI - check for desktop or mobile elements
     const gameSelect = document.getElementById('game-select') || document.getElementById('game-select-mobile');
     const unitFilter = document.getElementById('unit-filter') || document.getElementById('unit-filter-mobile');

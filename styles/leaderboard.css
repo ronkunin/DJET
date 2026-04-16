@@ -357,3 +357,83 @@
 .no-data-message p {
     font-size: 1.1rem;
 }
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+    .leaderboard-section {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .leaderboards-header {
+        padding: 15px 20px;
+    }
+
+    .leaderboards-header h3 {
+        font-size: 1.5rem;
+    }
+
+    .leaderboards-controls {
+        padding: 15px 20px;
+    }
+
+    .leaderboards-content {
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .leaderboards-table th,
+    .leaderboards-table td {
+        padding: 12px 15px;
+        font-size: 0.85rem;
+    }
+
+    .leaderboards-table .rank {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+
+    .leaderboards-table .player-avatar {
+        width: 30px;
+        height: 30px;
+        font-size: 0.8rem;
+    }
+
+    .leaderboards-table .score-value {
+        font-size: 1rem;
+    }
+
+    /* Hide games_played and last_update columns on mobile for standard games */
+    .leaderboards-table th:nth-child(5),
+    .leaderboards-table td:nth-child(5),
+    .leaderboards-table th:nth-child(6),
+    .leaderboards-table td:nth-child(6) {
+        display: none;
+    }
+
+    .current-user-stats {
+        padding: 12px 20px;
+    }
+
+    .current-user-rank .rank {
+        width: 35px;
+        height: 35px;
+        font-size: 1.1rem;
+    }
+
+    .current-user-avatar {
+        width: 35px;
+        height: 35px;
+    }
+
+    .current-user-name {
+        font-size: 1rem;
+    }
+
+    .current-user-score-value {
+        font-size: 1.2rem;
+    }
+}
