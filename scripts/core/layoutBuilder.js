@@ -153,6 +153,7 @@ function buildPhone() {
     mainDisplay.style.flex = '1';
     mainDisplay.style.overflowY = 'auto';
     mainDisplay.style.overflowX = 'hidden';
+    mainDisplay.style.touchAction = 'pan-y';
     mainDisplay.innerHTML = getMobileDisplaysHTML();
     
     // Bottom navigation
@@ -167,6 +168,7 @@ function buildPhone() {
     container.appendChild(bottomNav);
     
     body.appendChild(container);
+    setupMobileNavigationInteractions();
 }
 
 function getHeaderHTML() {
@@ -462,7 +464,7 @@ function getMobileDisplaysHTML() {
                 </div>
                 <div class="leaderboards-content">
                     <div class="leaderboards-table-container">
-                        <table id="leaderboards-table-mobile">
+                        <table class="leaderboards-table" id="leaderboards-table-mobile">
                             <thead id="leaderboards-header-mobile"></thead>
                             <tbody id="leaderboards-body-mobile"></tbody>
                         </table>
@@ -546,12 +548,9 @@ function switchMobileDisplay(displayId) {
     
     // Move indicator bar
     const indicator = document.querySelector('.mobile-nav-indicator');
-    if (indicator) {
-        const buttons = Array.from(document.querySelectorAll('.mobile-nav-btn'));
-        const index = buttons.indexOf(activeBtn);
-        if (index >= 0) {
-            indicator.style.transform = `translateX(${index * 100}%)`;
-        }
+    if (indicator && activeBtn) {
+        indicator.style.width = `${activeBtn.offsetWidth}px`;
+        indicator.style.transform = `translateX(${activeBtn.offsetLeft}px)`;
     }
     
     // Scroll display to top
@@ -570,4 +569,112 @@ function switchMobileDisplay(displayId) {
     } else if (displayId === 'mobile-leaderboard-display' && typeof loadLeaderboards === 'function') {
         loadLeaderboards();
     }
+}
+
+function setupMobileNavigationInteractions() {
+    const nav = document.getElementById('mobile-nav');
+    const mainDisplay = document.getElementById('main-display-mobile');
+    if (!nav || !mainDisplay) return;
+
+    const buttons = Array.from(nav.querySelectorAll('.mobile-nav-btn'));
+    const displayIds = ['mobile-home-display', 'mobile-game-display', 'mobile-activity-display', 'mobile-chat-display', 'mobile-leaderboard-display'];
+    let isDragging = false;
+    let dragStarted = false;
+    let currentIndex = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchDeltaX = 0;
+    let touchDeltaY = 0;
+    const dragThreshold = 12;
+
+    const clampIndex = (index) => Math.max(0, Math.min(displayIds.length - 1, index));
+    const highlightIndex = (index) => {
+        buttons.forEach((btn, idx) => btn.classList.toggle('nav-hovered', idx === index));
+    };
+    const clearHighlight = () => buttons.forEach(btn => btn.classList.remove('nav-hovered'));
+
+    const indicator = document.querySelector('.mobile-nav-indicator');
+    const updateIndicator = () => {
+        const activeButton = document.querySelector('.mobile-nav-btn.active');
+        if (indicator && activeButton) {
+            indicator.style.width = `${activeButton.offsetWidth}px`;
+            indicator.style.transform = `translateX(${activeButton.offsetLeft}px)`;
+        }
+    };
+
+    buttons.forEach((button, index) => {
+        button.addEventListener('click', () => {
+            button.classList.add('tab-bounce');
+            button.addEventListener('animationend', () => button.classList.remove('tab-bounce'), { once: true });
+            updateIndicator();
+        });
+    });
+
+    updateIndicator();
+
+    nav.addEventListener('pointerdown', (event) => {
+        if (event.pointerType !== 'touch' && event.pointerType !== 'pen' && event.pointerType !== 'mouse') return;
+        isDragging = true;
+        touchStartX = event.clientX;
+        nav.setPointerCapture(event.pointerId);
+    });
+
+    nav.addEventListener('pointermove', (event) => {
+        if (!isDragging) return;
+        const rect = nav.getBoundingClientRect();
+        const x = Math.min(Math.max(event.clientX - rect.left, 0), rect.width);
+        const targetIndex = clampIndex(Math.floor((x / rect.width) * buttons.length));
+        if (Math.abs(event.clientX - touchStartX) > dragThreshold) {
+            dragStarted = true;
+        }
+        highlightIndex(targetIndex);
+        currentIndex = targetIndex;
+    });
+
+    nav.addEventListener('pointerup', (event) => {
+        if (!isDragging) return;
+        isDragging = false;
+        if (event.pointerId) nav.releasePointerCapture(event.pointerId);
+        if (dragStarted) {
+            const targetId = displayIds[currentIndex];
+            if (targetId) switchMobileDisplay(targetId);
+        }
+        dragStarted = false;
+        clearHighlight();
+    });
+
+    nav.addEventListener('pointercancel', () => {
+        isDragging = false;
+        clearHighlight();
+    });
+
+    mainDisplay.addEventListener('touchstart', (event) => {
+        if (event.touches.length !== 1) return;
+        touchStartX = event.touches[0].clientX;
+        touchStartY = event.touches[0].clientY;
+        touchDeltaX = 0;
+        touchDeltaY = 0;
+    }, { passive: true });
+
+    mainDisplay.addEventListener('touchmove', (event) => {
+        if (event.touches.length !== 1) return;
+        touchDeltaX = event.touches[0].clientX - touchStartX;
+        touchDeltaY = event.touches[0].clientY - touchStartY;
+        if (Math.abs(touchDeltaX) > 20 && Math.abs(touchDeltaX) > Math.abs(touchDeltaY)) {
+            event.preventDefault();
+        }
+    }, { passive: false });
+
+    mainDisplay.addEventListener('touchend', () => {
+        const activeDisplay = displayIds.find(id => document.getElementById(id)?.classList.contains('active')) || displayIds[0];
+        const activeIndex = displayIds.indexOf(activeDisplay);
+
+        if (Math.abs(touchDeltaX) > 50 && Math.abs(touchDeltaX) > Math.abs(touchDeltaY)) {
+            if (touchDeltaX < 0 && activeIndex < displayIds.length - 1) {
+                switchMobileDisplay(displayIds[activeIndex + 1]);
+            } else if (touchDeltaX > 0 && activeIndex > 0) {
+                switchMobileDisplay(displayIds[activeIndex - 1]);
+            }
+        }
+    });
 }
