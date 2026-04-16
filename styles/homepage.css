@@ -418,6 +418,46 @@ footer {
 }
 
 /* Compact/global responsive adjustments */
+
+#leaderboards-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #7b64ff, #5d48ff);
+    color: #ffffff;
+    border-radius: 999px;
+    padding: 10px 18px;
+    text-decoration: none;
+    font-weight: 700;
+    box-shadow: 0 10px 30px rgba(84, 67, 212, 0.25);
+    transition: transform 0.25s ease, opacity 0.25s ease, box-shadow 0.25s ease;
+}
+
+#leaderboards-link:hover {
+    transform: translateY(-2px);
+    opacity: 0.95;
+}
+
+.cta-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #7b64ff, #5d48ff);
+    color: #ffffff;
+    border-radius: 999px;
+    border: none;
+    padding: 10px 18px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(84, 67, 212, 0.25);
+    transition: transform 0.25s ease, opacity 0.25s ease, box-shadow 0.25s ease;
+}
+
+.cta-button:hover {
+    transform: translateY(-2px);
+    opacity: 0.95;
+}
+
 @media (max-width: 992px) {
 
     /* Hide desktop nav, show mobile toggle */
@@ -513,7 +553,6 @@ footer {
 #activity-but,
 #chat-but,
 #music-but,
-#leaderboards-link,
 #user-profile {
     display: none;
 }

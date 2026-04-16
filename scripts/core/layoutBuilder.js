@@ -190,9 +190,20 @@ function getHeaderHTML() {
                             <span class="dcoins-label">DCoins</span>
                         </div>
                         <div class="dcoins-details" id="dcoins-details" dir="rtl">
-                            <div id="dcoins-title"></div>
-                            <div id="dcoins-status"></div>
-                            <div id="dcoins-warning"></div>
+                            <h4><i class="fas fa-coins"></i> DCoins שלך</h4>
+                            <p class="dcoins-explanation">
+                                DCoins הם המטבע הווירטואלי של DJET. ניתן להרוויח אותם על ידי משחקים, הזמנת חברים
+                                והגעה לרמות גבוהות.
+                            </p>
+                            <button class="transfer-open-button" id="transfer-open-button">
+                                <i class="fas fa-exchange-alt"></i> העבר DCoins לשחקן אחר
+                            </button>
+                            <div class="transfer-history">
+                                <h5><i class="fas fa-history"></i> היסטוריית העברות</h5>
+                                <div id="transfer-history-list">
+                                    <!-- Transfer history will be loaded here -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="nav-links">
@@ -240,9 +251,20 @@ function getMainContentHTML() {
                                 <span class="dcoins-label">DCoins</span>
                             </div>
                             <div class="dcoins-details" id="dcoins-details" dir="rtl">
-                                <div id="dcoins-title"></div>
-                                <div id="dcoins-status"></div>
-                                <div id="dcoins-warning"></div>
+                                <h4><i class="fas fa-coins"></i> DCoins שלך</h4>
+                                <p class="dcoins-explanation">
+                                    DCoins הם המטבע הווירטואלי של DJET. ניתן להרוויח אותם על ידי משחקים, הזמנת חברים
+                                    והגעה לרמות גבוהות.
+                                </p>
+                                <button class="transfer-open-button" id="transfer-open-button">
+                                    <i class="fas fa-exchange-alt"></i> העבר DCoins לשחקן אחר
+                                </button>
+                                <div class="transfer-history">
+                                    <h5><i class="fas fa-history"></i> היסטוריית העברות</h5>
+                                    <div id="transfer-history-list">
+                                        <!-- Transfer history will be loaded here -->
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="nav-links">
