@@ -174,38 +174,45 @@ function getHeaderHTML() {
         <div class="nav-container glass">
             <div class="containerN">
                 <nav>
-                    <div class="share-counter" onclick="copyShareLink();"><i class="fas fa-share-nodes"></i></div>
-                    <div class="streak-counter" id="streak-counter">
-                        <i class="fas fa-fire" id="streak-icon"></i>
-                        <div class="streak-info">
-                            <span class="streak-days" id="streak-days">0</span>
-                            <span class="streak-label" id="streak-label">רצף יומי</span>
-                        </div>
-                        <div class="streak-details" id="streak-details" dir="rtl">
-                            <div id="streak-title"></div>
-                            <div id="streak-status"></div>
-                            <div id="streak-warning"></div>
+                    <div class="header-left">
+                        <div class="logo nav-logo" style="direction:ltr;" onclick="homepage();">
+                            <i class="fas fa-gamepad" aria-hidden="true"></i>
+                            <span>DJET</span>
                         </div>
                     </div>
-                    <div class="dcoins-counter" id="dcoins-counter">
-                        <i class="fas fa-coins"></i>
-                        <div class="dcoins-info">
-                            <span class="dcoins-amount" id="dcoins-amount">500</span>
-                            <span class="dcoins-label">DCoins</span>
+                    <div class="header-right">
+                        <div class="streak-counter" id="streak-counter">
+                            <i class="fas fa-fire" id="streak-icon"></i>
+                            <div class="streak-info">
+                                <span class="streak-days" id="streak-days">0</span>
+                                <span class="streak-label" id="streak-label">רצף יומי</span>
+                            </div>
+                            <div class="streak-details" id="streak-details" dir="rtl">
+                                <div id="streak-title"></div>
+                                <div id="streak-status"></div>
+                                <div id="streak-warning"></div>
+                            </div>
                         </div>
-                        <div class="dcoins-details" id="dcoins-details" dir="rtl">
-                            <h4><i class="fas fa-coins"></i> DCoins שלך</h4>
-                            <p class="dcoins-explanation">
-                                DCoins הם המטבע הווירטואלי של DJET. ניתן להרוויח אותם על ידי משחקים, הזמנת חברים
-                                והגעה לרמות גבוהות.
-                            </p>
-                            <button class="transfer-open-button" id="transfer-open-button">
-                                <i class="fas fa-exchange-alt"></i> העבר DCoins לשחקן אחר
-                            </button>
-                            <div class="transfer-history">
-                                <h5><i class="fas fa-history"></i> היסטוריית העברות</h5>
-                                <div id="transfer-history-list">
-                                    <!-- Transfer history will be loaded here -->
+                        <div class="dcoins-counter" id="dcoins-counter">
+                            <i class="fas fa-coins"></i>
+                            <div class="dcoins-info">
+                                <span class="dcoins-amount" id="dcoins-amount">500</span>
+                                <span class="dcoins-label">DCoins</span>
+                            </div>
+                            <div class="dcoins-details" id="dcoins-details" dir="rtl">
+                                <h4><i class="fas fa-coins"></i> DCoins שלך</h4>
+                                <p class="dcoins-explanation">
+                                    DCoins הם המטבע הווירטואלי של DJET. ניתן להרוויח אותם על ידי משחקים, הזמנת חברים
+                                    והגעה לרמות גבוהות.
+                                </p>
+                                <button class="transfer-open-button" id="transfer-open-button">
+                                    <i class="fas fa-exchange-alt"></i> העבר DCoins לשחקן אחר
+                                </button>
+                                <div class="transfer-history">
+                                    <h5><i class="fas fa-history"></i> היסטוריית העברות</h5>
+                                    <div id="transfer-history-list">
+                                        <!-- Transfer history will be loaded here -->
+                                    </div>
                                 </div>
                             </div>
                         </div>
