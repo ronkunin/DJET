@@ -14,6 +14,7 @@ DCOINS COUNTER STYLES
     cursor: pointer;
     direction: rtl;
     transition: var(--transition);
+    overflow: visible;
 }
 
 .dcoins-counter:hover {
@@ -414,19 +415,22 @@ DCOINS COUNTER STYLES
 .dcoins-details {
     position: absolute;
     top: 100%;
-    left: 0;
+    right: 0;
+    left: auto;
     margin-top: 10px;
     padding: 20px;
     border-radius: 12px;
     background: rgba(10, 10, 15, 0.95);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(0, 255, 136, 0.2);
-    min-width: 350px;
+    min-width: 320px;
+    max-width: calc(100vw - 32px);
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
     transition: var(--transition);
     z-index: 1000;
+    pointer-events: auto;
 }
 
 .dcoins-counter:hover .dcoins-details {

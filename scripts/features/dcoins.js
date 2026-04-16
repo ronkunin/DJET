@@ -222,9 +222,14 @@ async function scanTransactions() {
             continue;
         }
 
+        const transactionId = transaction.Id ?? transaction.ID;
+        if (!transactionId) {
+            continue;
+        }
+
         if (user_details["Id"] == transaction.reciver_id) {
             user_details["dcoins"] += transaction.amount;
-            await updateSPValueInList("Transactions", "status", transaction.Id, "Finished", true);
+            await updateSPValueInList("Transactions", "status", transactionId, "Finished", true);
             animateMoneyChange(transaction.amount);
         }
     }
