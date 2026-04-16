@@ -519,8 +519,9 @@ function addLeaderBoardModal() {
     `;
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-    const leaderboardsLink = document.getElementById('leaderboards-link');
-    if (leaderboardsLink) leaderboardsLink.addEventListener('click', (e) => {
+    document.body.addEventListener('click', function (e) {
+        const target = e.target.closest('#leaderboards-link, .leaderboards-link');
+        if (!target) return;
         e.preventDefault();
         openLeaderboards();
     });

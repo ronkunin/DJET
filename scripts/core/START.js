@@ -24,6 +24,10 @@ function initializeSite() {
 async function initializeAndLoad() {
     // Build the site layout first
     buildSite();
+
+    // Initialize the leaderboard modal and bindings after the DOM is available
+    addLeaderBoardModal();
+    initializeLeaderboards();
     
     // Load games
     loadGames();
@@ -267,9 +271,6 @@ function initializeSite() {
 
     addTransferModal();
     initializeTransfer();
-
-    addLeaderBoardModal();
-    initializeLeaderboards();
 
     addPurchaserModal();
 
