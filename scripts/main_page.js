@@ -43,17 +43,37 @@ function updateUnreadIndicator() {
 // ==============================================
 function homepage() {
     // Hide game zone if visible
-    const gameZone = document.getElementById('game_zone') || document.getElementById('game_zone_mobile');
+    const gameZone = document.getElementById('game_zone');
+    const gameZoneMobile = document.getElementById('game_zone_mobile');
     if (gameZone) {
         gameZone.style.display = 'none';
         gameZone.innerHTML = '';
     }
-    
+    if (gameZoneMobile) {
+        gameZoneMobile.style.display = 'none';
+        gameZoneMobile.innerHTML = '';
+    }
+
     // Show games grid
-    const gamesGrid = document.getElementById('games-grid') || document.getElementById('games-grid-mobile');
+    const gamesGrid = document.getElementById('games-grid');
+    const gamesGridMobile = document.getElementById('games-grid-mobile');
     if (gamesGrid) {
         gamesGrid.style.display = 'grid';
     }
+    if (gamesGridMobile) {
+        gamesGridMobile.style.display = 'grid';
+    }
+
+    // Hide shop screens and show home content
+    const dshop = document.getElementById('dshop');
+    const dshopMobile = document.getElementById('dshop-mobile');
+    if (dshop) dshop.style.display = 'none';
+    if (dshopMobile) dshopMobile.style.display = 'none';
+
+    const mobileHome = document.getElementById('mobile-home-display');
+    const mobileShop = document.getElementById('mobile-shop-display');
+    if (mobileHome) mobileHome.classList.add('active');
+    if (mobileShop) mobileShop.classList.remove('active');
 }
 
 function loadGames() {

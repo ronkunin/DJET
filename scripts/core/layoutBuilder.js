@@ -270,7 +270,7 @@ function getMainContentHTML() {
                         <div class="nav-links">
                             <a href="old_djet/index.html">D-History</a>
                             <a onclick="shop();">DShop</a>
-                            <a href="#" id="leaderboards-link">לוח תוצאות</a>
+                            <a href="#" class="leaderboards-link">לוח תוצאות</a>
                         </div>
                         <div class="user-profile" id="user-profile" onclick="openSettings();">
                             <div class="user-avatar" id="user-avatar">U</div>
@@ -279,6 +279,7 @@ function getMainContentHTML() {
                                 <span class="user-group" id="user-group">General</span>
                             </div>
                         </div>
+                        <button class="cta-button" id="play-now-btn" onclick="homepage();">דף הבית</button>
                     </nav>
                 </div>
             </div>

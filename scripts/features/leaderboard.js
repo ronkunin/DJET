@@ -516,6 +516,14 @@ function initializeLeaderboards() {
     document.getElementById('unit-filter').addEventListener('change', loadLeaderboards);
     document.getElementById('sort-by').addEventListener('change', loadLeaderboards);
 
+    const leaderboardsLinks = document.querySelectorAll('#leaderboards-link, .leaderboards-link');
+    leaderboardsLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            openLeaderboards();
+        });
+    });
+
     document.getElementById('close-leaderboards').addEventListener('click', closeLeaderboards);
 
     // Add keyboard support for closing
