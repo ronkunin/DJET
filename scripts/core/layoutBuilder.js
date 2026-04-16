@@ -614,6 +614,8 @@ function setupMobileNavigationInteractions() {
 
     nav.addEventListener('pointerdown', (event) => {
         if (event.pointerType !== 'touch' && event.pointerType !== 'pen' && event.pointerType !== 'mouse') return;
+        // Don't start dragging if clicking on a button
+        if (event.target.closest('.mobile-nav-btn')) return;
         isDragging = true;
         touchStartX = event.clientX;
         nav.setPointerCapture(event.pointerId);

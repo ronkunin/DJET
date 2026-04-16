@@ -806,6 +806,7 @@ footer {
     font-size: 0.72rem;
     font-weight: 600;
     color: inherit;
+    display: none;
 }
 
 .mobile-nav-btn.tab-bounce {
