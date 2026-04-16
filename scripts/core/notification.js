@@ -96,11 +96,13 @@ function showNotification(sender, message) {
             switchTab('chat');
             removeNotification(notification.dataset.id);
             setTimeout(() => {
-                const chatMessagesContainer = document.getElementById('chat-messages');
-                chatMessagesContainer.scrollTo({
-                    top: chatMessagesContainer.scrollHeight,
-                    behavior: 'smooth'
-                });
+                const chatMessagesContainer = document.getElementById('chat-messages') || document.getElementById('chat-messages-mobile');
+                if (chatMessagesContainer) {
+                    chatMessagesContainer.scrollTo({
+                        top: chatMessagesContainer.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
             }, 100);
         };
 
@@ -146,11 +148,13 @@ function showNotification(sender, message) {
             switchTab('chat');
             removeNotification(notification.dataset.id);
             setTimeout(() => {
-                const chatMessagesContainer = document.getElementById('chat-messages');
-                chatMessagesContainer.scrollTo({
-                    top: chatMessagesContainer.scrollHeight,
-                    behavior: 'smooth'
-                });
+                const chatMessagesContainer = document.getElementById('chat-messages') || document.getElementById('chat-messages-mobile');
+                if (chatMessagesContainer) {
+                    chatMessagesContainer.scrollTo({
+                        top: chatMessagesContainer.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
             }, 100);
         };
 

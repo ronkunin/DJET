@@ -28,6 +28,14 @@ function loadActivities() {
     const activityList = document.getElementById('activity-list');
     const activityListMobile = document.getElementById('activity-list-mobile');
     
+    // If mobile, prioritize mobile list
+    if (activityListMobile) {
+        loadIntoList(activityListMobile);
+        return;
+    }
+    
+    if (!activityList) return;
+    
     // Function to load into a list
     const loadIntoList = (list) => {
         list.innerHTML = '';

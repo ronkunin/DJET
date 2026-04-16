@@ -501,4 +501,15 @@ function switchMobileDisplay(displayId) {
     if (mainDisplay) {
         mainDisplay.scrollTop = 0;
     }
+    
+    // Refresh content based on displayed section
+    if (displayId === 'mobile-activity-display' && typeof loadActivities === 'function') {
+        loadActivities();
+    } else if (displayId === 'mobile-chat-display' && typeof loadChatMessages === 'function') {
+        loadChatMessages();
+    } else if (displayId === 'mobile-music-display' && typeof loadPlaylistsAndHighlights === 'function') {
+        loadPlaylistsAndHighlights();
+    } else if (displayId === 'mobile-leaderboard-display' && typeof loadLeaderboards === 'function') {
+        loadLeaderboards();
+    }
 }

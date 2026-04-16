@@ -25,7 +25,9 @@ let count_newcontacts = 0;
 function updateNotifBadge() {
     const perm = PREMISSIONS[userEmail];
     const badge = document.getElementById('contact-notif-badge');
-    badge.style.display = count_newcontacts > 0 ? 'block' : 'none';
+    if (badge) {
+        badge.style.display = count_newcontacts > 0 ? 'block' : 'none';
+    }
 }
 
 function renderContactTabs() {

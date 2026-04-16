@@ -475,10 +475,20 @@ function setLeaderboardsGame(gameName) {
 }
 
 function loadLeaderboards() {
-    // Update current filter from UI
-    currentFilter.game = document.getElementById('game-select').value;
-    currentFilter.unitFilter = document.getElementById('unit-filter').value;
-    currentFilter.sortBy = document.getElementById('sort-by').value;
+    // Update current filter from UI - check for desktop or mobile elements
+    const gameSelect = document.getElementById('game-select') || document.getElementById('game-select-mobile');
+    const unitFilter = document.getElementById('unit-filter');
+    const sortBy = document.getElementById('sort-by');
+    
+    if (gameSelect) {
+        currentFilter.game = gameSelect.value;
+    }
+    if (unitFilter) {
+        currentFilter.unitFilter = unitFilter.value;
+    }
+    if (sortBy) {
+        currentFilter.sortBy = sortBy.value;
+    }
 
     // Update table headers based on selected game
     updateTableHeaders(currentFilter.game);
@@ -510,11 +520,11 @@ function initializeLeaderboards() {
     populateSelect(gameSelect);
     populateSelect(gameSelectMobile);
     
-    // Event listeners
+    // Event listeners - check if elements exist before adding listeners
     if (gameSelect) gameSelect.addEventListener('change', loadLeaderboards);
     if (gameSelectMobile) gameSelectMobile.addEventListener('change', loadLeaderboards);
-    document.getElementById('unit-filter').addEventListener('change', loadLeaderboards);
-    document.getElementById('sort-by').addEventListener('change', loadLeaderboards);
+    if (document.getElementById('unit-filter')) document.getElementById('unit-filter').addEventListener('change', loadLeaderboards);
+    if (document.getElementById('sort-by')) document.getElementById('sort-by').addEventListener('change', loadLeaderboards);
 
     const leaderboardsLinks = document.querySelectorAll('#leaderboards-link, .leaderboards-link');
     leaderboardsLinks.forEach(link => {
