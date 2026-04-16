@@ -312,7 +312,9 @@ function updateLeaderboardsDisplay(filteredPlayers) {
     const tbody = document.getElementById('leaderboards-body');
     const tbodyMobile = document.getElementById('leaderboards-body-mobile');
     const noDataMessage = document.getElementById('no-data-message');
+    const noDataMessageMobile = document.getElementById('no-data-message-mobile');
     const currentUserStats = document.getElementById('current-user-stats');
+    const currentUserStatsMobile = document.getElementById('current-user-stats-mobile');
     const gameConfig = gamesConfig[currentFilter.game];
 
     // Function to update a tbody
@@ -322,12 +324,16 @@ function updateLeaderboardsDisplay(filteredPlayers) {
 
         if (filteredPlayers.length === 0) {
             if (noDataMessage) noDataMessage.style.display = 'block';
+            if (noDataMessageMobile) noDataMessageMobile.style.display = 'block';
             if (currentUserStats) currentUserStats.style.display = 'none';
+            if (currentUserStatsMobile) currentUserStatsMobile.style.display = 'none';
             return;
         }
 
         if (noDataMessage) noDataMessage.style.display = 'none';
+        if (noDataMessageMobile) noDataMessageMobile.style.display = 'none';
         if (currentUserStats) currentUserStats.style.display = 'block';
+        if (currentUserStatsMobile) currentUserStatsMobile.style.display = 'block';
 
         // Find current user's position
         let currentUserRank = 0;
@@ -455,10 +461,19 @@ function updateLeaderboardsDisplay(filteredPlayers) {
 function updateCurrentUserStats(rank, score) {
     const gameConfig = gamesConfig[currentFilter.game];
 
-    document.getElementById('current-user-rank').textContent = rank;
-    document.getElementById('current-user-avatar').textContent = (user_details["username"]) ? user_details["username"].charAt(0) : "א";
-    document.getElementById('current-user-name').textContent = (user_details["username"]) ? user_details["username"] : "אורח";
-    document.getElementById('current-user-unit').textContent = (user_details["unit"]) ? user_details["unit"] : "המטה";
+    const updateElement = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    };
+
+    updateElement('current-user-rank', rank);
+    updateElement('current-user-rank-mobile', rank);
+    updateElement('current-user-avatar', (user_details["username"]) ? user_details["username"].charAt(0) : "א");
+    updateElement('current-user-avatar-mobile', (user_details["username"]) ? user_details["username"].charAt(0) : "א");
+    updateElement('current-user-name', (user_details["username"]) ? user_details["username"] : "אורח");
+    updateElement('current-user-name-mobile', (user_details["username"]) ? user_details["username"] : "אורח");
+    updateElement('current-user-unit', (user_details["unit"]) ? user_details["unit"] : "המטה");
+    updateElement('current-user-unit-mobile', (user_details["unit"]) ? user_details["unit"] : "המטה");
 
     let scoreDisplay;
     if (gameConfig.formatScore) {
@@ -466,7 +481,9 @@ function updateCurrentUserStats(rank, score) {
     } else {
         scoreDisplay = score.toLocaleString();
     }
-    document.getElementById('current-user-score').textContent = scoreDisplay;
+
+    updateElement('current-user-score', scoreDisplay);
+    updateElement('current-user-score-mobile', scoreDisplay);
 }
 function setLeaderboardsGame(gameName) {
     const gameSelect = document.getElementById('game-select');
@@ -477,8 +494,8 @@ function setLeaderboardsGame(gameName) {
 function loadLeaderboards() {
     // Update current filter from UI - check for desktop or mobile elements
     const gameSelect = document.getElementById('game-select') || document.getElementById('game-select-mobile');
-    const unitFilter = document.getElementById('unit-filter');
-    const sortBy = document.getElementById('sort-by');
+    const unitFilter = document.getElementById('unit-filter') || document.getElementById('unit-filter-mobile');
+    const sortBy = document.getElementById('sort-by') || document.getElementById('sort-by-mobile');
     
     if (gameSelect) {
         currentFilter.game = gameSelect.value;
@@ -524,13 +541,19 @@ function initializeLeaderboards() {
     if (gameSelect) gameSelect.addEventListener('change', loadLeaderboards);
     if (gameSelectMobile) gameSelectMobile.addEventListener('change', loadLeaderboards);
     if (document.getElementById('unit-filter')) document.getElementById('unit-filter').addEventListener('change', loadLeaderboards);
+    if (document.getElementById('unit-filter-mobile')) document.getElementById('unit-filter-mobile').addEventListener('change', loadLeaderboards);
     if (document.getElementById('sort-by')) document.getElementById('sort-by').addEventListener('change', loadLeaderboards);
+    if (document.getElementById('sort-by-mobile')) document.getElementById('sort-by-mobile').addEventListener('change', loadLeaderboards);
 
     const leaderboardsLinks = document.querySelectorAll('#leaderboards-link, .leaderboards-link');
     leaderboardsLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            openLeaderboards();
+            if (window.innerWidth < 768 || document.body.classList.contains('mobile-layout')) {
+                switchMobileDisplay('mobile-leaderboard-display');
+            } else {
+                openLeaderboards();
+            }
         });
     });
 

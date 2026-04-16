@@ -428,14 +428,66 @@ function getMobileDisplaysHTML() {
 
         <div id="mobile-leaderboard-display" class="mobile-display">
             <div class="leaderboard-section" id="leaderboard-mobile">
-                <div class="leaderboards-header"><h3><i class="fas fa-trophy"></i> לוח התוצאות</h3></div>
+                <div class="leaderboards-header"><h3><i class="fas fa-trophy"></i> לוח תוצאות</h3></div>
+                <div class="leaderboards-controls">
+                    <div class="filter-group">
+                        <label for="game-select-mobile">
+                            <i class="fas fa-gamepad"></i>
+                            בחר משחק:
+                        </label>
+                        <select id="game-select-mobile" class="filter-select"></select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="unit-filter-mobile">
+                            <i class="fas fa-filter"></i>
+                            סינון:
+                        </label>
+                        <select id="unit-filter-mobile" class="filter-select">
+                            <option value="all">כל היחידות</option>
+                            <option value="my_unit">היחידה שלי בלבד</option>
+                            <option value="units_ranking">דירוג יחידות</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="sort-by-mobile">
+                            <i class="fas fa-sort"></i>
+                            מיון לפי:
+                        </label>
+                        <select id="sort-by-mobile" class="filter-select">
+                            <option value="max_score">ניקוד גבוה ביותר</option>
+                            <option value="games_played">כמות משחקים</option>
+                            <option value="recent">הכי עדכני</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="leaderboards-content">
-                    <div class="game-selector"><select id="game-select-mobile"></select></div>
                     <div class="leaderboards-table-container">
                         <table id="leaderboards-table-mobile">
                             <thead id="leaderboards-header-mobile"></thead>
                             <tbody id="leaderboards-body-mobile"></tbody>
                         </table>
+                        <div class="no-data-message" id="no-data-message-mobile" style="display: none;">
+                            <i class="fas fa-chart-bar"></i>
+                            <p>אין נתונים להצגה. נסה לשנות את הסינונים.</p>
+                        </div>
+                    </div>
+                    <div class="current-user-stats" id="current-user-stats-mobile" style="display: none;">
+                        <div class="current-user-info">
+                            <div class="current-user-rank">
+                                <div class="rank" id="current-user-rank-mobile">0</div>
+                                <div class="current-user-details">
+                                    <div class="current-user-avatar" id="current-user-avatar-mobile">א</div>
+                                    <div class="current-user-text">
+                                        <div class="current-user-name" id="current-user-name-mobile">אורח</div>
+                                        <div class="current-user-unit" id="current-user-unit-mobile">המטה</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="current-user-score">
+                                <div class="current-user-score-value" id="current-user-score-mobile">0</div>
+                                <div class="current-user-score-label">הניקוד שלך</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
