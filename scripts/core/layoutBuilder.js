@@ -443,10 +443,6 @@ function getBottomNavHTML() {
             <i class="fas fa-home"></i>
             <span>בית</span>
         </button>
-        <button class="mobile-nav-btn" data-display="mobile-shop-display" onclick="switchMobileDisplay('mobile-shop-display')">
-            <i class="fas fa-store"></i>
-            <span>חנות</span>
-        </button>
         <button class="mobile-nav-btn" data-display="mobile-game-display" onclick="switchMobileDisplay('mobile-game-display')">
             <i class="fas fa-gamepad"></i>
             <span>משחק</span>
@@ -458,10 +454,6 @@ function getBottomNavHTML() {
         <button class="mobile-nav-btn" data-display="mobile-chat-display" onclick="switchMobileDisplay('mobile-chat-display')">
             <i class="fas fa-comments"></i>
             <span>צ'אט</span>
-        </button>
-        <button class="mobile-nav-btn" data-display="mobile-music-display" onclick="switchMobileDisplay('mobile-music-display')">
-            <i class="fas fa-music"></i>
-            <span>מוזיקה</span>
         </button>
         <button class="mobile-nav-btn" data-display="mobile-leaderboard-display" onclick="switchMobileDisplay('mobile-leaderboard-display')">
             <i class="fas fa-trophy"></i>
