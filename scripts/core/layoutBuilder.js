@@ -486,6 +486,13 @@ function switchMobileDisplay(displayId) {
         activeBtn.classList.add('active');
     }
     
+    // Special handling for displays
+    if (displayId === 'mobile-home-display') {
+        homepage();
+    } else if (displayId === 'mobile-shop-display') {
+        shop();
+    }
+    
     // Move indicator bar
     const indicator = document.querySelector('.mobile-nav-indicator');
     if (indicator) {

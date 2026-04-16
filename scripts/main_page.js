@@ -126,7 +126,44 @@ function openGame(gameFile) {
         gameZone.style.width = '100%';
         gameZone.style.height = '80vh';
         gameZone.innerHTML = `
+            <button onclick="homepage()" style="position: absolute; top: 10px; left: 10px; z-index: 10; background: rgba(0,0,0,0.5); color: white; border: none; padding: 10px; border-radius: 5px;">חזור</button>
             <iframe src="games/${gameFile}" frameborder="0" style="width: 100%; height: 100%; border-radius: 10px;"></iframe>
         `;
+    }
+
+    // On mobile, switch to game display
+    if (document.body.classList.contains('mobile-layout')) {
+        switchMobileDisplay('mobile-game-display');
+    }
+}
+
+function shop() {
+    // Hide game zone if visible
+    const gameZone = document.getElementById('game_zone');
+    const gameZoneMobile = document.getElementById('game_zone_mobile');
+    if (gameZone) {
+        gameZone.style.display = 'none';
+        gameZone.innerHTML = '';
+    }
+    if (gameZoneMobile) {
+        gameZoneMobile.style.display = 'none';
+        gameZoneMobile.innerHTML = '';
+    }
+
+    // Hide games grid
+    const gamesGrid = document.getElementById('games-grid');
+    const gamesGridMobile = document.getElementById('games-grid-mobile');
+    if (gamesGrid) gamesGrid.style.display = 'none';
+    if (gamesGridMobile) gamesGridMobile.style.display = 'none';
+
+    // Show shop
+    const dshop = document.getElementById('dshop');
+    const dshopMobile = document.getElementById('dshop-mobile');
+    if (dshop) dshop.style.display = 'block';
+    if (dshopMobile) dshopMobile.style.display = 'block';
+
+    // On mobile, switch to shop display
+    if (document.body.classList.contains('mobile-layout')) {
+        switchMobileDisplay('mobile-shop-display');
     }
 }
